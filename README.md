@@ -1,5 +1,6 @@
 # das_system_distri
 # To test file in (UPLOAD BRANCH)
+# To test warranty in (das_distri_warranty repository)
 ## Used Files in Distribution
 
 1. Blade File
