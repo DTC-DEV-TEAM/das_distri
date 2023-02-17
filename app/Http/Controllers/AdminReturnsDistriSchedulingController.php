@@ -718,7 +718,7 @@ use App\StoresFrontEnd;
 				->leftjoin('cms_users as scheduled_logistics', 'returns_header_distribution.level8_personnel','=', 'scheduled_logistics.id')																
 				->select('returns_header_distribution.*','scheduled.name as scheduled_by','diagnosed.name as diagnosed_by',
 				'printed.name as printed_by','transacted.name as transacted_by','received.name as received_by','closed.name as closed_by',
-				'created.name as created_by','scheduled_logistics.name as scheduled_by_logistics',)
+				'created.name as created_by','scheduled_logistics.name as scheduled_by_logistics')
 				->where('returns_header_distribution.id',$id)
 				->first();
 
