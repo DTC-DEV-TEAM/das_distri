@@ -3,46 +3,46 @@
 ## Used Files in Distribution
 
 1. Blade File
-    - history_view_distri.blade.php
-    - edit_tagging_distri.blade.php
-    - print_srr_distri.blade.php
-    - print_srr_distri_new.blade.php
-    - edit_diagnosing_sc_distri.blade.php
-    - edit_receiving_distri_sc.blade.php
-    - print_srr_sc_distri.blade.php
-    - to_receive_distri_rma.blade.php
-    - edit_scheduling_distri.blade.php
-    - edit_delivery_distri.blade.php
-    - print_pullout_distri.blade.php
-    - edit_diagnosing_distri.blade.php
-    - edit_diagnosing_retailSC.blade.php
-    - return_form_distri.blade.php
-    - return_form_retailSC.blade.php
-    - edit_sor_distri.blade.php
-    - edit_crf_distri.blade.php
-    - distri_print_return_form.blade.php
-    - edit_closing_distri_ops.blade.php
-    - history_edit_distri.blade.php
+    [x] history_view_distri.blade.php             
+    [x] edit_tagging_distri.blade.php             
+    [x] print_srr_distri.blade.php                
+    [x] print_srr_distri_new.blade.php            
+    [x] edit_diagnosing_sc_distri.blade.php        
+    [x] edit_receiving_distri_sc.blade.php        
+    [x] print_srr_sc_distri.blade.php             
+    [x] to_receive_distri_rma.blade.php           
+    [x] edit_scheduling_distri.blade.php          
+    [x] edit_delivery_distri.blade.php            
+    [x] print_pullout_distri.blade.php            
+    [x] edit_diagnosing_distri.blade.php          
+    [x] edit_diagnosing_retailSC.blade.php        
+    [x] print_return_form_distri.blade.php        
+    [x] print_return_form_retailSC.blade.php      
+    [x] edit_sor_distri.blade.php                 
+    [x] edit_crf_distri.blade.php                 
+    [x] distri_print_return_form.blade.php        
+    [x] edit_closing_distri_ops.blade.php         
+    [x] history_edit_distri.blade.php             
 
 2. Routes
-    - web
+    [x] web                                       
 
 3. Controller
-    - AdminDistriToVerifyController
-    - AdminToReceiveDistriController
-    - AdminReturnsDistriSchedulingController
-    - AdminDistriReturnsDiagnosingController
-    - AdminToSorDistriController
-    - AdminCrfToCreateDistriController
-    - AdminToShipBackDistriController
-    - AdminToCloseDistriController
-    - AdminDistriReturnHistoryController
+    [x] AdminDistriToVerifyController             
+    [x] AdminToReceiveDistriController            
+    [x] AdminReturnsDistriSchedulingController    
+    [x] AdminDistriReturnDiagnosingController   
+    [x] AdminToSorDistriController                
+    [x] AdminCrfToCreateDistriController          
+    [x] AdminToShipBackDistriController           
+    [x] AdminToCloseDistriController              
+    [x] AdminDistriReturnHistoryController        
 
 4. Migration
-    - update_returns_header_distribution
+    [x] update_returns_header_distribution
 
 ###### My Notes
 * System Specs
-    - Apache Version: 2.4.54.0
-    - PHP Version: 7.4.33
-    - MySQL VERSION: 5.7.41
+    [] Apache Version: 2.4.54.0
+    [] PHP Version: 7.4.33
+    [] MySQL VERSION: 5.7.41
