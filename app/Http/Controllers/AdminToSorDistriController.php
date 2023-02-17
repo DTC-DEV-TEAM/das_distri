@@ -528,8 +528,7 @@ use PHPExcel_Style_Fill;
 						'diagnosed.name as diagnosed_by','printed.name as printed_by',	
 						'transacted.name as transacted_by',	'received.name as received_by',
 						'closed.name as closed_by','created.name as created_by',	
-						'crf.name as created_crf_by',
-						)
+						'crf.name as created_crf_by')
 				->where('returns_header_distribution.id',$id)
 				->first();
 			$data['resultlist'] = ReturnsBodyDISTRI::
