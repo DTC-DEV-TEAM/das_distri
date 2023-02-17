@@ -1,5 +1,6 @@
 # das_system_distri
-
+# To test file in (UPLOAD BRANCH)
+# To test warranty in (das_distri_warranty repository)
 ## Used Files in Distribution
 
 1. Blade File
@@ -43,6 +44,12 @@
 
 ###### My Notes
 * System Specs
+<<<<<<< HEAD
     [] Apache Version: 2.4.54.0
     [] PHP Version: 7.4.33
     [] MySQL VERSION: 5.7.41
+=======
+    - Apache Version: 2.4.54.0
+    - PHP Version: 7.4.33
+    - MySQL VERSION: 5.7.41
+>>>>>>> 1553e670ae8d815ea754e7ee77eab15d6ccd40cc
