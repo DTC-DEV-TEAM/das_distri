@@ -887,8 +887,8 @@ use App\StoresFrontEnd;
 									'transacted.name as transacted_by',	
 									'received.name as received_by',
 									'closed.name as closed_by',
-									'warranty_statuses.*'
-						)->whereNotNull('returns_body_item_distribution.category')->where('transaction_type','!=', 2)->where('returns_status_1','!=', $requested);
+									'warranty_statuses.*')
+						->whereNotNull('returns_body_item_distribution.category')->where('transaction_type','!=', 2)->where('returns_status_1','!=', $requested);
 						
 						
 												if(\Request::get('filter_column')) {
@@ -1184,7 +1184,8 @@ use App\StoresFrontEnd;
 									'received.name as received_by',
 									'closed.name as closed_by',
 									'warranty_statuses.*'
-						)->whereNotNull('returns_body_item_distribution.category')->where('transaction_type','!=', 2)->where('returns_status_1','!=', $requested)->whereIn('returns_header_distribution.stores_id', $storeList);
+						)
+						->whereNotNull('returns_body_item_distribution.category')->where('transaction_type','!=', 2)->where('returns_status_1','!=', $requested)->whereIn('returns_header_distribution.stores_id', $storeList);
 						
 						
 												if(\Request::get('filter_column')) {
