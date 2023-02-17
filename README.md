@@ -44,12 +44,6 @@
 
 ###### My Notes
 * System Specs
-<<<<<<< HEAD
-    [] Apache Version: 2.4.54.0
-    [] PHP Version: 7.4.33
-    [] MySQL VERSION: 5.7.41
-=======
     - Apache Version: 2.4.54.0
     - PHP Version: 7.4.33
     - MySQL VERSION: 5.7.41
->>>>>>> 1553e670ae8d815ea754e7ee77eab15d6ccd40cc
