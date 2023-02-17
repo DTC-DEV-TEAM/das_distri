@@ -1590,13 +1590,13 @@ class AdminToReceiveDistriController extends \crocodicstudio\crudbooster\control
 				->select('returns_header_distribution.*','scheduled.name as scheduled_by',
 				'diagnosed.name as diagnosed_by', 'printed.name as printed_by',	
 				'transacted.name as transacted_by',	'received.name as received_by',
-				'closed.name as closed_by', 'created.name as created_by'						)
+				'closed.name as closed_by', 'created.name as created_by')
 				->where('returns_header_distribution.id',$id)
 				->first();
 
 			$data['resultlist'] = ReturnsBodyDISTRI::
 				leftjoin('returns_serial_distribution', 'returns_body_item_distribution.id', '=', 'returns_serial_distribution.returns_body_item_id')					
-				->select('returns_body_item_distribution.*', 'returns_serial_distribution.*'					)
+				->select('returns_body_item_distribution.*', 'returns_serial_distribution.*')
 				->where('returns_body_item_distribution.returns_header_id',$data['row']->id)
 				->whereNotNull('returns_body_item_distribution.digits_code')
 				->groupBy('returns_body_item_distribution.digits_code')
@@ -1705,8 +1705,7 @@ class AdminToReceiveDistriController extends \crocodicstudio\crudbooster\control
 				leftjoin('returns_serial_distribution', 'returns_body_item_distribution.id', '=', 'returns_serial_distribution.returns_body_item_id')					
 				->select(
 				'returns_body_item_distribution.*',
-				'returns_serial_distribution.*'					
-				)
+				'returns_serial_distribution.*')
 				->where('returns_body_item_distribution.returns_header_id',$data['row']->id)->whereNotNull('returns_body_item_distribution.digits_code')->groupBy('returns_body_item_distribution.digits_code')->get();
 		
 			$channels = Channel::where('channel_name', 'ONLINE')->first();
@@ -1889,9 +1888,9 @@ class AdminToReceiveDistriController extends \crocodicstudio\crudbooster\control
 				'received.name as received_by',
 				'closed.name as closed_by',
 				'created.name as created_by',
-				'scheduled_logistics.name as scheduled_by_logistics',
-				)
-				->where('returns_header_distribution.id',$id)->first();
+				'scheduled_logistics.name as scheduled_by_logistics')
+				->where('returns_header_distribution.id',$id)
+				->first();
 			
 
 			$data['resultlist'] = ReturnsBodyDISTRI::
