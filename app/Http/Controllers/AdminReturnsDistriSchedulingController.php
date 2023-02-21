@@ -585,8 +585,14 @@ use App\StoresFrontEnd;
 				->whereNotNull('returns_body_item_distribution.category')
 				->groupby('returns_body_item_distribution.digits_code')->get();
 
-            $data['store_deliver_to'] = Stores::where('branch_id',  $data['row']->branch_dropoff )->first();
+			$store_id = StoresFrontEnd::
+				where('store_name', $data['row']->store_dropoff )
+				->where('channels_id', 6 )->first();
 
+			$data['store_deliver_to'] = Stores::where('branch_id',  $data['row']->branch_dropoff )
+				->where('stores_frontend_id',  $store_id->id )
+				->first();
+				
 			$data['current_status'] = ReturnsHeaderDISTRI::select('returns_status_1')->where('id', $id)->value('returns_status_1');
 
 			$this->cbView("returns.edit_scheduling_distri", $data);

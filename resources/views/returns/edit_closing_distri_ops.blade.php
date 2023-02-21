@@ -197,10 +197,10 @@
                                    
                                 </div>
 
-                                <label class="control-label col-md-2">{{ trans('message.form-label.customer_location') }}</label>
+                                {{-- <label class="control-label col-md-2">{{ trans('message.form-label.customer_location') }}</label>
                                 <div class="col-md-4">
                                     <p>{{$row->customer_location}}</p>
-                                </div>
+                                </div> --}}
                             </div>
 
                             <div class="row"> 

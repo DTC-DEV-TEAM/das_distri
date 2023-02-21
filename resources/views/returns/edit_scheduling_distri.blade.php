@@ -56,7 +56,7 @@
                                 @if ($current_status == '23')
                                     <label class="control-label col-md-2">Pullout From:</label>
                                     <div class="col-md-4">
-                                        <p>{{$row->customer_location}}</p>
+                                        <p>{{$store_deliver_to->store_name}}</p>
                                     </div>
                                 
                                     <label class="control-label col-md-2">Deliver To:</label>
