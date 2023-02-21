@@ -775,8 +775,8 @@ use App\TransactionTypeList;
 			
 			// $data['store_front_end'] =  StoresFrontEnd::where('store_name',  $data['row']->store)
 			// ->where('store_status', 'ACTIVE')->orderBy('store_name','asc')->get();
-			$data['store_front_end'] =  StoresFrontEnd::where('channels_id',  4)
-			->orWhere('channels_id',  6)
+			$data['store_front_end'] =  StoresFrontEnd::where('channels_id',  7)
+			// ->orWhere('channels_id',  6)
 			->where('store_status', 'ACTIVE')->orderBy('store_name','asc')->get();
 
 
