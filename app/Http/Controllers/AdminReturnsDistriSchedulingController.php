@@ -380,7 +380,7 @@ use App\StoresFrontEnd;
 					$sub_query->where('returns_status_1', $to_schedule_logistics)->where('transaction_type','!=', 2)->orderBy('id', 'asc');  
 					$sub_query->orWhere('returns_status_1', $to_schedule)->where('transaction_type','!=', 2)->orderBy('id', 'asc');  
 					$sub_query->orWhere('returns_status_1', $return_deliver_date)->where('transaction_type','!=', 2)->orderBy('id', 'asc');  
-					$sub_query->orWhere('returns_status_1', $pending)->where('return_schedule','!=', null)->where('transaction_type','!=', 2)->orderBy('returns_status_1', 'asc');
+					$sub_query->orWhere('returns_status_1', $pending)->where('pickup_schedule','!=', null)->orderBy('returns_status_1', 'asc');
 
 				});
 
