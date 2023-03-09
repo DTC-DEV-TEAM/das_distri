@@ -68,7 +68,7 @@ use App\TransactionTypeList;
 			$this->col[] = ["label"=>"Mode of Return","name"=>"mode_of_return"];
 			$this->col[] = ["label"=>"Customer Last Name","name"=>"customer_last_name"];
 			$this->col[] = ["label"=>"Customer First Name","name"=>"customer_first_name"];
-			$this->col[] = ["label"=>"Mode Of Payment","name"=>"mode_of_payment"];
+			// $this->col[] = ["label"=>"Mode Of Payment","name"=>"mode_of_payment"];
 			# END COLUMNS DO NOT REMOVE THIS LINE
 
 			# START FORM DO NOT REMOVE THIS LINE
@@ -339,7 +339,7 @@ use App\TransactionTypeList;
 	    */
 	    public function hook_query_index(&$query) {
 			//Your code here
-		    if(CRUDBooster::myPrivilegeName() == "Distri Store Ops"){ 
+		    if(CRUDBooster::myPrivilegeName() == "Distri Store Ops" || CRUDBooster::myPrivilegeName() == "Store Ops"){ 
 
 				$query->where(function($sub_query){
 
@@ -796,9 +796,9 @@ use App\TransactionTypeList;
 			$storefrontend = StoresFrontEnd::where('channels_id',  4)->where('store_name', $data['row']->store_dropoff )->where('store_status', 'ACTIVE')->orderBy('store_name','asc')->first();
 			
 			$data['branch_dropoff'] = Stores::select('branch_id')->where('store_status','ACTIVE')
-				->where('branch_id', $data['row']->branch_dropoff)
+				// ->where('branch_id', $data['row']->branch_dropoff)
 				->distinct()->orderBy('branch_id', 'asc')->get();
-	
+				
 			$data['transaction_type'] = TransactionTypeList::where('id', 5)->orderBy('transaction_type_name','desc')->get();
 			$data['warranty_status'] = DiagnoseWarranty::orderBy('warranty_name','asc')->get();
 
@@ -806,6 +806,10 @@ use App\TransactionTypeList;
 
 			$data['SCLocation'] = DB::table('sc_location')->where('status', "ACTIVE")->orderBy('sc_location_name', 'ASC')->get();
 			
+			// Update stores_frontend_id
+			// DB::table('stores')->where('stores.id','>',163)->leftJoin('stores_frontend','stores.join_store_frontend','=','stores_frontend.store_name')->update(
+			// 		['stores_frontend_id' => DB::raw('stores_frontend.id')]
+			// 	);
 			$this->cbView("returns.edit_tagging_distri", $data);
 			
 		}
@@ -1220,7 +1224,7 @@ use App\TransactionTypeList;
 		{
 			if(!empty($request->drop_off_store))
 			{
-				$store_id =          StoresFrontEnd::where('store_name', $request->drop_off_store)->where('channels_id', 6)->where('store_status', 'ACTIVE')->first();
+				$store_id =	StoresFrontEnd::where('store_name', $request->drop_off_store)->where('channels_id', 6)->where('store_status', 'ACTIVE')->first();
 
 				if($request->location == 6){
 					$customer_location = Stores::where('stores_frontend_id',$store_id->id)->where('store_status', 'ACTIVE')->orderBy('branch_id', 'ASC')->get();

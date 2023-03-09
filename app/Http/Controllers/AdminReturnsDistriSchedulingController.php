@@ -64,7 +64,7 @@ use App\StoresFrontEnd;
 			$this->col[] = ["label"=>"Branch Drop-Off","name"=>"branch_dropoff"];
 			$this->col[] = ["label"=>"Customer Last Name","name"=>"customer_last_name"];
 			$this->col[] = ["label"=>"Customer First Name","name"=>"customer_first_name"];
-			$this->col[] = ["label"=>"Mode Of Payment","name"=>"mode_of_payment"];
+			// $this->col[] = ["label"=>"Mode Of Payment","name"=>"mode_of_payment"];
 			# END COLUMNS DO NOT REMOVE THIS LINE
 
 			# START FORM DO NOT REMOVE THIS LINE
@@ -354,7 +354,7 @@ use App\StoresFrontEnd;
 
 				
 			}
-			if(CRUDBooster::myPrivilegeName() == "Distri Store Ops"){
+			if(CRUDBooster::myPrivilegeName() == "Distri Store Ops" || CRUDBooster::myPrivilegeName() == "Store Ops"){
 				$query->where(function($sub_query){
 
 					$to_schedule_logistics = ReturnsStatus::where('id','23')->value('id');
@@ -457,14 +457,15 @@ use App\StoresFrontEnd;
 			$pending = ReturnsStatus::where('id','29')->value('id');
 			$pf = ReturnsStatus::where('id','19')->value('id');
 			$return_delivery_date = ReturnsStatus::where('id','33')->value('id');
+			$for_replacement = 	  ReturnsStatus::where('id','20')->value('id');
 
 			$returns_fields     =   Input::all();
 			$field_1 		    =   $returns_fields['return_schedule'];
 			$delivery_date 		=   $returns_fields['return_delivery_date'];
 			$remarks 			= 	$returns_fields['remarks'];
 			$pick_up 			= 	$returns_fields['pickup_schedule'];
-
-			if($ReturnRequest->returns_status_1 == $return_delivery_date){
+			
+			if($ReturnRequest->returns_status_1 == $return_delivery_date && $ReturnRequest->diagnose != 'REPLACE'){
 
 				$to_ship_back = ReturnsStatus::where('id','14')->value('id');
 
@@ -481,20 +482,21 @@ use App\StoresFrontEnd;
 				$postdata['returns_status_1']=				$to_ship_back;
 				$postdata['return_delivery_date']=			$delivery_date;
 				
+			}elseif($ReturnRequest->returns_status_1 == 33 && $ReturnRequest->diagnose == 'REPLACE'){
+				$postdata['level8_personnel'] = 					CRUDBooster::myId();
+				$postdata['level8_personnel_edited']=				date('Y-m-d H:i:s');
+				$postdata['pickup_schedule'] = 						$pick_up;
+				$postdata['returns_status_1'] = 					$for_replacement;				
+			
 			}elseif($ReturnRequest->returns_status_1 == 23){
 				$postdata['level8_personnel'] = 					CRUDBooster::myId();
 				$postdata['level8_personnel_edited']=				date('Y-m-d H:i:s');
-				// $postdata['return_schedule'] = 						$field_1;
 				$postdata['pickup_schedule'] = 						$pick_up;
-				//$postdata['returns_status'] = 						$to_pickup;
 				$postdata['returns_status_1'] = 					$pf;				
 			}
 			else{
 				$postdata['level1_personnel'] = 					CRUDBooster::myId();
-				// $postdata['level1_personnel_edited']=				date('Y-m-d H:i:s');
-				// $postdata['pickup_schedule'] = 						$field_1;
 				$postdata['return_schedule'] = 						$field_1;
-				//$postdata['returns_status'] = 						$to_pickup;
 				$postdata['returns_status_1'] = 					$pending;
 			}
 
@@ -522,7 +524,7 @@ use App\StoresFrontEnd;
 				$data = ['name'=>$fullname,'status_return'=>$to_ship_back,'ref_no'=>$ReturnRequest->return_reference_no,'store_name'=>$ReturnRequest->store];
 				
 				CRUDBooster::redirect(CRUDBooster::mainpath(), trans("The return request has been scheduled successfully!"), 'success');			    
-			}elseif($ReturnRequest->returns_status_1 == 29){
+			}elseif($ReturnRequest->returns_status_1 == 29 || $ReturnRequest->returns_status_1 == 20){
 				CRUDBooster::redirect(CRUDBooster::mainpath(), trans("The return request has been scheduled successfully!"), 'success');
 			}
 			else{

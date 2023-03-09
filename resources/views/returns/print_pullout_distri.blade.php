@@ -73,7 +73,7 @@
 
                     <tr style="font-size: 13px;">
                         <td width="20%">
-                            <label class="control-label col-md-12"><strong>Purchase Date:</strong></label>
+                            <label class="control-label col-md-12"><strong>Item Date Received:</strong></label>
                         </td>
                         <td width="40%">
                             <p>{{$row->purchase_date}}</p>
@@ -95,16 +95,16 @@
                         <td width="40%">
                             <p>{{$row->purchase_location}}</p>
                         </td>
-                                               
                         <td width="20%">
-                            <label class="control-label col-md-12"><strong>Mode of Payment:</strong></label>
-                        </td>
+                            <label class="control-label col-md-12"><strong>Deliver To:</strong></label>
+                        </td>      
                         <td>
-                            <p>{{$row->mode_of_payment}}</p>
-                        </td>  
+                            <p>{{$row->deliver_to}}</p>
+                        </td> 
+                
                     </tr>  
                     
-                    <tr style="font-size: 13px;">
+                    {{-- <tr style="font-size: 13px;">
                         <td width="20%">
                             <label class="control-label col-md-12"><strong>Pullout From:<strong></label>
                         </td>
@@ -116,8 +116,11 @@
                         </td>
                         <td>
                             <p>{{$row->deliver_to}}</p>
-                        </td>                        
-                    </tr>                   
+                        </td>      --}}
+                        {{-- <td>
+                            <p style="visibility: hidden">{{$row->mode_of_payment}}</p>
+                        </td>                     --}}
+                    {{-- </tr>                    --}}
 <!--
                     <tr style="font-size: 13px;">
                         <td width="20%">

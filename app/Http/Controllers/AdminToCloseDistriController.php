@@ -61,7 +61,7 @@ use PHPExcel_Style_Fill;
 			$this->col[] = ["label"=>"Store","name"=>"store"];
 			$this->col[] = ["label"=>"Customer Last Name","name"=>"customer_last_name"];
 			$this->col[] = ["label"=>"Customer First Name","name"=>"customer_first_name"];
-			$this->col[] = ["label"=>"Mode Of Payment","name"=>"mode_of_payment"];
+			// $this->col[] = ["label"=>"Mode Of Payment","name"=>"mode_of_payment"];
 			$this->col[] = ["label"=>"Diagnose","name"=>"diagnose"];
 			$this->col[] = ["label"=>"Return Delivery Date","name"=>"return_delivery_date"];
 			$this->col[] = ["label"=>"Level3 Personnel","name"=>"level3_personnel","visible"=>false];
@@ -410,16 +410,16 @@ use PHPExcel_Style_Fill;
 			if(CRUDBooster::myPrivilegeName() == "SDM"){
 				$query->where(function($sub_query){
 
-					$for_replacement_sdm = 	  ReturnsStatus::where('id','26')->value('id');
+					$for_replacement_sdm = ReturnsStatus::where('id','26')->value('id');
 				
 					$sub_query->where('returns_status_1', $for_replacement_sdm)->where('transaction_type','!=', 2)->orderBy('id', 'asc');  
 
 				});
-			}elseif(CRUDBooster::myPrivilegeName() == "Distri Store Ops"){ 
+			}elseif(CRUDBooster::myPrivilegeName() == "Distri Store Ops" || CRUDBooster::myPrivilegeName() == "Store Ops"){ 
 			    
 			    $query->where(function($sub_query){
 					$to_ship_back = ReturnsStatus::where('id','14')->value('id');
-					$for_replacement = 	  ReturnsStatus::where('id','20')->value('id');
+					$for_replacement = ReturnsStatus::where('id','20')->value('id');
 				
 					$sub_query->where('returns_status_1', $to_ship_back)->orderBy('id', 'asc');  
 					$sub_query->orWhere('returns_status_1', $for_replacement)->orderBy('id', 'asc'); 
@@ -768,13 +768,15 @@ use PHPExcel_Style_Fill;
 				->leftjoin('cms_users as transacted', 'returns_header_distribution.level3_personnel','=', 'transacted.id')
 				->leftjoin('cms_users as received', 'returns_header_distribution.level6_personnel','=', 'received.id')
 				->leftjoin('cms_users as closed', 'returns_header_distribution.level7_personnel','=', 'closed.id')																		
+				->leftjoin('cms_users as scheduler_name', 'returns_header_distribution.level8_personnel','=', 'scheduler_name.id')																		
 				->select('returns_header_distribution.*','scheduled.name as scheduled_by',
 						'diagnosed.name as diagnosed_by','printed.name as printed_by',	
 						'transacted.name as transacted_by','received.name as received_by',
-						'closed.name as closed_by','created.name as created_by')
+						'closed.name as closed_by','created.name as created_by',
+						'scheduler_name.name as scheduler_name')
 				->where('returns_header_distribution.id',$id)
 				->first();
-
+			// dd($data['row']);
 			$data['resultlist'] = ReturnsBodyDISTRI::
 				leftjoin('returns_serial_distribution', 'returns_body_item_distribution.id', '=', 'returns_serial_distribution.returns_body_item_id')					
 				->select('returns_body_item_distribution.*',

@@ -15,10 +15,10 @@ class UpdateReturnsHeaderDistributionTable extends Migration
     {
 
         Schema::table('returns_header_distribution', function($table){
-            $table->dropColumn('pickup_schedule');
-            $table->dropColumn('via_id');
-            $table->dropColumn('carried_by');
-            $table->dropColumn('pos_crf_number');
+            $table->date('pickup_schedule')->nullable()->after('return_schedule');
+            $table->integer('via_id')->nullable()->after('return_delivery_date');
+            $table->string('carried_by')->nullable()->after('via_id');
+            $table->string('pos_crf_number')->nullable()->after('sor_number');
         });
     }
 
@@ -30,10 +30,10 @@ class UpdateReturnsHeaderDistributionTable extends Migration
     public function down()
     {
         Schema::table('returns_header_distribution', function($table){
-            $table->date('pickup_schedule')->nullable()->after('return_schedule');
-            $table->integer('via_id')->nullable()->after('return_delivery_date');
-            $table->string('carried_by')->nullable()->after('via_id');
-            $table->string('pos_crf_number')->nullable()->after('sor_number');
+            $table->dropColumn('pickup_schedule');
+            $table->dropColumn('via_id');
+            $table->dropColumn('carried_by');
+            $table->dropColumn('pos_crf_number');
         });
     }
 }

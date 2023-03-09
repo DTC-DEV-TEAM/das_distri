@@ -277,6 +277,7 @@
                                 <label class="control-label col-md-2"  style="margin-top:4px;">{{ trans('message.form-label.branch_dropoff') }}</label>
                                 <div class="col-md-4">
                                     {{-- {{$row->branch_dropoff}} --}}
+                                    
                                     <select class="js-example-basic-single" name="branch_dropoff" id="branch_dropoff"  style="width:100%">
                                             
                                         @foreach($branch_dropoff as $datas)    
@@ -286,6 +287,7 @@
                                                     <option  value="{{$datas->branch_id}}">{{$datas->branch_id}}</option>
                                             @endif
                                         @endforeach
+                  
                                     </select> 
                                 </div>    
                     
@@ -344,8 +346,8 @@
                                     <input type='input'  name='purchase_date' id="datepicker" value="{{$row->purchase_date}}" onkeydown="return false" required  autocomplete="off"  class='form-control' placeholder="yyyy-mm-dd" /> 
                                 </div>
     
-                                <label class="control-label col-md-2">{{ trans('message.form-label.mode_of_payment') }}</label>
-                                <div class="col-md-4">
+                                <label class="control-label col-md-2" style="visibility: hidden;">{{ trans('message.form-label.mode_of_payment') }}</label>
+                                <div class="col-md-4" style="visibility: hidden;">
                                     <!--<p>{{$row->mode_of_payment}}</p> -->
                                     <!--
                                     <select class="js-example-basic-single" name="mode_of_payment" id="mode_of_payment" required style="width:100%">
@@ -360,6 +362,7 @@
                                     </select>  -->
                                     
                                     <select   class="js-example-basic-multiple" required name="mode_of_payment[]" id="mode_of_payment" multiple="multiple" style="width:100%;">
+                                        <option value="NULL" selected></option>
                                         @foreach($payments as $key=>$list)
                                                 @if(strpos($row->mode_of_payment, $list->payment_name) !== false)
                                                         <option selected value="{{$list->payment_name}}" >{{$list->payment_name}}</option>
@@ -525,7 +528,7 @@
                                                     <th style="text-align:center" height="10">{{ trans('message.table.front_end_item_code') }}</th>
                                                     <th style="text-align:center" height="10">{{ trans('message.table.front_end_item_description') }}</th>
                                                     <th style="text-align:center" height="10">{{ trans('message.table.front_end_brand') }}</th>
-                                                    <th style="text-align:center" height="10">{{ trans('message.table.front_end_cost') }}</th>
+                                                    {{-- <th style="text-align:center" height="10">{{ trans('message.table.front_end_cost') }}</th> --}}
                                                     <th style="text-align:center" height="10">{{ trans('message.table.front_end_serial_number') }}</th>
                                                     <!--<th style="text-align:center" height="10">{{ trans('message.table.front_end_items_included') }}</th>-->
                                                     <th style="text-align:center" height="10">{{ trans('message.table.front_end_problem_details') }}</th>
@@ -541,7 +544,7 @@
                                                     <td style="text-align:center" height="10">{{$rowresult->digits_code}}</td>
                                                     <td style="text-align:center" height="10">{{$rowresult->item_description}}</td>
                                                     <td style="text-align:center" height="10" id="return_brand">{{$rowresult->brand}}</td>
-                                                    <td style="text-align:center" height="10">{{$rowresult->cost}}</td>
+                                                    {{-- <td style="text-align:center" height="10">{{$rowresult->cost}}</td> --}}
                                                     <td style="text-align:center" height="10">{{$rowresult->serial_number}}</td>
                                                      <!--<td style="text-align:center" height="10">{{$rowresult->items_included}}</td>-->
                                                     <td style="text-align:center" height="10">{{$rowresult->problem_details}}
@@ -623,7 +626,7 @@
                                                                                         <th width="10%" class="text-center">{{ trans('message.table.digits_code') }}</th>
                                                                                         <th width="10%" class="text-center">{{ trans('message.table.upc_code') }}</th>
                                                                                         <th width="30%" class="text-center">{{ trans('message.table.item_description') }}</th>
-                                                                                        <th width="10%" class="text-center">{{ trans('message.table.cost') }}</th>
+                                                                                        {{-- <th width="10%" class="text-center">{{ trans('message.table.cost') }}</th> --}}
                                                                                         <th width="10%" class="text-center">{{ trans('message.table.brand') }}</th>
                                                                                         <th width="10%" class="text-center">{{ trans('message.table.serial_no') }}</th>
                                                                                         <th width="10%" class="text-center">{{ trans('message.table.problem_details') }}</th>
@@ -898,8 +901,8 @@ $("#btnSubmit").on('click',function() {
         }
         
         if(itemCost == '' || itemCost == null || itemCost < 0 ){
-            alert("Please put item cost!");
-            return false;
+            // alert("Please put item cost!");
+            return true;
         }else{
             $("form").submit(function(){
                 $('#btnSubmit').attr('disabled', true);
@@ -1015,7 +1018,7 @@ $(document).ready(function(){
                             '<td><input class="form-control text-center" type="text" name="digits_code[]" readonly value="' + e.stock_code + '"></td>' +
                             '<td><input class="form-control text-center" type="text" name="upc_code[]" readonly value="' + e.stock_upc + '"></td>' +
                             '<td><input class="form-control" type="text" name="item_description[]" readonly value="' + e.value + '"></td>' +
-                            '<td><input class="form-control text-center  cost_item" type="number" name="cost[]" value="'+stack_cost+'" min="0" max="9999999999" step="any" onKeyPress="if(this.value.length==10) return false;" oninput="validity.valid||(value=0);"></td>' +
+                            // '<td><input class="form-control text-center  cost_item" type="number" name="cost[]" value="'+stack_cost+'" min="0" max="9999999999" step="any" onKeyPress="if(this.value.length==10) return false;" oninput="validity.valid||(value=0);"></td>' +
                             '<td><input class="form-control text-center" type="text" name="brand[]" readonly value="' +e.stock_brand + '"></td>' +
                             '<td><input class="form-control text-center" type="text" name="serial_no[]"  value="' +stack_serials+'"></td>' +
                             '<td><select class="js-example-basic-multiple" required name="' + e.stock_code + '[]" id="problem_details_'+ e.id +'" multiple="multiple" style="width:100%"></select><br><br><input class="form-control text-center" type="text" name="problem_details_other[]" id="problem_details_other_'+ e.id +'"></td>'+

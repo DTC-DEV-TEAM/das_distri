@@ -75,7 +75,7 @@
 
                     <tr style="font-size: 13px;">
                         <td width="20%">
-                            <label class="control-label col-md-12"><strong>Purchase Date:</strong></label>
+                            <label class="control-label col-md-12"><strong>Item Date Received:</strong></label>
                         </td>
                         <td width="40%">
                             <p>{{$row->purchase_date}}</p>

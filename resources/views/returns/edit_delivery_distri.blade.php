@@ -155,15 +155,15 @@
                             </div>
                             <!-- 6r -->
                             <div class="row">                           
-                                <label class="control-label col-md-2">{{ trans('message.form-label.purchase_date') }}</label>
+                                <label class="control-label col-md-2">{{ trans('message.form-label.received_date') }}</label>
                                 <div class="col-md-4">
                                     <p>{{$row->purchase_date}}</p>
                                 </div>
     
-                                <label class="control-label col-md-2">{{ trans('message.form-label.mode_of_payment') }}</label>
+                                {{-- <label class="control-label col-md-2">{{ trans('message.form-label.mode_of_payment') }}</label>
                                 <div class="col-md-4">
                                     <p>{{$row->mode_of_payment}}</p>
-                                </div>
+                                </div> --}}
                             </div>                           
                             <!-- 7r -->
                             <!--
@@ -259,7 +259,7 @@
                                                     <th width="10%" class="text-center">{{ trans('message.table.digits_code') }}</th>
                                                     <th width="10%" class="text-center">{{ trans('message.table.upc_code') }}</th>
                                                     <th width="30%" class="text-center">{{ trans('message.table.item_description') }}</th>
-                                                    <th width="10%" class="text-center">{{ trans('message.table.cost') }}</th>
+                                                    {{-- <th width="10%" class="text-center">{{ trans('message.table.cost') }}</th> --}}
                                                     <th width="10%" class="text-center">{{ trans('message.table.brand') }}</th>
                                                     <th width="10%" class="text-center">{{ trans('message.table.serial_no') }}</th>
                                                     <th width="15%" class="text-center">{{ trans('message.table.problem_details') }}</th>
@@ -272,7 +272,7 @@
                                                     <td style="text-align:center" height="10">{{$rowresult->digits_code}}</td>
                                                     <td style="text-align:center" height="10">{{$rowresult->upc_code}}</td>
                                                     <td style="text-align:center" height="10">{{$rowresult->item_description}}</td>
-                                                    <td style="text-align:center" height="10">{{$rowresult->cost}}</td>
+                                                    {{-- <td style="text-align:center" height="10">{{$rowresult->cost}}</td> --}}
                                                     <td style="text-align:center" height="10">{{$rowresult->brand}}</td>
                                                     <td style="text-align:center" height="10">{{$rowresult->serial_number}}</td>
                                                     <td style="text-align:center" height="10">{{$rowresult->problem_details}}

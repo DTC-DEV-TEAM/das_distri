@@ -370,6 +370,7 @@ class ComposerStaticInit8e131d5b8a7f779ca5ceb6a25b29c59e
     );
 
     public static $classMap = array (
+        'AddCrfNumberToReturnsHeaderDistribution' => __DIR__ . '/../..' . '/database/migrations/2023_03_09_112813_add_crf_number_to_returns_header_distribution.php',
         'AddDeletedAtCmsModuls' => __DIR__ . '/../..' . '/database/migrations/2017_06_06_164501_add_deleted_at_cms_moduls.php',
         'AddDetailsCmsLogs' => __DIR__ . '/../..' . '/database/migrations/2016_08_07_151211_add_details_cms_logs.php',
         'AddGroupSetting' => __DIR__ . '/../..' . '/database/migrations/2016_09_16_035347_add_group_setting.php',

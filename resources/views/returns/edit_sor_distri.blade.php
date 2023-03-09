@@ -19,7 +19,25 @@
                             
                             <?php   $deliver  == $row->deliver_to; ?>
 
-                            @foreach($resultlist as $rowresult)
+                            <div class="row"> 
+                                <label class="control-label col-md-2" style="margin-top:7px;">DR#:</label>
+                                <div class="col-md-4" style="display:">
+                                    <input oninput="this.value = this.value.toUpperCase()" type='input' name='dr_number' id="pos_crf_number" class='form-control' autocomplete="off" maxlength="50" placeholder="DR#" onkeypress="return AvoidSpace(event)" required/>                             
+                                </div>
+                               
+                            </div>
+                            <br>
+                            <div class="row"> 
+                                <label class="control-label col-md-4 text-warning ">Note: Email SDM to SO replacement item with complete details</label>
+                            </div>
+                            <br>
+                            <div class="row"> 
+                                <label class="control-label col-md-4 text-success">SDM will provide DR#</label>
+                            </div>
+                            
+                            <hr/> 
+
+                            {{-- @foreach($resultlist as $rowresult)
 
                                 @if ($rowresult->brand == 'APPLE' || $rowresult->brand == 'BEATS')
                                         <div class="row"> 
@@ -37,9 +55,9 @@
                                             </div>
                                         </div>
                                         <hr/> 
-                                @endif
+                                @endif --}}
 
-                            @endforeach
+                            {{-- @endforeach --}}
 
                             {{-- @if ($row->transaction_type == 0 )
                             
@@ -94,7 +112,7 @@
                                                     <th width="10%" class="text-center">{{ trans('message.table.digits_code') }}</th>
                                                     <th width="10%" class="text-center">{{ trans('message.table.upc_code') }}</th>
                                                     <th width="30%" class="text-center">{{ trans('message.table.item_description') }}</th>
-                                                    <th width="10%" class="text-center">{{ trans('message.table.cost') }}</th>
+                                                    {{-- <th width="10%" class="text-center">{{ trans('message.table.cost') }}</th> --}}
                                                     <th width="10%" class="text-center">{{ trans('message.table.brand') }}</th>
                                                     <th width="10%" class="text-center">{{ trans('message.table.serial_no') }}</th>
                                                     <th width="15%" class="text-center">{{ trans('message.table.problem_details') }}</th>
@@ -107,7 +125,7 @@
                                                     <td style="text-align:center" height="10">{{$rowresult->digits_code}}</td>
                                                     <td style="text-align:center" height="10">{{$rowresult->upc_code}}</td>
                                                     <td style="text-align:center" height="10">{{$rowresult->item_description}}</td>
-                                                    <td style="text-align:center" height="10">{{$rowresult->cost}}</td>
+                                                    {{-- <td style="text-align:center" height="10">{{$rowresult->cost}}</td> --}}
                                                     <td style="text-align:center" height="10">{{$rowresult->brand}}</td>
                                                     <td style="text-align:center" height="10">{{$rowresult->serial_number}}</td>
                                                     <td style="text-align:center" height="10">{{$rowresult->problem_details}}

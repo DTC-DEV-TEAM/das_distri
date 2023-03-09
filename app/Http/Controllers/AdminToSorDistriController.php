@@ -63,7 +63,7 @@ use PHPExcel_Style_Fill;
 			$this->col[] = ["label"=>"Store","name"=>"store"];
 			$this->col[] = ["label"=>"Customer Last Name","name"=>"customer_last_name"];
 			$this->col[] = ["label"=>"Customer First Name","name"=>"customer_first_name"];
-			$this->col[] = ["label"=>"Mode Of Payment","name"=>"mode_of_payment"];
+			// $this->col[] = ["label"=>"Mode Of Payment","name"=>"mode_of_payment"];
 			$this->col[] = ["label"=>"Diagnose","name"=>"diagnose","visible"=>false];
 			$this->col[] = ["label"=>"Level3 Personnel","name"=>"level3_personnel","visible"=>false];
 			# END COLUMNS DO NOT REMOVE THIS LINE
@@ -418,18 +418,24 @@ use PHPExcel_Style_Fill;
 	        //Your code here
 			
 			$returns_fields = Input::all();
+
 			$field_1 		= $returns_fields['sor_number'];
 			$field_2 		= $returns_fields['crf_number'];
+			$field_3 		= $returns_fields['dr_number'];
+
 			$ReturnRequest = ReturnsHeaderDISTRI::where('id',$id)->first();
+
 			if($ReturnRequest->diagnose == "REPLACE"){
 				
 				$for_replacement = 	  ReturnsStatus::where('id','20')->value('id');
+				$schedule_item_replacement = ReturnsStatus::where('id','33')->value('id');
 
 				$postdata['level3_personnel'] = 					CRUDBooster::myId();
 				$postdata['level3_personnel_edited']=				date('Y-m-d H:i:s');
-				$postdata['returns_status_1'] = 					$for_replacement;
+				$postdata['returns_status_1'] = 					$schedule_item_replacement;
 				$postdata['sor_number'] = 							$field_1;
-				$postdata['pos_crf_number'] = 							$field_2;
+				$postdata['pos_crf_number'] = 						$field_2;
+				$postdata['dr_number'] = 							$field_3;
 
 			}else{
 
@@ -475,7 +481,7 @@ use PHPExcel_Style_Fill;
 
 			}
 					
-			CRUDBooster::redirect(CRUDBooster::mainpath(), trans("The return request has been transacted successfully!"), 'success');
+			CRUDBooster::redirect(CRUDBooster::mainpath(), trans("The return request has been transacted successfully!, Next step is to schedule return items (Logistic Privilege)"), 'success');
 	    }
 
 	    /* 

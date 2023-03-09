@@ -66,7 +66,7 @@ class AdminToReceiveDistriController extends \crocodicstudio\crudbooster\control
 				$this->col[] = ["label"=>"Store","name"=>"store"];
 				$this->col[] = ["label"=>"Customer Last Name","name"=>"customer_last_name"];
 				$this->col[] = ["label"=>"Customer First Name","name"=>"customer_first_name"];
-				$this->col[] = ["label"=>"Mode Of Payment","name"=>"mode_of_payment"];
+				// $this->col[] = ["label"=>"Mode Of Payment","name"=>"mode_of_payment"];
 		# END COLUMNS DO NOT REMOVE THIS LINE
 
 		# START FORM DO NOT REMOVE THIS LINE
@@ -422,7 +422,7 @@ class AdminToReceiveDistriController extends \crocodicstudio\crudbooster\control
 	public function hook_query_index(&$query) {
 	        //Your code here
 	
-				if(CRUDBooster::myPrivilegeName() == "Distri Store Ops"){
+				if(CRUDBooster::myPrivilegeName() == "Distri Store Ops" || CRUDBooster::myPrivilegeName() == "Store Ops" ){
 					$query->where(function($sub_query){
 
 						$to_receive = ReturnsStatus::where('id','29')->value('id');

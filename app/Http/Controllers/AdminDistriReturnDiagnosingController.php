@@ -68,7 +68,7 @@ use PHPExcel_Style_Fill;
 				$this->col[] = ["label"=>"Warranty Status","name"=>"warranty_status"];
 				$this->col[] = ["label"=>"Customer Last Name","name"=>"customer_last_name"];
 				$this->col[] = ["label"=>"Customer First Name","name"=>"customer_first_name"];
-				$this->col[] = ["label"=>"Mode Of Payment","name"=>"mode_of_payment"];
+				// $this->col[] = ["label"=>"Mode Of Payment","name"=>"mode_of_payment"];
 				$this->col[] = ["label"=>"Diagnose","name"=>"diagnose","visible"=>false];
 				$this->col[] = ["label"=>"Level3 Personnel","name"=>"level3_personnel","visible"=>false];
 			}else{
@@ -85,7 +85,7 @@ use PHPExcel_Style_Fill;
 				$this->col[] = ["label"=>"Warranty Status","name"=>"warranty_status"];
 				$this->col[] = ["label"=>"Customer Last Name","name"=>"customer_last_name"];
 				$this->col[] = ["label"=>"Customer First Name","name"=>"customer_first_name"];
-				$this->col[] = ["label"=>"Mode Of Payment","name"=>"mode_of_payment"];
+				// $this->col[] = ["label"=>"Mode Of Payment","name"=>"mode_of_payment"];
 				$this->col[] = ["label"=>"Diagnose","name"=>"diagnose","visible"=>false];
 				$this->col[] = ["label"=>"Level3 Personnel","name"=>"level3_personnel","visible"=>false];
 			}

@@ -16,7 +16,7 @@
                 <div id="requestform" class='panel-body'>
                     <div> 
                         
-                            @if($row->received_by != null && $row->diagnose == "REPLACE")
+                            {{-- @if($row->received_by != null && $row->diagnose == "REPLACE")
 
                                 
                                 <div class="row" style="background-color: #3C8DBC;">                           
@@ -39,7 +39,7 @@
                                     </div>
                                 </div>
                                 <hr/>
-                            @endif
+                            @endif --}}
                             
                             <!--<div class="row" style="background-color: #3C8DBC; height:50px;"> 
                                 <div class="col-md-6" style="margin-top: 10px; color: white; font-size: 20px;">
@@ -93,19 +93,19 @@
                             </div>      
                             
                             <div class="row">   
-                                        @if ($row->store_dropoff != null || $row->store_dropoff != "")
-                                            <label class="control-label col-md-2">{{ trans('message.form-label.store_dropoff') }}</label>
-                                            <div class="col-md-4">
-                                                <p>{{$row->store_dropoff}}</p>
-                                            </div>
-                                        @endif
-                                        
-                                        @if ($row->branch_dropoff != null || $row->branch_dropoff != "")
-                                                <label class="control-label col-md-2">{{ trans('message.form-label.branch_dropoff') }}</label>
-                                                <div class="col-md-4">
-                                                    <p>{{$row->branch_dropoff}}</p>
-                                                </div>    
-                                         @endif  
+                                @if ($row->store_dropoff != null || $row->store_dropoff != "")
+                                    <label class="control-label col-md-2">{{ trans('message.form-label.store_dropoff') }}</label>
+                                    <div class="col-md-4">
+                                        <p>{{$row->store_dropoff}}</p>
+                                    </div>
+                                @endif
+                                
+                                @if ($row->branch_dropoff != null || $row->branch_dropoff != "")
+                                        <label class="control-label col-md-2">{{ trans('message.form-label.branch_dropoff') }}</label>
+                                        <div class="col-md-4">
+                                            <p>{{$row->branch_dropoff}}</p>
+                                        </div>    
+                                    @endif  
                             </div>    
                                                   
                             <!-- 3r -->
@@ -146,14 +146,14 @@
                             </div>
                             <!-- 6r -->
                             <div class="row">                           
-                                <label class="control-label col-md-2">{{ trans('message.form-label.purchase_date') }}</label>
+                                <label class="control-label col-md-2">{{ trans('message.form-label.received_date') }}</label>
                                 <div class="col-md-4">
                                     <p>{{$row->purchase_date}}</p>
                                 </div>
     
-                                <label class="control-label col-md-2">{{ trans('message.form-label.mode_of_payment') }}</label>
+                                <label class="control-label col-md-2" style="visibility: hidden;">{{ trans('message.form-label.mode_of_payment') }}</label>
                                 <div class="col-md-4">
-                                    <p>{{$row->mode_of_payment}}</p>
+                                    <p style="visibility: hidden;">{{$row->mode_of_payment}}</p>
                                 </div>
                             </div>                           
                             <!-- 7r -->
@@ -216,46 +216,70 @@
                                 </div>
                             </div>
                             <hr/>
-                            @if($row->scheduled_by != null  || $row->scheduled_by != "")
-                            <div class="row">                           
-                                <label class="control-label col-md-2">{{ trans('message.form-label.tagged_by') }}</label>
-                                <div class="col-md-4">
-                                    <p>{{$row->scheduled_by}}</p>
-                                </div>
-                                <label class="control-label col-md-2">{{ trans('message.form-label.tagged_at') }}</label>
-                                <div class="col-md-4">
-                                    <p>{{$row->level1_personnel_edited}}</p>
-                                </div>
-                                <label class="control-label col-md-2">{{ trans('message.form-label.customer_location') }}</label>
-
-                                <div class="col-md-4">
-                                    <p>{{$row->customer_location}}</p>
-                                </div>
-                            </div>
-                            <hr>
-
-                    
-                            @endif
-                            <div class="row">                           
-                                <label class="control-label col-md-2">{{ trans('message.form-label.scheduled_by') }}</label>
-                                <div class="col-md-4">
-                                    <p>{{$row->scheduled_by}}</p>
-                                </div>
-                                @if($row->mode_of_return == "STORE DROP-OFF")
-                                        <label class="control-label col-md-2">{{ trans('message.form-label.dropoff_schedule') }}</label>
+                            @if ($row->diagnose != 'REPLACE')
+                                @if($row->scheduled_by != null  || $row->scheduled_by != "")
+                                    <div class="row">                           
+                                        <label class="control-label col-md-2">{{ trans('message.form-label.tagged_by') }}</label>
                                         <div class="col-md-4">
-                                            <p>{{$row->return_schedule}}</p>
+                                            <p>{{$row->scheduled_by}}</p>
+                                        </div>
+                                        <label class="control-label col-md-2">{{ trans('message.form-label.tagged_at') }}</label>
+                                        <div class="col-md-4">
+                                            <p>{{$row->level1_personnel_edited}}</p>
+                                        </div>
+                                        <label class="control-label col-md-2">{{ trans('message.form-label.customer_location') }}</label>
+
+                                        <div class="col-md-4">
+                                            <p>{{$row->customer_location}}</p>
+                                        </div>
                                     </div>
-                                    
-                             
-                                    @else
-                                        <label class="control-label col-md-2">{{ trans('message.form-label.return_schedule') }}</label>
-                                        <div class="col-md-4">
-                                            <p>{{$row->return_schedule}}</p>
-                                        </div>               
-                                    
+                                    <hr>
                                 @endif
-                            </div>
+                                @else
+                                @if($row->scheduled_by != null  || $row->scheduled_by != "")
+                                    <div class="row">                           
+                                        <label class="control-label col-md-2">{{ trans('message.form-label.scheduled_by') }}</label>
+                                        <div class="col-md-4">
+                                            <p>{{$row->scheduler_name}}</p>
+                                        </div>
+                                        <label class="control-label col-md-2">{{ trans('message.form-label.scheduled_at') }}</label>
+                                        <div class="col-md-4">
+                                            <p>{{$row->level8_personnel_edited}}</p>
+                                        </div>
+                                        <label class="control-label col-md-2">{{ trans('message.form-label.pickup_schedule') }}</label>
+
+                                        <div class="col-md-4">
+                                            <p>{{$row->return_delivery_date}}</p>
+                                        </div>
+                                    </div>
+                                    <hr>
+                                @endif
+                            @endif
+
+                            
+                            @if ($row->diagnose != 'REPLACE')
+                                <div class="row">                           
+                                    <label class="control-label col-md-2">{{ trans('message.form-label.scheduled_by') }}</label>
+                                    <div class="col-md-4">
+                                        <p>{{$row->scheduled_by}}</p>
+                                    </div>
+                                    @if($row->mode_of_return == "STORE DROP-OFF")
+                                            <label class="control-label col-md-2">{{ trans('message.form-label.dropoff_schedule') }}</label>
+                                            <div class="col-md-4">
+                                                <p>{{$row->return_schedule}}</p>
+                                        </div>
+                                        
+                                
+                                        @else
+                                            <label class="control-label col-md-2">{{ trans('message.form-label.return_schedule') }}</label>
+                                            <div class="col-md-4">
+                                                <p>{{$row->return_schedule}}</p>
+                                            </div>               
+                                        
+                                    @endif
+                                </div>
+                            @endif
+                            
                             <!--
                             <div class="row"> 
                                 <label class="control-label col-md-2">{{ trans('message.form-label.customer_location') }}</label>
@@ -279,7 +303,7 @@
                                                     <th width="10%" class="text-center">{{ trans('message.table.digits_code') }}</th>
                                                     <th width="10%" class="text-center">{{ trans('message.table.upc_code') }}</th>
                                                     <th width="30%" class="text-center">{{ trans('message.table.item_description') }}</th>
-                                                    <th width="10%" class="text-center">{{ trans('message.table.cost') }}</th>
+                                                    {{-- <th width="10%" class="text-center">{{ trans('message.table.cost') }}</th> --}}
                                                     <th width="10%" class="text-center">{{ trans('message.table.brand') }}</th>
                                                     <th width="10%" class="text-center">{{ trans('message.table.serial_no') }}</th>
                                                     <th width="15%" class="text-center">{{ trans('message.table.problem_details') }}</th>
@@ -292,7 +316,7 @@
                                                     <td style="text-align:center" height="10">{{$rowresult->digits_code}}</td>
                                                     <td style="text-align:center" height="10">{{$rowresult->upc_code}}</td>
                                                     <td style="text-align:center" height="10">{{$rowresult->item_description}}</td>
-                                                    <td style="text-align:center" height="10">{{$rowresult->cost}}</td>
+                                                    {{-- <td style="text-align:center" height="10">{{$rowresult->cost}}</td> --}}
                                                     <td style="text-align:center" height="10">{{$rowresult->brand}}</td>
                                                     <td style="text-align:center" height="10">{{$rowresult->serial_number}}</td>
                                                     <td style="text-align:center" height="10">{{$rowresult->problem_details}}
@@ -360,9 +384,9 @@
                                         </div>
                                     @else
                                         <div class="row">                              
-                                            <label class="control-label col-md-2">{{ trans('message.form-label.crf_number') }}</label>
+                                            <label class="control-label col-md-2">{{ trans('message.form-label.dr_number') }}</label>
                                             <div class="col-md-4">
-                                                <p>{{$row->pos_crf_number}}</p>
+                                                <p>{{$row->dr_number}}</p>
                                             </div>
                                         </div>
                                     @endif

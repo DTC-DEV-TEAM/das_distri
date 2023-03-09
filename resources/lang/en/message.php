@@ -19,6 +19,7 @@ return [
         'contact_no' =>  'Contact#:',
         'order_no' =>  'Order#:',
         'purchase_date' =>  'Purchase Date:',
+        'received_date' =>  'Item Date Received:',
         'mode_of_payment' =>  'Original Mode of Payment:',
         'bank_name' =>  'Bank Name:',
         'bank_account_no' =>  'Bank Account#:',
@@ -27,6 +28,7 @@ return [
         'customer_location' =>  'Customer Location:',
         'sor_number' =>  'SOR#:',
         'crf_number' => 'CRF#' ,
+        'dr_number'  => 'DR#' ,
 
         'mode_of_return' =>  'Mode of Return:',
 
