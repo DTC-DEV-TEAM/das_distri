@@ -291,13 +291,32 @@
                             </div>-->         
               
   
-                            
+                    
                             <div class="row">                           
                                 <label class="control-label col-md-2">{{ trans('message.table.comments1') }}</label>
                                 <div class="col-md-10">
                                     <p>{{$row->comments}}</p>
                                 </div>
-                            </div>                
+                            </div>          
+                            <hr>
+                            <div class="row">                           
+                                <label class="control-label col-md-2">{{ trans('message.form-label.diagnosed_by') }}</label>
+                                <div class="col-md-4">
+                                    <p>{{$row->diagnosed_by}}</p>
+                                </div>
+                                <label class="control-label col-md-2">{{ trans('message.form-label.diagnosed_at') }}</label>
+                                <div class="col-md-4">
+                                    <p>{{$row->level2_personnel_edited}}</p>
+                                </div>
+                            </div>
+
+                            <div class="row"> 
+                               
+                                <label class="control-label col-md-2">{{ trans('message.table.comments2') }}</label>
+                                    <div class="col-md-10">
+                                        <p>{{$row->diagnose_comments}}</p>
+                                    </div>
+                            </div>      
                     </div>
                 </div>
             <div class='panel-footer'>
@@ -331,3 +350,4 @@ $(document).ready(function(){
 
 </script>
 @endpush
+

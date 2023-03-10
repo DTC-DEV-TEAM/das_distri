@@ -28,7 +28,7 @@
                             </div>
                             <br>
                             <div class="row"> 
-                                <label class="control-label col-md-4 text-warning ">Note: Email SDM to SO replacement item with complete details</label>
+                                <label class="control-label col-md-4 text-warning ">Note: Email SDM to SO replacement item with complete details. <br> Customer information &#8594 view button in module.</label>
                             </div>
                             <br>
                             <div class="row"> 
@@ -89,9 +89,6 @@
                                 <div class="col-md-4">
                                     <p>{{$row->return_reference_no}}</p>
                                 </div>
-    
-    
-    
                                 <label class="control-label col-md-2">{{ trans('message.form-label.customer_location') }}</label>
                                 <div class="col-md-4">
                                     <p>{{$row->customer_location}}</p>

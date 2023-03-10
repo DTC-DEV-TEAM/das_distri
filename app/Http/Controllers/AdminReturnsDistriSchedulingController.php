@@ -354,7 +354,7 @@ use App\StoresFrontEnd;
 
 				
 			}
-			if(CRUDBooster::myPrivilegeName() == "Distri Store Ops" || CRUDBooster::myPrivilegeName() == "Store Ops"){
+			if(CRUDBooster::myPrivilegeName() == "Distri Store Ops" || CRUDBooster::myPrivilegeName() == "Distri Ops"){
 				$query->where(function($sub_query){
 
 					$to_schedule_logistics = ReturnsStatus::where('id','23')->value('id');
@@ -610,9 +610,11 @@ use App\StoresFrontEnd;
 			$data = array();
 			$data['row'] = ReturnsHeaderDISTRI::
 				leftjoin('cms_users as created', 'returns_header_distribution.created_by','=', 'created.id')	
+				->leftjoin('cms_users as diagnosed', 'returns_header_distribution.level2_personnel','=', 'diagnosed.id')				
 				->leftjoin('cms_users as closed', 'returns_header_distribution.level7_personnel','=', 'closed.id')
 				->select('returns_header_distribution.*',
 						'created.name as created_by',
+						'diagnosed.name as diagnosed_by',
 						'closed.name as verified_by')
 				->where('returns_header_distribution.id',$id)->first();
 

@@ -415,7 +415,7 @@ use PHPExcel_Style_Fill;
 					$sub_query->where('returns_status_1', $for_replacement_sdm)->where('transaction_type','!=', 2)->orderBy('id', 'asc');  
 
 				});
-			}elseif(CRUDBooster::myPrivilegeName() == "Distri Store Ops" || CRUDBooster::myPrivilegeName() == "Store Ops"){ 
+			}elseif(CRUDBooster::myPrivilegeName() == "Retail Ops" || CRUDBooster::myPrivilegeName() == "Store Ops"){ 
 			    
 			    $query->where(function($sub_query){
 					$to_ship_back = ReturnsStatus::where('id','14')->value('id');

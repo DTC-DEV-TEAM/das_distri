@@ -422,7 +422,7 @@ class AdminToReceiveDistriController extends \crocodicstudio\crudbooster\control
 	public function hook_query_index(&$query) {
 	        //Your code here
 	
-				if(CRUDBooster::myPrivilegeName() == "Distri Store Ops" || CRUDBooster::myPrivilegeName() == "Store Ops" ){
+				if(CRUDBooster::myPrivilegeName() == "Retail Ops" || CRUDBooster::myPrivilegeName() == "Store Ops" ){
 					$query->where(function($sub_query){
 
 						$to_receive = ReturnsStatus::where('id','29')->value('id');
@@ -450,7 +450,7 @@ class AdminToReceiveDistriController extends \crocodicstudio\crudbooster\control
 
 					});
 				}
-				if(CRUDBooster::myPrivilegeName() == "Distri RMA" || CRUDBooster::myPrivilegeName() == "RMA" ){
+				if(CRUDBooster::myPrivilegeName() == "Service Center" || CRUDBooster::myPrivilegeName() == "RMA" ){
 					$query->where(function($sub_query){
 
 						$to_receive_rma = ReturnsStatus::where('id','34')->value('id');;

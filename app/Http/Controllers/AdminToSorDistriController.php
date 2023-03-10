@@ -333,21 +333,21 @@ use PHPExcel_Style_Fill;
 	    */
 	    public function hook_query_index(&$query) {
 	        //Your code here
-			if(CRUDBooster::myPrivilegeName() == "Service Center"){ 
+			if(CRUDBooster::myPrivilegeName() == "Service Center" || CRUDBooster::myPrivilegeName() == "RMA"){ 
 				
 				$query->where(function($sub_query){
 					
 					$to_sor = ReturnsStatus::where('id','9')->value('id');
-					
-						$approvalMatrix = DB::table("cms_users")->where('cms_users.id', CRUDBooster::myId())->get();
-						$approval_array = array();
-						foreach($approvalMatrix as $matrix){
-							array_push($approval_array, $matrix->stores_id);
-						}
-						$approval_string = implode(",",$approval_array);
-						$storeList = array_map('intval',explode(",",$approval_string));                          
+					$sub_query->where('returns_status_1', $to_sor)->orderBy('id', 'asc');  
 
-						$sub_query->where('returns_status_1', $to_sor)->orderBy('id', 'asc');  
+					$approvalMatrix = DB::table("cms_users")->where('cms_users.id', CRUDBooster::myId())->get();
+					$approval_array = array();
+					foreach($approvalMatrix as $matrix){
+						array_push($approval_array, $matrix->stores_id);
+					}
+					$approval_string = implode(",",$approval_array);
+					$storeList = array_map('intval',explode(",",$approval_string));                          
+
 
 				});
 					
@@ -481,7 +481,7 @@ use PHPExcel_Style_Fill;
 
 			}
 					
-			CRUDBooster::redirect(CRUDBooster::mainpath(), trans("The return request has been transacted successfully!, Next step is to schedule return items (Logistic Privilege)"), 'success');
+			CRUDBooster::redirect(CRUDBooster::mainpath(), trans("The return request has been transacted successfully!. Next step is to schedule return items (Logistic Privilege)"), 'success');
 	    }
 
 	    /* 

@@ -339,7 +339,7 @@ use App\TransactionTypeList;
 	    */
 	    public function hook_query_index(&$query) {
 			//Your code here
-		    if(CRUDBooster::myPrivilegeName() == "Distri Store Ops" || CRUDBooster::myPrivilegeName() == "Store Ops"){ 
+		    if(CRUDBooster::myPrivilegeName() == "Distri Store Ops" || CRUDBooster::myPrivilegeName() == "Distri Ops"){ 
 
 				$query->where(function($sub_query){
 
