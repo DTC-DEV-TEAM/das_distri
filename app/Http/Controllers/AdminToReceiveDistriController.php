@@ -425,14 +425,15 @@ class AdminToReceiveDistriController extends \crocodicstudio\crudbooster\control
 				if(CRUDBooster::myPrivilegeName() == "Retail Ops" || CRUDBooster::myPrivilegeName() == "Store Ops" ){
 					$query->where(function($sub_query){
 
+						$stores_id = DB::table('cms_users')->where('id', CRUDBooster::myId())->value('stores_id');
 						$to_receive = ReturnsStatus::where('id','29')->value('id');
 						$pending = ReturnsStatus::where('id','19')->value('id');
 						$to_print_srr  =  ReturnsStatus::where('id','32')->value('id');
 						// $to_receive_rma = ReturnsStatus::where('id','34')->value('id');
 
-						$sub_query->where('returns_status_1', $to_receive)->orderBy('id', 'asc');  
+						$sub_query->where('returns_status_1', $to_receive)->where('stores_id',$stores_id)->orderBy('id', 'asc');  
 						// $sub_query->orWhere('returns_status_1', $to_print_pf)->orderBy('id', 'asc');
-						$sub_query->orWhere('returns_status_1', $pending)->where('pickup_schedule',null);
+						$sub_query->orWhere('returns_status_1', $pending)->where('stores_id',$stores_id)->where('pickup_schedule',null);
 						// $sub_query->orwhere('returns_status_1', $to_receive_rma)->orderBy('id', 'asc');
 
 					});

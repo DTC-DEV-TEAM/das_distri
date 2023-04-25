@@ -416,13 +416,14 @@ use PHPExcel_Style_Fill;
 
 				});
 			}elseif(CRUDBooster::myPrivilegeName() == "Retail Ops" || CRUDBooster::myPrivilegeName() == "Store Ops"){ 
-			    
+				$stores_id = DB::table('cms_users')->where('id', CRUDBooster::myId())->value('stores_id');
+
 			    $query->where(function($sub_query){
 					$to_ship_back = ReturnsStatus::where('id','14')->value('id');
 					$for_replacement = ReturnsStatus::where('id','20')->value('id');
 				
-					$sub_query->where('returns_status_1', $to_ship_back)->orderBy('id', 'asc');  
-					$sub_query->orWhere('returns_status_1', $for_replacement)->orderBy('id', 'asc'); 
+					$sub_query->where('returns_status_1', $to_ship_back)->where('stores_id',$stores_id)->orderBy('id', 'asc');  
+					$sub_query->orWhere('returns_status_1', $for_replacement)->where('stores_id',$stores_id)->orderBy('id', 'asc'); 
 				});
 				
 			}else{
