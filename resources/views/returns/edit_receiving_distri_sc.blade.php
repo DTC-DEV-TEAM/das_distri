@@ -29,7 +29,7 @@
 @endif
   <!-- Your html goes here -->
 <div class='panel panel-default'>
-    <div class='panel-heading'>Details Form 123</div>
+    <div class='panel-heading'>Details Form</div>
         <form method='post' id="myform" action='{{CRUDBooster::mainpath('edit-save/'.$row->id)}}'>
             <input type="hidden" value="{{csrf_token()}}" name="_token" id="token">
             <input type="hidden"  name="remarks" id="remarks" value="SAVE">
