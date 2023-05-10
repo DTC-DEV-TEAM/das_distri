@@ -594,36 +594,48 @@ use PHPExcel_Style_Fill;
 						$postdata['returns_status'] = 					    $replacement_complete;
 						$postdata['returns_status_1'] = 					$to_close; */
 
-					
-						DB::beginTransaction();
+						$validator = Validator::make(
+							['negative_positive_invoice' => $negative_positive_invoice],
+							['negative_positive_invoice' => 'unique:returns_header_retail,returns_header_retail.negative_positive_invoice']
+						);
+						
+						if ($validator->fails()) {
+							// Validation failed
+							$errors = $validator->errors();
 
-						try {
-			
-							DB::connection('mysql_front_end')
-							->statement('insert into returns_tracking_status (return_reference_no, returns_status, 	created_at) values (?, ?, ?)', 
-							[$ReturnRequest->return_reference_no, 
-							$replacement_complete,
-							date('Y-m-d H:i:s')
-							]);
+							return 	CRUDBooster::redirect(CRUDBooster::mainpath('ReturnsClosingEditRTLOPS/'.$id), 'The Negative/Positive Invoice has already been taken.', 'danger');
+						} else {
+
+							DB::beginTransaction();
+
+							try {
+				
+								DB::connection('mysql_front_end')
+								->statement('insert into returns_tracking_status (return_reference_no, returns_status, 	created_at) values (?, ?, ?)', 
+								[$ReturnRequest->return_reference_no, 
+								$replacement_complete,
+								date('Y-m-d H:i:s')
+								]);
+								
+								$postdata['negative_positive_invoice'] = 			$negative_positive_invoice;
+								$postdata['pos_replacement_ref'] = 					$pos_replacement_ref;
 							
-							$postdata['negative_positive_invoice'] = 			$negative_positive_invoice;
-							$postdata['pos_replacement_ref'] = 					$pos_replacement_ref;
-				        
-							$postdata['level4_personnel'] = 					CRUDBooster::myId();
-							$postdata['level4_personnel_edited']=				date('Y-m-d H:i:s');
-							$postdata['returns_status'] = 				        $replacement_complete;
-							$postdata['returns_status_1'] = 					$replacement_complete;
-			                $postdata['history_status'] = 					    1;
-			
-							DB::commit();
-			
-						}catch (\Exception $e) {
-							DB::rollback();
-							CRUDBooster::redirect(CRUDBooster::mainpath(), trans("crudbooster.alert_database_error",['database_error'=>$e]), 'danger');
-						}
-			
-						DB::disconnect('mysql_front_end');
+								$postdata['level4_personnel'] = 					CRUDBooster::myId();
+								$postdata['level4_personnel_edited']=				date('Y-m-d H:i:s');
+								$postdata['returns_status'] = 				        $replacement_complete;
+								$postdata['returns_status_1'] = 					$replacement_complete;
+								$postdata['history_status'] = 					    1;
+				
+								DB::commit();
+				
+							}catch (\Exception $e) {
+								DB::rollback();
+								CRUDBooster::redirect(CRUDBooster::mainpath(), trans("crudbooster.alert_database_error",['database_error'=>$e]), 'danger');
+							}
+				
+							DB::disconnect('mysql_front_end');
 
+						}
 					
 
 					}
