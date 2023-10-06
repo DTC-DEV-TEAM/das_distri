@@ -577,48 +577,7 @@
                                                 </tr>                        
                                             </tbody>
                                         </table>   
-
-
-                                        <hr/>
-                                        <div class="row">                           
-                                            <label class="control-label col-md-2" style="color: #3C8DBC; font-size:15px;">{{ trans('message.form-label.suggested_item') }}</label>
                                             
-                                        </div>
-
-                                                        
-                                        @if($ItemCount == 1 || $ItemCount == 2  || $ItemCount == 0 )
-                                                    <div style="width: 100%; height: auto; overflow:auto;">
-                                            @else
-                                                    <div style="width: 100%; height: 150px; overflow:auto;">
-                                        @endif
-                                            <table  class='table table-striped table-bordered'>
-                                                <thead>
-                                                    <tr>
-                                                        <th style="text-align:center" height="10" style="color: #3C8DBC;">{{ trans('message.table.front_end_item_code') }}</th>
-                                                        <th style="text-align:center" height="10" style="color: #3C8DBC;">{{ trans('message.table.front_end_item_description') }}</th>
-                                                    </tr>
-                                                </thead>
-                                                <tbody>
-                                                    
-                                                    @if (!empty($ItemResult)) 
-                                                        @foreach($ItemResult as $rowresult)
-                                                        <tr>
-    
-                                                            <td style="text-align:center" height="10">{{$rowresult->digits_code}}</td>
-                                                            <td style="text-align:center" height="10">{{$rowresult->item_description}}</td>
-                                                                        
-                                                        </tr>
-                                                        @endforeach
-                                                    @endif
-                                                    <tr>
-                                                        
-                                                    </tr>                        
-                                                </tbody>
-                                            </table>   
-                                        </div>
-                                            
-                                       
-
                                         <hr />
                                         <div class="row">
                                             <div class="col-md-12">

@@ -59,9 +59,10 @@
 			$this->form[] = ['label'=>'Store Drop-Off','name'=>'store_dropoff_privilege','type'=>'select','width'=>'col-sm-5','dataenum'=>'YES;NO'];
 
 			$this->form[] = ['label'=>'Branch Name','name'=>'branch_id','type'=>'text','validation'=>'min:1|max:150','width'=>'col-sm-5'];
-
+			
 			$this->form[] = ['label'=>'Customer Location','name'=>'store_name','type'=>'text','validation'=>'required|min:1|max:150','width'=>'col-sm-5'];
-
+			
+			$this->form[] = ['label'=>'State/Region','name'=>'region','type'=>'select','validation'=>'required','width'=>'col-sm-5','datatable'=>'states,state_name','datatable_where'=>"status='ACTIVE'"];
 			if(CRUDBooster::getCurrentMethod() == 'getEdit' || CRUDBooster::getCurrentMethod() == 'postEditSave' || CRUDBooster::getCurrentMethod() == 'getDetail') {
 				$this->form[] = ['label'=>'Customer Status','name'=>'store_status','type'=>'select','validation'=>'required','width'=>'col-sm-5','dataenum'=>'ACTIVE;INACTIVE'];
 			}
@@ -310,12 +311,13 @@
 
 
 			DB::connection('mysql_front_end')
-			->statement('insert into stores_backend (channels_id, stores_frontend_id, store_dropoff_privilege, branch_id, store_name, created_by, created_at) values (?, ?, ?, ?, ?, ?, ?)', 
+			->statement('insert into stores_backend (channels_id, stores_frontend_id, store_dropoff_privilege, branch_id, store_name, region, created_by, created_at) values (?, ?, ?, ?, ?, ?, ?,?)', 
 			[	$postdata['channels_id'], 
 				$postdata['stores_frontend_id'],
 				$postdata['store_dropoff_privilege'],
 				$postdata['branch_id'],
 				$postdata['store_name'],
+				$postdata['region'],
 			 	CRUDBooster::myId(),
 				date('Y-m-d H:i:s')
 			]);
@@ -355,6 +357,8 @@
 			$e = $postdata['store_status'];
 			$f = CRUDBooster::myId();
 			$g = date('Y-m-d H:i:s');
+			$i = $postdata['region'];
+		
 			
 			if($postdata['store_dropoff_privilege'] == "NO"){
 			     $h = "";
@@ -362,8 +366,10 @@
 			    $h = $postdata['store_dropoff_privilege'];
 			}
 
+		
+
 			DB::connection('mysql_front_end')
-			->statement(" update stores_backend set channels_id = '$a', stores_frontend_id = '$b', store_dropoff_privilege = '$h', branch_id = '$c', store_name = '$d', store_status = '$e',updated_by = '$f', updated_at = '$g'   WHERE  id = '$id' ");
+			->statement(" update stores_backend set channels_id = '$a', stores_frontend_id = '$b', store_dropoff_privilege = '$h', branch_id = '$c', store_name = '$d', store_status = '$e',updated_by = '$f', updated_at = '$g', region = '$i' WHERE  id = '$id' ");
 
 			DB::disconnect('mysql_front_end');
 	    }
