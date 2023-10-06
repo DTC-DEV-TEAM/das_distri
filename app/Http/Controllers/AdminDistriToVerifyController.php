@@ -737,8 +737,9 @@ use App\TransactionTypeList;
 				$data['resultlist'] = ReturnsBodyDISTRI::
 				leftjoin('returns_serial_distribution', 'returns_body_item_distribution.id', '=', 'returns_serial_distribution.returns_body_item_id')					
 				->select('returns_body_item_distribution.*', 'returns_serial_distribution.*')
-				->where('returns_body_item_distribution.returns_header_id',$data['row']->id)->whereNull('returns_body_item_distribution.category')->get();
+				->where('returns_body_item_distribution.returns_header_id',$data['row']->id)->get();
 		
+			// dd($data['resultlist']);
 			
 			$channels = Channel::where('channel_name', 'ONLINE')->first();
 
