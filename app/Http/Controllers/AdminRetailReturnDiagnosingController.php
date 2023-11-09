@@ -5,6 +5,7 @@ use Session;
 use DB;
 use CRUDBooster;
 use App\ReturnsStatus;
+use App\CaseStatus;
 use App\ReturnsHeaderRTL;
 use App\ReturnsBodyRTL;
 use App\ReturnsSerialsRTL;
@@ -492,7 +493,7 @@ use PHPExcel_Style_Fill;
 			$returns_fields = Input::all();
 			$field_1 		= $returns_fields['diagnose'];
 			$field_2 		= $returns_fields['diagnose_comments'];
-
+			$case_status 	= $returns_fields['case_status'];
 
 			$store_id =     StoresFrontEnd::where('store_name', $ReturnRequest->store_dropoff )->where('channels_id', 6 )->first();
 
@@ -523,7 +524,49 @@ use PHPExcel_Style_Fill;
 			$items_included_lines = $items_included_lines;
 			
             
-				if($field_1 == "Replace"){
+
+				if($field_1 == 'Save'){
+				
+					try {
+						
+							$postdata['case_status'] =  $case_status;
+							$postdata['diagnose_comments'] = $field_2;
+							$postdata['warranty_status'] = $warranty_status;
+
+							$postdata['verified_items_included'] = implode(", ",$items_included_lines);
+							$postdata['verified_items_included_others'] = $items_included_others;
+	
+							ReturnsBodyRTL::where('returns_header_id',$ReturnRequest->id)->whereNotNull('brand')
+							->update([		
+								'problem_details'=> implode(", ",$problem_details_lines),
+								'problem_details_other'=> $problem_details_other
+							]);
+	
+
+					}catch (\Exception $e) {
+						DB::rollback();
+						CRUDBooster::redirect(CRUDBooster::mainpath(), trans("crudbooster.alert_database_error",['database_error'=>$e]), 'danger');
+					}
+					
+				}else if($field_1 == 'PrintSSR'){
+
+					$postdata['case_status'] =  $case_status;
+					$postdata['diagnose_comments'] = $field_2;
+					$postdata['warrantzy_status'] = $warranty_status;
+
+					$postdata['verified_items_included'] = implode(", ",$items_included_lines);
+					$postdata['verified_items_included_others'] = $items_included_others;
+
+					ReturnsBodyRTL::where('returns_header_id',$ReturnRequest->id)->whereNotNull('brand')
+					->update([		
+						'problem_details'=> implode(", ",$problem_details_lines),
+						'problem_details_other'=> $problem_details_other
+					]);
+
+					return redirect()->action('AdminRetailReturnDiagnosingController@ReturnsReturnFormPrintRTL',['id'=>$ReturnRequest->id])->send();
+				}
+				
+				else if($field_1 == "Replace"){
 
 					$for_replacement = 	  		ReturnsStatus::where('id','20')->value('id');
 					$for_replacement_frontend =	ReturnsStatus::where('id','27')->value('id');
@@ -552,6 +595,7 @@ use PHPExcel_Style_Fill;
 							$postdata['verified_items_included'] = 				implode(", ",$items_included_lines);
 							$postdata['verified_items_included_others'] = 		$items_included_others;
 							$postdata['warranty_status'] = 						$warranty_status;
+							$postdata['case_status'] =  						$case_status;
 	
 							ReturnsBodyRTL::where('returns_header_id',$ReturnRequest->id)->whereNotNull('brand')
 							->update([		
@@ -594,6 +638,8 @@ use PHPExcel_Style_Fill;
 							$postdata['verified_items_included'] = 				implode(", ",$items_included_lines);
 							$postdata['verified_items_included_others'] = 		$items_included_others;
 							$postdata['warranty_status'] = 						$warranty_status;
+							$postdata['case_status'] =  						$case_status;
+							
 	
 							ReturnsBodyRTL::where('returns_header_id',$ReturnRequest->id)->whereNotNull('brand')
 							->update([		
@@ -636,6 +682,7 @@ use PHPExcel_Style_Fill;
 							$postdata['verified_items_included'] = 				implode(", ",$items_included_lines);
 							$postdata['verified_items_included_others'] = 		$items_included_others;
 							$postdata['warranty_status'] = 						$warranty_status;
+							$postdata['case_status'] =  						$case_status;
 	
 							ReturnsBodyRTL::where('returns_header_id',$ReturnRequest->id)->whereNotNull('brand')
 							->update([		
@@ -679,6 +726,7 @@ use PHPExcel_Style_Fill;
 								$postdata['verified_items_included'] = 				implode(", ",$items_included_lines);
 								$postdata['verified_items_included_others'] = 		$items_included_others;
 								$postdata['warranty_status'] = 						$warranty_status;
+								$postdata['case_status'] =  						$case_status;
 	
 								ReturnsBodyRTL::where('returns_header_id',$ReturnRequest->id)->whereNotNull('brand')
 								->update([		
@@ -714,7 +762,7 @@ use PHPExcel_Style_Fill;
 			$ReturnRequest = ReturnsHeaderRTL::where('id',$id)->first();
 			$returns_fields = Input::all();
 			$field_1 		= $returns_fields['diagnose'];
-
+			
             
 				if($field_1 == "Replace"){
 					$for_replacement_frontend =	ReturnsStatus::where('id','27')->value('warranty_status');
@@ -805,7 +853,6 @@ use PHPExcel_Style_Fill;
 
 			$data = array();
 			$data['page_title'] = 'Returns For Diagnosing';
-		
 			$data['row'] = ReturnsHeaderRTL::
 			//->leftjoin('stores', 'pullout_headers.pull_out_from', '=', 'stores.id')	
 			leftjoin('cms_users as created', 'returns_header_retail.created_by','=', 'created.id')
@@ -832,9 +879,10 @@ use PHPExcel_Style_Fill;
 			'created.name as created_by'			
 			)
 			->where('returns_header_retail.id',$id)->first();
-
-			
+		
 			$data['problem_details_list'] = ProblemDetails::all();
+
+			$data['case_status'] = CaseStatus::where('status','=','ACTIVE')->pluck('case_status_name');
 
 			$data['items_included_list'] = ItemsIncluded::orderBy('items_description_included','asc')->get();
 
@@ -915,7 +963,7 @@ use PHPExcel_Style_Fill;
 		{
 			$this->cbLoader();
 			if(!CRUDBooster::isUpdate() && $this->global_privilege==FALSE) {    
-				CRUDBooster::redirect(CRUDBooster::adminPath(),trans("crudbooster.denied_access"));
+			CRUDBooster::redirect(CRUDBooster::adminPath(),trans("crudbooster.denied_access"));
 			}
 
 			$data = array();
@@ -1482,7 +1530,7 @@ use PHPExcel_Style_Fill;
 						    $verified_date = $orderRow->level7_personnel_edited;
 						    
                             $scheduled_by = $orderRow->scheduled_logistics_by;
-                            $scheduled_date = $orderRow->level7_personnel_edited;
+                            $scheduled_date = $orderRow->level1_personnel_edited;
     						if($orderRow->diagnose == "REFUND"){
     								$printed_by = $orderRow->printed_by;
     								$printed_date = $orderRow->level3_personnel_edited;
@@ -1819,7 +1867,7 @@ use PHPExcel_Style_Fill;
 						    $verified_date = $orderRow->level7_personnel_edited;
 						    
                             $scheduled_by = $orderRow->scheduled_logistics_by;
-                            $scheduled_date = $orderRow->level7_personnel_edited;
+                            $scheduled_date = $orderRow->level1_personnel_edited;
     						if($orderRow->diagnose == "REFUND"){
     								$printed_by = $orderRow->printed_by;
     								$printed_date = $orderRow->level3_personnel_edited;

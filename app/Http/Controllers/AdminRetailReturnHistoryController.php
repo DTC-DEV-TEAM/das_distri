@@ -712,8 +712,8 @@ use App\StoresFrontEnd;
 
 			$to_receive_rma = 			ReturnsStatus::where('id','34')->value('warranty_status');
 			$to_receive_sc = 			ReturnsStatus::where('id','35')->value('warranty_status');
-            
-			if($column_index == 1){
+
+						if($column_index == 1){
 				if($column_value == $to_schedule){
 					$column_value = '<span class="label label-warning">'.$to_schedule.'</span>';
 			
@@ -790,8 +790,8 @@ use App\StoresFrontEnd;
 					$column_value = '<span class="label label-warning">'.$to_receive_sc.'</span>';
 			
 				}
-			}
-	    }
+						}
+					    }
 
 	    /*
 	    | ---------------------------------------------------------------------- 
@@ -1276,7 +1276,7 @@ use App\StoresFrontEnd;
 										$verified_date = $orderRow->level7_personnel_edited;
 										
 										$scheduled_by = $orderRow->scheduled_logistics_by;
-										$scheduled_date = $orderRow->level7_personnel_edited;
+										$scheduled_date = $orderRow->level1_personnel_edited;
 										if($orderRow->diagnose == "REFUND"){
 												$printed_by = $orderRow->printed_by;
 												$printed_date = $orderRow->level3_personnel_edited;
@@ -1599,7 +1599,7 @@ use App\StoresFrontEnd;
 									$verified_date = $orderRow->level7_personnel_edited;
 									
 									$scheduled_by = $orderRow->scheduled_logistics_by;
-									$scheduled_date = $orderRow->level7_personnel_edited;
+									$scheduled_date = $orderRow->level1_personnel_edited;
 									if($orderRow->diagnose == "REFUND"){
 											$printed_by = $orderRow->printed_by;
 											$printed_date = $orderRow->level3_personnel_edited;
@@ -1914,7 +1914,7 @@ use App\StoresFrontEnd;
 									$verified_date = $orderRow->level7_personnel_edited;
 									
 									$scheduled_by = $orderRow->scheduled_logistics_by;
-									$scheduled_date = $orderRow->level7_personnel_edited;
+									$scheduled_date = $orderRow->level1_personnel_edited;
 									if($orderRow->diagnose == "REFUND"){
 											$printed_by = $orderRow->printed_by;
 											$printed_date = $orderRow->level3_personnel_edited;
@@ -2227,7 +2227,7 @@ use App\StoresFrontEnd;
 									$verified_date = $orderRow->level7_personnel_edited;
 									
 									$scheduled_by = $orderRow->scheduled_logistics_by;
-									$scheduled_date = $orderRow->level7_personnel_edited;
+									$scheduled_date = $orderRow->level1_personnel_edited;
 									if($orderRow->diagnose == "REFUND"){
 											$printed_by = $orderRow->printed_by;
 											$printed_date = $orderRow->level3_personnel_edited;
@@ -2553,7 +2553,7 @@ use App\StoresFrontEnd;
 										$verified_date = $orderRow->level7_personnel_edited;
 										
 										$scheduled_by = $orderRow->scheduled_logistics_by;
-										$scheduled_date = $orderRow->level7_personnel_edited;
+										$scheduled_date = $orderRow->level1_personnel_edited;
 										if($orderRow->diagnose == "REFUND"){
 												$printed_by = $orderRow->printed_by;
 												$printed_date = $orderRow->level3_personnel_edited;
@@ -2869,7 +2869,7 @@ use App\StoresFrontEnd;
 									$verified_date = $orderRow->level7_personnel_edited;
 									
 									$scheduled_by = $orderRow->scheduled_logistics_by;
-									$scheduled_date = $orderRow->level7_personnel_edited;
+									$scheduled_date = $orderRow->level1_personnel_edited;
 									if($orderRow->diagnose == "REFUND"){
 											$printed_by = $orderRow->printed_by;
 											$printed_date = $orderRow->level3_personnel_edited;
@@ -3199,7 +3199,7 @@ use App\StoresFrontEnd;
 									$verified_date = $orderRow->level7_personnel_edited;
 									
 									$scheduled_by = $orderRow->scheduled_logistics_by;
-									$scheduled_date = $orderRow->level7_personnel_edited;
+									$scheduled_date = $orderRow->level1_personnel_edited;
 									if($orderRow->diagnose == "REFUND"){
 											$printed_by = $orderRow->printed_by;
 											$printed_date = $orderRow->level3_personnel_edited;
@@ -3513,7 +3513,7 @@ use App\StoresFrontEnd;
 									$verified_date = $orderRow->level7_personnel_edited;
 									
 									$scheduled_by = $orderRow->scheduled_logistics_by;
-									$scheduled_date = $orderRow->level7_personnel_edited;
+									$scheduled_date = $orderRow->level1_personnel_edited;
 									if($orderRow->diagnose == "REFUND"){
 											$printed_by = $orderRow->printed_by;
 											$printed_date = $orderRow->level3_personnel_edited;

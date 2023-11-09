@@ -34,6 +34,7 @@
                             <hr color="black" >
                         </td>
                     </tr>
+                  
 
                     <tr style="font-size: 13px;">
                         <td width="20%">
@@ -92,7 +93,10 @@
                             <label class="control-label col-md-12"><strong>Warranty Status:</strong></label>
                         </td>
                         <td>
+                            @if ($row->diagnose != 'PrintSSR')
                             <p><label style="color:red">{{$row->diagnose}}</label></p>
+                            @endif
+                          
                         </td> 
                         
                     </tr>  

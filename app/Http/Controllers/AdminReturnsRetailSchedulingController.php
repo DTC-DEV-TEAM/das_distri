@@ -440,9 +440,9 @@ use App\StoresFrontEnd;
 			$return_delivery_date = ReturnsStatus::where('id','33')->value('id');
 
 			$returns_fields     =   Input::all();
-			$field_1 		    =   $returns_fields['return_schedule'];
-			$delivery_date 		=   $returns_fields['return_delivery_date'];
-		
+			$field_1 		    =   date_create($returns_fields['return_schedule']);
+			$delivery_date 		=   date_create($returns_fields['return_delivery_date']);
+			// dd(date_format($field_1, 'Y-m-d'));
 		
 		    if($ReturnRequest->returns_status_1 == $return_delivery_date){
 		        
@@ -459,7 +459,7 @@ use App\StoresFrontEnd;
 						$postdata['level6_personnel_edited']=		date('Y-m-d H:i:s');
 						$postdata['returns_status']=				$to_ship_back;
 						$postdata['returns_status_1']=				$to_ship_back;
-    					$postdata['return_delivery_date']=			$delivery_date;
+    					$postdata['return_delivery_date']=			date_format($delivery_date, 'Y-m-d');
     					
     					$user_info =   DB::table("cms_users")->where('cms_users.id', $ReturnRequest->level7_personnel)->first();
     					
@@ -468,7 +468,7 @@ use App\StoresFrontEnd;
 		    }else{
     			$postdata['level1_personnel'] = 					CRUDBooster::myId();
     			$postdata['level1_personnel_edited']=				date('Y-m-d H:i:s');
-    			$postdata['return_schedule'] = 						$field_1;
+    			$postdata['return_schedule'] = 						date_format($field_1, 'Y-m-d');
     			//$postdata['returns_status'] = 						$to_pickup;
     			$postdata['returns_status_1'] = 					$pending;
 		    }
@@ -548,7 +548,7 @@ use App\StoresFrontEnd;
 			}
 
 			$data = array();
-		
+			
 			$data['row'] = ReturnsHeaderRTL::
 			//->leftjoin('stores', 'pullout_headers.pull_out_from', '=', 'stores.id')					
 			leftjoin('cms_users as created', 'returns_header_retail.created_by','=', 'created.id')	
@@ -898,7 +898,7 @@ use App\StoresFrontEnd;
 						    $verified_date = $orderRow->level7_personnel_edited;
 						    
                             $scheduled_by = $orderRow->scheduled_logistics_by;
-                            $scheduled_date = $orderRow->level7_personnel_edited;
+                            $scheduled_date = $orderRow->level1_personnel_edited;
     						if($orderRow->diagnose == "REFUND"){
     								$printed_by = $orderRow->printed_by;
     								$printed_date = $orderRow->level3_personnel_edited;
