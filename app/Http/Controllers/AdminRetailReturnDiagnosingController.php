@@ -494,7 +494,7 @@ use PHPExcel_Style_Fill;
 			$field_1 		= $returns_fields['diagnose'];
 			$field_2 		= $returns_fields['diagnose_comments'];
 			$case_status 	= $returns_fields['case_status'];
-
+			
 			$store_id =     StoresFrontEnd::where('store_name', $ReturnRequest->store_dropoff )->where('channels_id', 6 )->first();
 
 			$customer_location = Stores::where('stores_frontend_id',  $store_id->id )->where('branch_id',$ReturnRequest->branch_dropoff)->where('store_dropoff_privilege', 'YES')->first();
@@ -550,9 +550,12 @@ use PHPExcel_Style_Fill;
 					
 				}else if($field_1 == 'PrintSSR'){
 
-					$postdata['case_status'] =  $case_status;
-					$postdata['diagnose_comments'] = $field_2;
-					$postdata['warrantzy_status'] = $warranty_status;
+					$postdata['case_status'] =  						$case_status;
+					$postdata['diagnose_comments'] = 					$field_2;
+					$postdata['warranty_status'] = 						$warranty_status;
+					$postdata['diagnose'] = 							"Service Center Repair";
+					$postdata['level2_personnel'] = 					CRUDBooster::myId();
+					$postdata['level2_personnel_edited']=				date('Y-m-d H:i:s');
 
 					$postdata['verified_items_included'] = implode(", ",$items_included_lines);
 					$postdata['verified_items_included_others'] = $items_included_others;
