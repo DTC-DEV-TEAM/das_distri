@@ -292,7 +292,7 @@
         <div class='panel-footer'>          
             <a href="{{ CRUDBooster::mainpath() }}" class="btn btn-default">{{ trans('message.form.cancel') }}</a>
 
-            <button class="btn btn-primary pull-right" type="submit" id="btnSubmit"> <i class="fa fa-save" ></i> {{ trans('message.form.receive') }}</button>
+            <button class="btn btn-primary pull-right" type="submit" id="btnSubmit"> <i class="fa fa-save" ></i> {{ $row->returns_status_1 == 37 ? trans('message.form.turnover') : trans('message.form.receive')  }}</button>
         </div>
     </form>
 </div>

@@ -1120,7 +1120,7 @@ use App\TransactionTypeList;
 			}else if($ReturnRequest->returns_status_1 == 37){
 				$to_diagnose = ReturnsStatus::where('id','5')->value('id');
 
-				if(CRUDBooster::myPrivilegeName() == "RMA" || CRUDBooster::myPrivilegeName() == "SuperAdministrator"){
+				if(CRUDBooster::myPrivilegeName() == "RMA" || CRUDBooster::myPrivilegeName() == "Super Administrator"){
 
 					$postdata['returns_status_1'] = 					$to_diagnose;
 					$postdata['received_by_rma_sc'] = 					CRUDBooster::myId();
@@ -1147,17 +1147,18 @@ use App\TransactionTypeList;
 					DB::disconnect('mysql_front_end');	
 				}
 			}
+			// To pickup by log
 			else if($ReturnRequest->returns_status_1 == 34){
 
+				if(CRUDBooster::myPrivilegeName() == "RMA" || CRUDBooster::myPrivilegeName() == "Super Administrator"){
 
-				if(CRUDBooster::myPrivilegeName() == "RMA" || CRUDBooster::myPrivilegeName() == "SuperAdministrator"){
 					$to_diagnose = ReturnsStatus::where('id','5')->value('id');
 					// TO TURNOVER STATUS
 					$to_turnover = ReturnsStatus::where('id','37')->value('id');
 	
 					$postdata['returns_status_1'] = 					$to_turnover;
-					$postdata['received_by_rma_sc'] = 					CRUDBooster::myId();
-					$postdata['received_at_rma_sc']=					date('Y-m-d H:i:s');
+					$postdata['rma_receiver_id'] = 					CRUDBooster::myId();
+					$postdata['rma_receiver_date_received']=					date('Y-m-d H:i:s');
 					
 					
 					
@@ -2091,11 +2092,7 @@ use App\TransactionTypeList;
 			$channels = Channel::where('channel_name', 'ONLINE')->first();
 
 			$data['store_list'] = Stores::where('channels_id',$channels->id)->get();
-			
-		
-			
-	
-			
+						
 			// $this->cbView("returns.to_receive_retail_rma", $data);
 			$this->cbView("components.to_receive_rma", $data);
 
