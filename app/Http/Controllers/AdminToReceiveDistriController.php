@@ -239,14 +239,11 @@ class AdminToReceiveDistriController extends \crocodicstudio\crudbooster\control
 		*/
 		$this->addaction = array();
 		$to_receive = ReturnsStatus::where('id','29')->value('id');
-		
 		$to_print_return_form = ReturnsStatus::where('id','13')->value('id');
-
-		$to_print_srr  =     ReturnsStatus::where('id','19')->value('id');
-		
+		$to_print_srr  = ReturnsStatus::where('id','19')->value('id');
 		$to_diagnose = ReturnsStatus::where('id','5')->value('id');
-		
 		$to_receive_rma = ReturnsStatus::where('id','34')->value('id');
+		$to_turnover_rma = ReturnsStatus::where('id','34')->value('id');
 
 
 		$this->addaction[] = ['title'=>'Edit','url'=>CRUDBooster::mainpath('ReturnsToReceiveEditDISTRI/[id]'),'icon'=>'fa fa-pencil', "showIf"=>"[returns_status_1] == $to_diagnose"];
@@ -255,8 +252,13 @@ class AdminToReceiveDistriController extends \crocodicstudio\crudbooster\control
 		// if(CRUDBooster::myPrivilegeName() == "Distri Logistics" || CRUDBooster::myPrivilegeName() == "Logistics"){
 			$this->addaction[] = ['title'=>'Print','url'=>CRUDBooster::mainpath('ReturnsSRRPrint/[id]'),'icon'=>'fa fa-print', "showIf"=>"[returns_status_1] == $to_print_srr"];
 		// }
-		$this->addaction[] = ['title'=>'Edit','url'=>CRUDBooster::mainpath('ToReceiveDistri/[id]'),'icon'=>'fa fa-pencil', "showIf"=>"[returns_status_1] == $to_receive_rma"];
-		
+		if(CRUDBooster::myPrivilegeId() == 4){
+			$this->addaction[] = ['title'=>'Edit','url'=>CRUDBooster::mainpath('ToReceiveDistri/[id]'),'icon'=>'fa fa-pencil', "showIf"=>"[returns_status_1] == $to_receive_rma"];
+			$this->addaction[] = ['title'=>'Edit','url'=>CRUDBooster::mainpath('ToReceiveDistri/[id]'),'icon'=>'fa fa-pencil', "showIf"=>"[returns_status_1] == $to_turnover_rma"];
+		}
+		else{
+			$this->addaction[] = ['title'=>'Edit','url'=>CRUDBooster::mainpath('ToReceiveDistri/[id]'),'icon'=>'fa fa-pencil'];
+		}
 
 
 		/* 
@@ -466,10 +468,12 @@ class AdminToReceiveDistriController extends \crocodicstudio\crudbooster\control
 						$to_diagnose = ReturnsStatus::where('id','5')->value('id');
 						$to_print_srr  =  ReturnsStatus::where('id','19')->value('id');
 						$to_receive_rma = ReturnsStatus::where('id','34')->value('id');
+						$to_turnover = ReturnsStatus::where('id','37')->value('id');
 						
 						$sub_query->where('returns_status_1', $to_receive)->orderBy('id', 'asc');  
 						$sub_query->orWhere('returns_status_1', $to_print_srr)->orderBy('id', 'asc');
 						$sub_query->orWhere('returns_status_1', $to_receive_rma)->orderBy('id', 'asc');
+						$sub_query->orWhere('returns_status_1', $to_turnover)->orderBy('id', 'asc');
 
 					});   
 				}
@@ -491,6 +495,7 @@ class AdminToReceiveDistriController extends \crocodicstudio\crudbooster\control
 			$to_print_return_form = ReturnsStatus::where('id','13')->value('warranty_status');
 			$to_receive = ReturnsStatus::where('id','29')->value('warranty_status');
 			$to_receive_rma = ReturnsStatus::where('id','34')->value('warranty_status');
+			$to_turnover = ReturnsStatus::where('id','37')->value('warranty_status');
             
             $to_print_srr  =     ReturnsStatus::where('id','19')->value('warranty_status');
 			if($column_index == 1){
@@ -517,6 +522,8 @@ class AdminToReceiveDistriController extends \crocodicstudio\crudbooster\control
 				
 				}elseif($column_value == $to_receive_rma){
 					$column_value = '<span class="label label-warning">'.$to_receive_rma.'</span>';
+				}elseif($column_value == $to_turnover){
+					$column_value = '<span class="label label-warning">'.$to_turnover.'</span>';
 				}
 			}
 		}
@@ -963,31 +970,51 @@ class AdminToReceiveDistriController extends \crocodicstudio\crudbooster\control
 					DB::disconnect('mysql_front_end');	
 								
 					}else{
-						
-						$postdata['returns_status_1'] = 					$to_diagnose;
-						$postdata['received_by_sc'] = 					CRUDBooster::myId();
-						$postdata['received_at_sc']=					date('Y-m-d H:i:s');
-						
-					
-						DB::beginTransaction();
-	
-						try {
-			
-							DB::connection('mysql_front_end')
-							->statement('insert into returns_tracking_status (return_reference_no, returns_status, 	created_at) values (?, ?, ?)', 
-							[   $ReturnRequest->return_reference_no, 
-								$to_diagnose,
-								date('Y-m-d H:i:s')
-							]);
-	
-							DB::commit();
-			
-						}catch (\Exception $e) {
-							DB::rollback();
-							CRUDBooster::redirect(CRUDBooster::mainpath(), trans("crudbooster.alert_database_error",['database_error'=>$e]), 'danger');
+
+						// To pickup by log
+						if($ReturnRequest->returns_status_1 == 34){
+
+							if(CRUDBooster::myPrivilegeName() == "RMA" || CRUDBooster::myPrivilegeName() == "Super Administrator"){
+
+								$to_diagnose = ReturnsStatus::where('id','5')->value('id');
+								// TO TURNOVER STATUS
+								$to_turnover = ReturnsStatus::where('id','37')->value('id');
+				
+								$postdata['returns_status_1'] = 					$to_turnover;
+								$postdata['rma_receiver_id'] = 					CRUDBooster::myId();
+								$postdata['rma_receiver_date_received']=					date('Y-m-d H:i:s');
+							}
 						}
+						// To Diagnose
+						else if($ReturnRequest->returns_status_1 == 37){
+
+							if(CRUDBooster::myPrivilegeName() == "RMA" || CRUDBooster::myPrivilegeName() == "Super Administrator"){
+
+								$postdata['returns_status_1'] = 					$to_diagnose;
+								$postdata['received_by_sc'] = 					CRUDBooster::myId();
+								$postdata['received_at_sc']=					date('Y-m-d H:i:s');
+
+								DB::beginTransaction();
+		
+								try {
+					
+									DB::connection('mysql_front_end')
+									->statement('insert into returns_tracking_status (return_reference_no, returns_status, 	created_at) values (?, ?, ?)', 
+									[   $ReturnRequest->return_reference_no, 
+										$to_diagnose,
+										date('Y-m-d H:i:s')
+									]);
 			
-						DB::disconnect('mysql_front_end');	
+									DB::commit();
+					
+								}catch (\Exception $e) {
+									DB::rollback();
+									CRUDBooster::redirect(CRUDBooster::mainpath(), trans("crudbooster.alert_database_error",['database_error'=>$e]), 'danger');
+								}
+					
+								DB::disconnect('mysql_front_end');	
+							}
+						}
 					}
 				}
 	    }

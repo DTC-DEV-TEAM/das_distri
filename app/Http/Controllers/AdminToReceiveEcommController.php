@@ -203,9 +203,15 @@ use PHPExcel_Style_Fill;
 			}else{
 
 				$to_receive_rma = ReturnsStatus::where('id','34')->value('id');
+				$to_turnover_rma = ReturnsStatus::where('id','37')->value('id');
 
-				$this->addaction[] = ['title'=>'Edit','url'=>CRUDBooster::mainpath('ToReceiveEcomm/[id]'),'icon'=>'fa fa-pencil', "showIf"=>"[returns_status_1] == $to_receive_rma"];
-
+				if(CRUDBooster::myPrivilegeId() == 4){
+					$this->addaction[] = ['title'=>'Edit','url'=>CRUDBooster::mainpath('ToReceiveEcomm/[id]'),'icon'=>'fa fa-pencil', "showIf"=>"[returns_status_1] == $to_receive_rma"];
+					$this->addaction[] = ['title'=>'Edit','url'=>CRUDBooster::mainpath('ToReceiveEcomm/[id]'),'icon'=>'fa fa-pencil', "showIf"=>"[returns_status_1] == $to_turnover_rma"];
+				}
+				else{
+					$this->addaction[] = ['title'=>'Edit','url'=>CRUDBooster::mainpath('ToReceiveEcomm/[id]'),'icon'=>'fa fa-pencil'];
+				}
 			}
 
 	        /* 
@@ -418,8 +424,10 @@ use PHPExcel_Style_Fill;
 				$query->where(function($sub_query){
 			
 					$to_receive_rma = ReturnsStatus::where('id','34')->value('id');
+					$to_turnover = ReturnsStatus::where('id','37')->value('id');
 					
 					$sub_query->where('returns_status_1', $to_receive_rma)->where('transaction_type', 0)->orderBy('id', 'asc');  
+					$sub_query->orWhere('returns_status_1', $to_turnover)->where('transaction_type', 0)->orderBy('id', 'asc');  
 
 				});
 
@@ -445,6 +453,7 @@ use PHPExcel_Style_Fill;
 			$to_print_srr  =     ReturnsStatus::where('id','19')->value('warranty_status');
 			$to_receive_rma = 			ReturnsStatus::where('id','34')->value('warranty_status');
 			$to_receive_sc = 			ReturnsStatus::where('id','35')->value('warranty_status');
+			$to_turnover = 			ReturnsStatus::where('id','37')->value('warranty_status');
 
 			if($column_index == 1){
 				if($column_value == $requested){
@@ -473,6 +482,9 @@ use PHPExcel_Style_Fill;
 			
 				}elseif($column_value == $to_receive_sc){
 					$column_value = '<span class="label label-warning">'.$to_receive_sc.'</span>';
+			
+				}elseif($column_value == $to_turnover){
+					$column_value = '<span class="label label-warning">'.$to_turnover.'</span>';
 			
 				}
 			}
@@ -936,35 +948,51 @@ use PHPExcel_Style_Fill;
 
 			}else{
 
-				$to_diagnose = ReturnsStatus::where('id','5')->value('id');
+				// To pickup by log
+				if($ReturnRequest->returns_status_1 == 34){
 
-				$postdata['returns_status_1'] = 					$to_diagnose;
-				$postdata['received_by_rma_sc'] = 					CRUDBooster::myId();
-				$postdata['received_at_rma_sc']=					date('Y-m-d H:i:s');
-				
-				
-								
+					if(CRUDBooster::myPrivilegeName() == "RMA" || CRUDBooster::myPrivilegeName() == "Super Administrator"){
 
-								DB::beginTransaction();
-				
-								try {
+						$to_diagnose = ReturnsStatus::where('id','5')->value('id');
+						// TO TURNOVER STATUS
+						$to_turnover = ReturnsStatus::where('id','37')->value('id');
+		
+						$postdata['returns_status_1'] = 					$to_turnover;
+						$postdata['rma_receiver_id'] = 					CRUDBooster::myId();
+						$postdata['rma_receiver_date_received']=					date('Y-m-d H:i:s');
+					}
+				}
+				else if($ReturnRequest->returns_status_1 == 37){
+
+					$to_diagnose = ReturnsStatus::where('id','5')->value('id');
 					
-									DB::connection('mysql_front_end')
-									->statement('insert into returns_tracking_status (return_reference_no, returns_status, 	created_at) values (?, ?, ?)', 
-									[   $ReturnRequest->return_reference_no, 
-									    $to_diagnose,
-									    date('Y-m-d H:i:s')
-									]);
+					if(CRUDBooster::myPrivilegeName() == "RMA" || CRUDBooster::myPrivilegeName() == "Super Administrator"){
 
-									DB::commit();
-					
-								}catch (\Exception $e) {
-									DB::rollback();
-									CRUDBooster::redirect(CRUDBooster::mainpath(), trans("crudbooster.alert_database_error",['database_error'=>$e]), 'danger');
-								}
-					
-								DB::disconnect('mysql_front_end');				
+						$postdata['returns_status_1'] = 					$to_diagnose;
+						$postdata['received_by_rma_sc'] = 					CRUDBooster::myId();
+						$postdata['received_at_rma_sc']=					date('Y-m-d H:i:s');
+				
+						DB::beginTransaction();
+		
+						try {
+			
+							DB::connection('mysql_front_end')
+							->statement('insert into returns_tracking_status (return_reference_no, returns_status, 	created_at) values (?, ?, ?)', 
+							[   $ReturnRequest->return_reference_no, 
+								$to_diagnose,
+								date('Y-m-d H:i:s')
+							]);
 
+							DB::commit();
+			
+						}catch (\Exception $e) {
+							DB::rollback();
+							CRUDBooster::redirect(CRUDBooster::mainpath(), trans("crudbooster.alert_database_error",['database_error'=>$e]), 'danger');
+						}
+			
+						DB::disconnect('mysql_front_end');	
+					}
+				}
 			}
 			
 	    }	    

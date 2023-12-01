@@ -511,7 +511,8 @@
 @endsection
 @push('bottom')
     <script type="text/javascript">
-        $("#printPulloutForm").on('click',function(){
+        $("#printPulloutForm").on('click',function(event){
+            event.preventDefault();
         //var strconfirm = confirm("Are you sure you want to approve this pull-out request?");
             var data = $('#myform').serialize();
                 $.ajax({

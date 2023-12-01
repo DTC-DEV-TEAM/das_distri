@@ -683,7 +683,8 @@ use App\StoresFrontEnd;
 
 			$to_receive_rma = 			ReturnsStatus::where('id','34')->value('warranty_status');
 			$to_receive_sc = 			ReturnsStatus::where('id','35')->value('warranty_status');
-			
+			$to_turnover = 				ReturnsStatus::where('id','37')->value('warranty_status');
+
 			$to_create_crf = 			ReturnsStatus::where('id','25')->value('warranty_status');
 
 			$closed_date = "";
@@ -791,6 +792,10 @@ use App\StoresFrontEnd;
 			
 				}elseif($column_value == $to_create_crf){
 					$column_value = '<span class="label label-warning">'.$to_create_crf.'</span>';
+			
+				}
+				elseif($column_value == $to_turnover){
+					$column_value = '<span class="label label-warning">'.$to_turnover.'</span>';
 			
 				}
 			}

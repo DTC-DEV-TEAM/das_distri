@@ -712,7 +712,7 @@ use App\StoresFrontEnd;
 
 			$to_receive_rma = 			ReturnsStatus::where('id','34')->value('warranty_status');
 			$to_receive_sc = 			ReturnsStatus::where('id','35')->value('warranty_status');
-			$to_turnover = 			ReturnsStatus::where('id','37')->value('warranty_status');
+			$to_turnover = 				ReturnsStatus::where('id','37')->value('warranty_status');
 
 
 						if($column_index == 1){

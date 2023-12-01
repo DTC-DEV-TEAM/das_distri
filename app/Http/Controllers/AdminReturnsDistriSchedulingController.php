@@ -463,7 +463,7 @@ use App\StoresFrontEnd;
 			$field_1 		    =   $returns_fields['return_schedule'];
 			$delivery_date 		=   $returns_fields['return_delivery_date'];
 			$remarks 			= 	$returns_fields['remarks'];
-			$pick_up 			= 	$returns_fields['pickup_schedule'];
+			$pick_up 			= 	(new \DateTime($returns_fields['pickup_schedule']))->format('Y-m-d');
 			
 			if($ReturnRequest->returns_status_1 == $return_delivery_date && $ReturnRequest->diagnose != 'REPLACE'){
 
@@ -678,6 +678,7 @@ use App\StoresFrontEnd;
 			$data['store_deliver_to'] = Stores::where('branch_id',  $data['row']->branch_dropoff )
 				->where('stores_frontend_id',  $store_id->id )->first();
 			
+			// dd('hello world');
 			$this->cbView("returns.print_pullout_distri", $data);
 
 		}
@@ -691,19 +692,20 @@ use App\StoresFrontEnd;
 			$return_request =  ReturnsHeaderDISTRI::where('id',$request_id)->first();
 
 			if($return_request->returns_status_1 != $to_rma){
-
+				
 				DB::beginTransaction();
 
 				try {
 
 					DB::connection('mysql_distri')
-					->statement('insert into returns_tracking_status (return_reference_no, returns_status, 	created_at) values (?, ?, ?)', 
-					[$return_request->return_reference_no, 
-					$to_pickup,
-					date('Y-m-d H:i:s')
-					]);
+						->statement('insert into returns_tracking_status (return_reference_no, returns_status, 	created_at) values (?, ?, ?)', 
+						[
+							$return_request->return_reference_no, 
+							$to_pickup,
+							date('Y-m-d H:i:s')
+						]);
 		
-					ReturnsHeaderDISTRI::where('id',$request_id)
+					ReturnsHeaderDISTRI::where('id',(int)$request_id)
 						->update([
 							'returns_status'=> 			$to_pickup,
 							'returns_status_1'=> 		$to_rma
@@ -718,6 +720,8 @@ use App\StoresFrontEnd;
 	
 				DB::disconnect('mysql_distri');
 			}
+
+			dd('success');
 		}
 
 		public function GetExtractSchedulingReturnsDISTRI() {
@@ -876,7 +880,7 @@ use App\StoresFrontEnd;
 							$verified_date = $orderRow->level7_personnel_edited;
 							
 							$scheduled_by = $orderRow->scheduled_logistics_by;
-							$scheduled_date = $orderRow->level1_personnel_edited;
+							$scheduled_date = $orderRow->level7_personnel_edited;
 
 							if($orderRow->diagnose == "REFUND"){
 								$printed_by = $orderRow->printed_by;

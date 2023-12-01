@@ -508,7 +508,8 @@ use App\StoresFrontEnd;
             $to_receive  = 	            ReturnsStatus::where('id','29')->value('warranty_status');    
             $return_delivery_date =     ReturnsStatus::where('id','33')->value('warranty_status');
 			$to_schedule_logistics = 	ReturnsStatus::where('id','23')->value('warranty_status');
-		
+			$to_turnover = 				ReturnsStatus::where('id','37')->value('warranty_status');
+
 			if($column_index == 1){
 				if($column_value == $to_schedule){
 					$column_value = '<span class="label label-warning">'.$to_schedule.'</span>';
@@ -579,8 +580,11 @@ use App\StoresFrontEnd;
 				}elseif($column_value == $to_receive_rma){
 					$column_value = '<span class="label label-warning">'.$to_receive_rma.'</span>';
 					
-				}	elseif($column_value == $to_schedule_logistics){
+				}elseif($column_value == $to_schedule_logistics){
 					$column_value = '<span class="label label-warning">'.$to_schedule_logistics.'</span>';
+			
+				}elseif($column_value == $to_turnover){
+					$column_value = '<span class="label label-warning">'.$to_turnover.'</span>';
 			
 				}
 			}
