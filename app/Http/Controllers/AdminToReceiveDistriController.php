@@ -1870,7 +1870,7 @@ class AdminToReceiveDistriController extends \crocodicstudio\crudbooster\control
 			$data['row'] = ReturnsHeaderDISTRI::
 				//->leftjoin('stores', 'pullout_headers.pull_out_from', '=', 'stores.id')	
 				leftjoin('cms_users as created', 'returns_header_distribution.created_by','=', 'created.id')
-				->leftjoin('cms_users as scheduled', 'returns_header_distribution.level1_personnel','=', 'scheduled.id')			
+				->leftjoin('cms_users as tagged', 'returns_header_distribution.level1_personnel','=', 'tagged.id')			
 				// ->leftjoin('cms_users as tagged', 'returns_header_distribution.level2_personnel','=', 'tagged.id')
 				->leftjoin('cms_users as diagnosed', 'returns_header_distribution.level2_personnel','=', 'diagnosed.id')				
 				->leftjoin('cms_users as printed', 'returns_header_distribution.level3_personnel','=', 'printed.id')																	
@@ -1880,7 +1880,7 @@ class AdminToReceiveDistriController extends \crocodicstudio\crudbooster\control
 				->leftjoin('cms_users as scheduled_logistics', 'returns_header_distribution.level8_personnel','=', 'scheduled_logistics.id')																
 				->select(
 				'returns_header_distribution.*',
-				'scheduled.name as scheduled_by',
+				'tagged.name as tagged_by',
 				// 'tagged.name as tagged_by',	
 				'diagnosed.name as diagnosed_by',
 				'printed.name as printed_by',	
@@ -1906,7 +1906,8 @@ class AdminToReceiveDistriController extends \crocodicstudio\crudbooster\control
 			$data['store_list'] = Stores::where('channels_id',$channels->id)->get();
 			
 		
-			$this->cbView("returns.to_receive_distri_rma", $data);
+			// $this->cbView("returns.to_receive_distri_rma", $data);
+			$this->cbView("components.to_receive_rma", $data);
 		}
 		
 	}

@@ -387,6 +387,7 @@ use PHPExcel_Style_Fill;
 	    |
 	    */
 	    public function hook_query_index(&$query) {
+			
 	        //Your code here
 
 			if(CRUDBooster::myPrivilegeName() == "Service Center"){ 

@@ -1789,7 +1789,9 @@ use PHPExcel_Style_Fill;
 			
 	
 			
-			$this->cbView("returns.to_receive_ecomm_rma", $data);
+			// $this->cbView("returns.to_receive_ecomm_rma", $data);
+			$this->cbView("components.to_receive_rma", $data);
+
 		}
 		
 	}

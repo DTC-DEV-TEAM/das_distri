@@ -712,6 +712,8 @@ use App\StoresFrontEnd;
 
 			$to_receive_rma = 			ReturnsStatus::where('id','34')->value('warranty_status');
 			$to_receive_sc = 			ReturnsStatus::where('id','35')->value('warranty_status');
+			$to_turnover = 			ReturnsStatus::where('id','37')->value('warranty_status');
+
 
 						if($column_index == 1){
 				if($column_value == $to_schedule){
@@ -788,6 +790,9 @@ use App\StoresFrontEnd;
 			
 				}elseif($column_value == $to_receive_sc){
 					$column_value = '<span class="label label-warning">'.$to_receive_sc.'</span>';
+			
+				}elseif($column_value == $to_turnover){
+					$column_value = '<span class="label label-warning">'.$to_turnover.'</span>';
 			
 				}
 						}
