@@ -213,10 +213,12 @@ use PHPExcel_Style_Fill;
 	        */
 			$this->addaction = array();
 			$to_diagnose = ReturnsStatus::where('id','5')->value('id');
+			$to_for_action = ReturnsStatus::where('id','38')->value('id');
 			$to_print_return_form = ReturnsStatus::where('id','13')->value('id');
 			$requested = ReturnsStatus::where('id','1')->value('id');
 
 				$this->addaction[] = ['title'=>'Edit','url'=>CRUDBooster::mainpath('ReturnsDiagnosingRTLEdit/[id]'),'icon'=>'fa fa-pencil', "showIf"=>"[returns_status_1] == $to_diagnose"];
+				$this->addaction[] = ['title'=>'Edit','url'=>CRUDBooster::mainpath('ReturnsDiagnosingRTLEdit/[id]'),'icon'=>'fa fa-pencil', "showIf"=>"[returns_status_1] == $to_for_action"];
 				$this->addaction[] = ['title'=>'Print','url'=>CRUDBooster::mainpath('ReturnsReturnFormPrintRTL/[id]'),'icon'=>'fa fa-print', "showIf"=>"[returns_status_1] == $to_print_return_form"];
 	        
 				/* 
@@ -409,13 +411,27 @@ use PHPExcel_Style_Fill;
 					$sub_query->orWhere('returns_status_1', $to_print_return_form)->where('transaction_type', 1)->whereIn('returns_header_retail.stores_id', $storeList)->orderBy('id', 'asc');
 				});
 
-			}else{
+			}else if (CRUDBooster::myPrivilegeName() == "RMA Technician") {
+				$query->where(function($sub_query){
+					$to_diagnose = 5;
+					$sub_query->whereIn('returns_status_1', [$to_diagnose])->where('transaction_type', 0)->orderBy('id', 'desc');
+
+				});
+			}else if (CRUDBooster::myPrivilegeName() == "RMA Specialist") {
+				$query->where(function($sub_query){
+					$to_for_action = 38;
+					$to_print_return_form = 13;
+					$sub_query->whereIn('returns_status_1', [$to_for_action, $to_print_return_form])->where('transaction_type', 0)->orderBy('id', 'desc');
+				});
+			}
+			
+			else{
 
 				$query->where(function($sub_query){
-					$to_diagnose = ReturnsStatus::where('id','5')->value('id');
-					$to_print_return_form = ReturnsStatus::where('id','13')->value('id');
-					$sub_query->where('returns_status_1', $to_diagnose)->where('transaction_type', 0)->orderBy('id', 'asc');  
-					$sub_query->orWhere('returns_status_1', $to_print_return_form)->where('transaction_type', 0)->orderBy('id', 'asc');
+					$to_diagnose = 5;
+					$to_for_action = 38;
+					$to_print_return_form = 13;
+					$sub_query->whereIn('returns_status_1', [$to_diagnose, $to_for_action, $to_print_return_form])->where('transaction_type', 0)->orderBy('id', 'desc');
 
 				});
 
@@ -433,6 +449,7 @@ use PHPExcel_Style_Fill;
 			$to_schedule = 	ReturnsStatus::where('id','18')->value('warranty_status');
 			$pending = ReturnsStatus::where('id','19')->value('warranty_status');
 			$to_diagnose = ReturnsStatus::where('id','5')->value('warranty_status');
+			$to_for_action = ReturnsStatus::where('id','38')->value('warranty_status');
 			$to_print_return_form = ReturnsStatus::where('id','13')->value('warranty_status');
 			$requested = 				ReturnsStatus::where('id','1')->value('warranty_status');
 			if($column_value == $to_schedule){
@@ -446,6 +463,9 @@ use PHPExcel_Style_Fill;
 		
 			}elseif($column_value == $to_diagnose){
 				$column_value = '<span class="label label-warning">'.$to_diagnose.'</span>';
+		
+			}elseif($column_value == $to_for_action){
+				$column_value = '<span class="label label-warning">'.$to_for_action.'</span>';
 		
 			}elseif($column_value == $to_print_return_form){
 				$column_value = '<span class="label label-warning">'.$to_print_return_form.'</span>';
@@ -495,7 +515,6 @@ use PHPExcel_Style_Fill;
 			$field_1 		= $returns_fields['diagnose'];
 			$field_2 		= $returns_fields['diagnose_comments'];
 			$case_status 	= $returns_fields['case_status'];
-			
 			$store_id =     StoresFrontEnd::where('store_name', $ReturnRequest->store_dropoff )->where('channels_id', 6 )->first();
 
 			$customer_location = Stores::where('stores_frontend_id',  $store_id->id )->where('branch_id',$ReturnRequest->branch_dropoff)->where('store_dropoff_privilege', 'YES')->first();
@@ -568,6 +587,16 @@ use PHPExcel_Style_Fill;
 					]);
 
 					return redirect()->action('AdminRetailReturnDiagnosingController@ReturnsReturnFormPrintRTL',['id'=>$ReturnRequest->id])->send();
+				}
+				else if ($field_1 == 'Test Done') {
+					if(CRUDBooster::myPrivilegeName() == "RMA Technician" || CRUDBooster::myPrivilegeName() == "SuperAdministrator"){
+				
+						$to_for_action = ReturnsStatus::where('id','38')->value('id');
+		
+						$postdata['returns_status_1'] = 					$to_for_action;
+						$postdata['rma_specialist_id'] = 					CRUDBooster::myId();
+						$postdata['rma_specialist_date_received']=			date('Y-m-d H:i:s');
+					}
 				}
 				
 				else if($field_1 == "Replace"){
@@ -856,7 +885,7 @@ use PHPExcel_Style_Fill;
 			}
 
 			$data = array();
-			$data['page_title'] = 'Returns For Diagnosing';
+		
 			$data['row'] = ReturnsHeaderRTL::
 			//->leftjoin('stores', 'pullout_headers.pull_out_from', '=', 'stores.id')	
 			leftjoin('cms_users as created', 'returns_header_retail.created_by','=', 'created.id')
@@ -883,12 +912,13 @@ use PHPExcel_Style_Fill;
 			'created.name as created_by'			
 			)
 			->where('returns_header_retail.id',$id)->first();
-		
 			$data['problem_details_list'] = ProblemDetails::all();
-
+			$data['page_title'] = $data['row']->returns_status_1 == 5 ? 'Returns For Diagnosing' : 'Returns For Specialist';
+			
 			$data['case_status'] = CaseStatus::where('status','=','ACTIVE')->pluck('case_status_name');
-
+			
 			$data['items_included_list'] = ItemsIncluded::orderBy('items_description_included','asc')->get();
+			// dd($data['items_included_list'], $data['problem_details_list']);
 
 			$data['warranty_status'] = DiagnoseWarranty::orderBy('warranty_name','asc')->get();
 			
