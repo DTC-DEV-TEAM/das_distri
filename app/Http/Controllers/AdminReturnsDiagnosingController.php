@@ -412,17 +412,21 @@ use PHPExcel_Style_Fill;
 				});
 			}
 			else{
-			    
-
+				
 				$query->where(function($sub_query){
 					//$to_indicate_store = ReturnsStatus::where('warranty_status','TO DIAGNOSE')->value('id');
 					//$to_indicate_store = 	ReturnsStatus::where('id','3')->value('id');
-					// $to_diagnose = ReturnsStatus::where('id','5')->value('id');
+					$to_diagnose = ReturnsStatus::where('id','5')->value('id');
 					$to_diagnose_action = ReturnsStatus::where('id','38')->value('id');
 					$to_receive_sor = 		ReturnsStatus::where('id','10')->value('id');
 					$to_print_return_form = ReturnsStatus::where('id','13')->value('id');
 	
-					$sub_query->where('returns_status_1', $to_diagnose_action)->where('transaction_type', 0)->orderBy('id', 'asc');  
+					if((CRUDBooster::myPrivilegeName() == "RMA Specialist")){
+						$sub_query->where('returns_status_1', $to_diagnose_action)->where('transaction_type', 0)->orderBy('id', 'asc');  
+					}else{
+						$sub_query->where('returns_status_1', $to_diagnose)->where('transaction_type', 0)->orderBy('id', 'asc');  
+						$sub_query->orWhere('returns_status_1', $to_diagnose_action)->where('transaction_type', 0)->orderBy('id', 'asc'); 
+					}
 					$sub_query->orWhere('returns_status_1', $to_receive_sor)->where('transaction_type', 0)->orderBy('id', 'asc');
 					$sub_query->orWhere('returns_status_1', $to_print_return_form)->where('transaction_type', 0)->orderBy('id', 'asc');
 				});

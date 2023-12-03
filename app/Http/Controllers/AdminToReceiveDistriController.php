@@ -243,11 +243,10 @@ class AdminToReceiveDistriController extends \crocodicstudio\crudbooster\control
 		$to_print_srr  = ReturnsStatus::where('id','19')->value('id');
 		$to_diagnose = ReturnsStatus::where('id','5')->value('id');
 		$to_receive_rma = ReturnsStatus::where('id','34')->value('id');
-		$to_turnover_rma = ReturnsStatus::where('id','34')->value('id');
+		$to_turnover_rma = ReturnsStatus::where('id','37')->value('id');
 
 
 		$this->addaction[] = ['title'=>'Edit','url'=>CRUDBooster::mainpath('ReturnsToReceiveEditDISTRI/[id]'),'icon'=>'fa fa-pencil', "showIf"=>"[returns_status_1] == $to_diagnose"];
-		$this->addaction[] = ['title'=>'Edit','url'=>CRUDBooster::mainpath('ReturnsDiagnosingDISTRIEditSC/[id]'),'icon'=>'fa fa-pencil', "showIf"=>"[returns_status_1] == $to_receive"];
 		$this->addaction[] = ['title'=>'Print','url'=>CRUDBooster::mainpath('ReturnsReturnFormPrintDISTRISC/[id]'),'icon'=>'fa fa-print', "showIf"=>"[returns_status_1] == $to_print_return_form"];
 		// if(CRUDBooster::myPrivilegeName() == "Distri Logistics" || CRUDBooster::myPrivilegeName() == "Logistics"){
 			$this->addaction[] = ['title'=>'Print','url'=>CRUDBooster::mainpath('ReturnsSRRPrint/[id]'),'icon'=>'fa fa-print', "showIf"=>"[returns_status_1] == $to_print_srr"];
@@ -257,7 +256,9 @@ class AdminToReceiveDistriController extends \crocodicstudio\crudbooster\control
 			$this->addaction[] = ['title'=>'Edit','url'=>CRUDBooster::mainpath('ToReceiveDistri/[id]'),'icon'=>'fa fa-pencil', "showIf"=>"[returns_status_1] == $to_turnover_rma"];
 		}
 		else{
-			$this->addaction[] = ['title'=>'Edit','url'=>CRUDBooster::mainpath('ToReceiveDistri/[id]'),'icon'=>'fa fa-pencil'];
+			$this->addaction[] = ['title'=>'Edit','url'=>CRUDBooster::mainpath('ToReceiveDistri/[id]'),'icon'=>'fa fa-pencil', "showIf"=>"[returns_status_1] == $to_receive_rma"];
+			$this->addaction[] = ['title'=>'Edit','url'=>CRUDBooster::mainpath('ToReceiveDistri/[id]'),'icon'=>'fa fa-pencil', "showIf"=>"[returns_status_1] == $to_turnover_rma"];
+			$this->addaction[] = ['title'=>'Edit','url'=>CRUDBooster::mainpath('ReturnsDiagnosingDISTRIEditSC/[id]'),'icon'=>'fa fa-pencil', "showIf"=>"[returns_status_1] == $to_receive"];
 		}
 
 
