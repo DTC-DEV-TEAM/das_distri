@@ -510,13 +510,11 @@ use PHPExcel_Style_Fill;
 			//Your code here
 			$ReturnRequest = ReturnsHeaderRTL::where('id',$id)->first();
 
-
 			$returns_fields = Input::all();
 			$field_1 		= $returns_fields['diagnose'];
 			$field_2 		= $returns_fields['diagnose_comments'];
 			$case_status 	= $returns_fields['case_status'];
 			$store_id =     StoresFrontEnd::where('store_name', $ReturnRequest->store_dropoff )->where('channels_id', 6 )->first();
-
 			$customer_location = Stores::where('stores_frontend_id',  $store_id->id )->where('branch_id',$ReturnRequest->branch_dropoff)->where('store_dropoff_privilege', 'YES')->first();
 
 			$problem_details_lines = array();
@@ -543,10 +541,11 @@ use PHPExcel_Style_Fill;
 
 			$items_included_lines = $items_included_lines;
 			
-            
+				if ($field_1 == 'Save' && CRUDBooster::myPrivilegeName() == "RMA Specialist") {
 
-				if($field_1 == 'Save'){
-				
+					$postdata['case_status'] =  $case_status;
+					
+				}else if($field_1 == 'Save'){
 					try {
 						
 							$postdata['case_status'] =  $case_status;
@@ -561,30 +560,17 @@ use PHPExcel_Style_Fill;
 								'problem_details'=> implode(", ",$problem_details_lines),
 								'problem_details_other'=> $problem_details_other
 							]);
-	
-
 					}catch (\Exception $e) {
 						DB::rollback();
 						CRUDBooster::redirect(CRUDBooster::mainpath(), trans("crudbooster.alert_database_error",['database_error'=>$e]), 'danger');
 					}
-					
-				}else if($field_1 == 'PrintSSR'){
+				}
+				else if($field_1 == 'PrintSSR'){
 
 					$postdata['case_status'] =  						$case_status;
-					$postdata['diagnose_comments'] = 					$field_2;
-					$postdata['warranty_status'] = 						$warranty_status;
 					$postdata['diagnose'] = 							"Service Center Repair";
 					$postdata['level2_personnel'] = 					CRUDBooster::myId();
 					$postdata['level2_personnel_edited']=				date('Y-m-d H:i:s');
-
-					$postdata['verified_items_included'] = implode(", ",$items_included_lines);
-					$postdata['verified_items_included_others'] = $items_included_others;
-
-					ReturnsBodyRTL::where('returns_header_id',$ReturnRequest->id)->whereNotNull('brand')
-					->update([		
-						'problem_details'=> implode(", ",$problem_details_lines),
-						'problem_details_other'=> $problem_details_other
-					]);
 
 					return redirect()->action('AdminRetailReturnDiagnosingController@ReturnsReturnFormPrintRTL',['id'=>$ReturnRequest->id])->send();
 				}
@@ -593,9 +579,23 @@ use PHPExcel_Style_Fill;
 				
 						$to_for_action = ReturnsStatus::where('id','38')->value('id');
 		
+						$postdata['case_status'] =  						$case_status;
 						$postdata['returns_status_1'] = 					$to_for_action;
+						$postdata['diagnose_comments'] = 					$field_2;
+						$postdata['warranty_status'] = 						$warranty_status;
+						$postdata['diagnose'] = 							"Test Done";
 						$postdata['rma_specialist_id'] = 					CRUDBooster::myId();
 						$postdata['rma_specialist_date_received']=			date('Y-m-d H:i:s');
+	
+						$postdata['verified_items_included'] = implode(", ",$items_included_lines);
+						$postdata['verified_items_included_others'] = $items_included_others;
+	
+						ReturnsBodyRTL::where('returns_header_id',$ReturnRequest->id)->whereNotNull('brand')
+						->update([		
+							'problem_details'=> implode(", ",$problem_details_lines),
+							'problem_details_other'=> $problem_details_other
+						]);
+	
 					}
 				}
 				
@@ -897,6 +897,8 @@ use PHPExcel_Style_Fill;
 			->leftjoin('cms_users as received', 'returns_header_retail.level6_personnel','=', 'received.id')
 			->leftjoin('cms_users as closed', 'returns_header_retail.level7_personnel','=', 'closed.id')	
 			->leftjoin('cms_users as received_item', 'returns_header_retail.received_by_rma_sc','=', 'received_item.id')																	
+			->leftjoin('cms_users as turnover_by', 'returns_header_retail.rma_receiver_id','=', 'turnover_by.id')																	
+			->leftjoin('cms_users as diagnose_by_technician', 'returns_header_retail.rma_specialist_id','=', 'diagnose_by_technician.id')																	
 			->leftjoin('transaction_type', 'returns_header_retail.transaction_type_id', '=', 'transaction_type.id')
 			->select(
 			'returns_header_retail.*',
@@ -904,6 +906,8 @@ use PHPExcel_Style_Fill;
 			//'tagged.name as tagged_by',	
 			'diagnosed.name as diagnosed_by',
 			'received_item.name as received_item_by',
+			'turnover_by.name as turnover_by',
+			'diagnose_by_technician.name as diagnose_by_technician',
 			'printed.name as printed_by',	
 			'transacted.name as transacted_by',	
 			'received.name as received_by',
@@ -914,7 +918,6 @@ use PHPExcel_Style_Fill;
 			->where('returns_header_retail.id',$id)->first();
 			$data['problem_details_list'] = ProblemDetails::all();
 			$data['page_title'] = $data['row']->returns_status_1 == 5 ? 'Returns For Diagnosing' : 'Returns For Specialist';
-			
 			$data['case_status'] = CaseStatus::where('status','=','ACTIVE')->pluck('case_status_name');
 			
 			$data['items_included_list'] = ItemsIncluded::orderBy('items_description_included','asc')->get();

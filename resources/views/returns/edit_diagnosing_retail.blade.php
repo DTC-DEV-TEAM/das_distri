@@ -246,7 +246,11 @@
                                     <div class="col-md-3">
 
                                         @if ($row->returns_status_1 == '38')
+                                            @if($row->verified_items_included_others  != null)
                                             <p>{{$row->verified_items_included}}, {{$row->verified_items_included_others}}</p>
+                                            @else
+                                                <p>{{$row->verified_items_included}}</p>
+                                            @endif
                                         @else
                                         <select   class="js-example-basic-multiple" required name="verified_items_included[]" id="verified_items_included" multiple="multiple" style="width:100%;">
                                             @foreach($items_included_list as $key=>$list)
@@ -367,16 +371,39 @@
                                 </div>
                                 <label class="control-label col-md-2">{{ trans('message.form-label.received_at_rma_sc') }}</label>
                                 <div class="col-md-4">
+                                    <p>{{$row->rma_receiver_date_received}}</p>
+                                </div>
+                            </div>
+                            <hr/>
+                            <div class="row">                           
+                                <label class="control-label col-md-2">Turnover By:</label>
+                                <div class="col-md-4">
+                                    <p>{{$row->turnover_by}}</p>
+                                </div>
+                                <label class="control-label col-md-2">Turnover Date:</label>
+                                <div class="col-md-4">
                                     <p>{{$row->received_at_rma_sc}}</p>
                                 </div>
                             </div>
-
+                            @if ($row->returns_status_1 == '38')
+                            <hr/>
+                            <div class="row">                           
+                                <label class="control-label col-md-2">Diagnosed By:</label>
+                                <div class="col-md-4">
+                                    <p>{{$row->diagnose_by_technician}}</p>
+                                </div>
+                                <label class="control-label col-md-2">Diagnosed Date:</label>
+                                <div class="col-md-4">
+                                    <p>{{$row->rma_specialist_date_received}}</p>
+                                </div>
+                            </div>
+                            @endif
                             <hr/>
                             <div class="row"> 
                                
                                     <label class="control-label col-md-2">{{ trans('message.table.comments2') }}</label>
                                     <div class="col-md-10">
-                                    <textarea placeholder="{{ trans('message.table.comments') }} ..." rows="3" class="form-control" name="diagnose_comments" id="diagnose_comments">{{ $row->diagnose_comments }}</textarea>
+                                    <textarea {{ $row->returns_status_1 == '38' ? 'disabled' : '' }} placeholder="{{ trans('message.table.comments') }} ..." rows="3" class="form-control" name="diagnose_comments" id="diagnose_comments">{{ $row->diagnose_comments }}</textarea>
                                     </div>
                             </div>
                     </div>
@@ -384,7 +411,7 @@
             <div class='panel-footer'>
 
                 <a href="{{ CRUDBooster::mainpath() }}" class="btn btn-default">{{ trans('message.form.cancel') }}</a>
-                @if($row->transaction_type_id == 1)
+                @if($row->transaction_type_id == 1 && CRUDBooster::myPrivilegeName() != 'RMA Technician')
                     <button class="btn btn-danger pull-right" type="submit" id="btnSubmitRefund" style="margin-right:10px; width:100px;" disabled> <i class="fa fa-circle-o" ></i> {{ trans('message.form.refund') }}</button>
                     <button class="btn btn-success pull-right" type="submit" id="btnSubmitReject" style="margin-right:10px; width:100px;" disabled> <i class="fa fa-circle-o" ></i> {{ trans('message.form.reject') }}</button>
                     <button class="btn btn-success pull-right"  type="submit" id="btnSubmitRepair" style="margin-right:10px; width:100px;" disabled> <i class="fa fa-circle-o" ></i> {{ trans('message.form.repair') }}</button>
@@ -416,7 +443,7 @@
 
                     @if (CRUDBooster::myPrivilegeName() != 'Service Center')
                     <button class="bottom-btn btn btn-success pull-right" type="submit" id="btnSSR" style="margin-right:10px; width:160px;"> <i class="fa fa-circle-o" style="margin-right:4px;" ></i>Service Center Repair</button>
-                    <button class="btn btn-success pull-right" type="submit" id="btnSubmitDone" style="margin-right:10px; width:100px;"> <i class="fa fa-circle-o" style="margin-right:4px;" ></i>Test Done</button>
+                    {{-- <button class="btn btn-success pull-right" type="submit" id="btnSubmitDone" style="margin-right:10px; width:100px;"> <i class="fa fa-circle-o" style="margin-right:4px;" ></i>Test Done</button> --}}
                     <button class="btn btn-success pull-right" type="submit" id="btnSubmitSave" style="margin-right:10px; width:100px;"> <i class="fa fa-circle-o" style="margin-right:4px;" ></i>Save</button>
                     
                     
@@ -532,7 +559,32 @@ $("#btnSubmitSave").on('click',function() {
 });
 
 $("#btnSubmitDone").on('click',function() {
+          var strconfirm = confirm("Are you sure you want to Test Done this return request?");
+        if (strconfirm == true) {
           $("#diagnose").val("Test Done");
+          if($("#diagnose_comments").val() == "" || $("#diagnose_comments").val() == null){
+              alert("Please put a comment!");
+              return false;
+              window.stop();
+            }else{
+             /*var data = $('#myform').serialize();
+                $.ajax({
+                        type: 'GET',
+                        url: '{{ url('admin/rma_level2_request/VoidWarrantyRequestRMALVL2') }}',
+                        data: data,
+                        success: function( response ){
+                            console.log( response );
+                        },
+                        error: function( e ) {
+                            console.log(e);
+                        }
+                  });
+                  return true;*/
+            }
+        }else{
+                  return false;
+                  window.stop();
+        }
 });
 
 $("#btnSSR").on('click', function(){
