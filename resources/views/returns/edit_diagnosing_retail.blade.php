@@ -36,7 +36,7 @@
                                 
                                 @endif
                                
-                                @if (CRUDBooster::myPrivilegeName() != 'Service Center' && $row->transaction_type_id != 1)
+                                @if (($row->transaction_type_id != 1 || CRUDBooster::myPrivilegeName() != 'RMA Specialist') && CRUDBooster::myPrivilegeName() != 'Service Center'  )
                                     <label class="col-md-2" for="case_status">Case Status:</label>
                                     <select class="col-md-2 js-example-basic-single" id="case_status" name="case_status">
                                     @foreach ($case_status as $case_status_name)
@@ -44,7 +44,7 @@
                                             {{ $case_status_name }}
                                         </option>
                                     @endforeach
-                                </select>
+                                    </select>
                                 @endif
                                 
                             </div>
@@ -367,7 +367,7 @@
                             <div class="row">                           
                                 <label class="control-label col-md-2">{{ trans('message.form-label.received_by_rma_sc') }}</label>
                                 <div class="col-md-4">
-                                    <p>{{$row->received_item_by}}</p>
+                                    <p>{{$row->turnover_by}}</p>
                                 </div>
                                 <label class="control-label col-md-2">{{ trans('message.form-label.received_at_rma_sc') }}</label>
                                 <div class="col-md-4">
@@ -378,7 +378,7 @@
                             <div class="row">                           
                                 <label class="control-label col-md-2">Turnover By:</label>
                                 <div class="col-md-4">
-                                    <p>{{$row->turnover_by}}</p>
+                                    <p>{{$row->received_item_by}}</p>
                                 </div>
                                 <label class="control-label col-md-2">Turnover Date:</label>
                                 <div class="col-md-4">
@@ -411,12 +411,44 @@
             <div class='panel-footer'>
 
                 <a href="{{ CRUDBooster::mainpath() }}" class="btn btn-default">{{ trans('message.form.cancel') }}</a>
-                @if($row->transaction_type_id == 1 && CRUDBooster::myPrivilegeName() != 'RMA Technician')
+                    @if($row->returns_status_1 == '5')
+                        @if (CRUDBooster::myPrivilegeName() == 'Service Center')
+                            @if ($row->transaction_type_id == 1)
+                                <button class="btn btn-danger pull-right" type="submit" id="btnSubmitRefund" style="margin-right:10px; width:100px;" disabled> <i class="fa fa-circle-o" ></i> {{ trans('message.form.refund') }}</button>
+                                <button class="btn btn-success pull-right" type="submit" id="btnSubmitReject" style="margin-right:10px; width:100px;" disabled> <i class="fa fa-circle-o" ></i> {{ trans('message.form.reject') }}</button>
+                                <button class="btn btn-success pull-right"  type="submit" id="btnSubmitRepair" style="margin-right:10px; width:100px;" disabled> <i class="fa fa-circle-o" ></i> {{ trans('message.form.repair') }}</button>
+                                <button class="btn btn-success pull-right"  type="submit" id="btnSubmitReplace" style="margin-right:10px; width:100px;"> <i class="fa fa-circle-o" ></i> {{ trans('message.form.replace') }}</button>
+                            @else
+                                <button class="btn btn-danger pull-right" type="submit" id="btnSubmitRefund" style="margin-right:10px; width:100px;"> <i class="fa fa-circle-o" ></i> {{ trans('message.form.refund') }}</button>  
+                                <button class="btn btn-success pull-right" type="submit" id="btnSubmitRepair" style="margin-right:10px; width:100px;"> <i class="fa fa-circle-o" ></i> {{ trans('message.form.repair') }}</button>
+                                <button class="btn btn-success pull-right" type="submit" id="btnSubmitReject" style="margin-right:10px; width:100px;"> <i class="fa fa-circle-o" ></i> {{ trans('message.form.reject') }}</button>
+                                <button class="btn btn-success pull-right"  type="submit" id="btnSubmitReplace" style="margin-right:10px; width:100px;"> <i class="fa fa-circle-o" ></i> {{ trans('message.form.replace') }}</button>
+                            @endif
+                        @else
+                            <button class="btn btn-success pull-right" type="submit" id="btnSubmitDone" style="margin-right:10px; width:100px;"> <i class="fa fa-circle-o" style="margin-right:4px;" ></i>Test Done</button>
+                            <button class="btn btn-success pull-right" type="submit" id="btnSubmitSave" style="margin-right:10px; width:100px;"> <i class="fa fa-circle-o" style="margin-right:4px;" ></i>Save</button>
+                        @endif
+                    @else
+                        @if ($row->transaction_type_id == 1)
+                            <button class="btn btn-danger pull-right" type="submit" id="btnSubmitRefund" style="margin-right:10px; width:100px;" disabled> <i class="fa fa-circle-o" ></i> {{ trans('message.form.refund') }}</button>
+                            <button class="btn btn-success pull-right" type="submit" id="btnSubmitReject" style="margin-right:10px; width:100px;" disabled> <i class="fa fa-circle-o" ></i> {{ trans('message.form.reject') }}</button>
+                            <button class="btn btn-success pull-right"  type="submit" id="btnSubmitRepair" style="margin-right:10px; width:100px;" disabled> <i class="fa fa-circle-o" ></i> {{ trans('message.form.repair') }}</button>
+                            <button class="btn btn-success pull-right"  type="submit" id="btnSubmitReplace" style="margin-right:10px; width:100px;"> <i class="fa fa-circle-o" ></i> {{ trans('message.form.replace') }}</button>
+                        @else
+                            <button class="bottom-btn btn btn-danger pull-right disabled" type="submit" id="btnSubmitRefund" style="margin-right:10px; width:100px;"> <i class="fa fa-circle-o" ></i> {{ trans('message.form.refund') }}</button>
+                            <button class="bottom-btn btn btn-success pull-right disabled" type="submit" id="btnSubmitReject" style="margin-right:10px; width:100px;" > <i class="fa fa-circle-o" ></i> {{ trans('message.form.reject') }}</button>
+                            <button class="bottom-btn btn btn-success pull-right disabled"  type="submit" id="btnSubmitRepair" style="margin-right:10px; width:100px;" > <i class="fa fa-circle-o" ></i> {{ trans('message.form.repair') }}</button>
+                            <button class="bottom-btn btn btn-success pull-right disabled"  type="submit" id="btnSubmitReplace" style="margin-right:10px; width:100px;"> <i class="fa fa-circle-o" ></i> {{ trans('message.form.replace') }}</button>
+                            <button class="bottom-btn btn btn-success pull-right disabled" type="submit" id="btnSSR" style="margin-right:10px; width:160px;"> <i class="fa fa-circle-o" style="margin-right:4px;" ></i>Service Center Repair</button>
+                            <button class="btn btn-success pull-right" type="submit" id="btnSubmitSave" style="margin-right:10px; width:100px;"> <i class="fa fa-circle-o" style="margin-right:4px;" ></i>Save</button>
+                        @endif
+                    @endif
+                 {{-- @if($row->transaction_type_id == 1 && CRUDBooster::myPrivilegeName() != 'RMA Technician' || CRUDBooster::myPrivilegeName() != 'Super Administrator')
                     <button class="btn btn-danger pull-right" type="submit" id="btnSubmitRefund" style="margin-right:10px; width:100px;" disabled> <i class="fa fa-circle-o" ></i> {{ trans('message.form.refund') }}</button>
                     <button class="btn btn-success pull-right" type="submit" id="btnSubmitReject" style="margin-right:10px; width:100px;" disabled> <i class="fa fa-circle-o" ></i> {{ trans('message.form.reject') }}</button>
                     <button class="btn btn-success pull-right"  type="submit" id="btnSubmitRepair" style="margin-right:10px; width:100px;" disabled> <i class="fa fa-circle-o" ></i> {{ trans('message.form.repair') }}</button>
                     <button class="btn btn-success pull-right"  type="submit" id="btnSubmitReplace" style="margin-right:10px; width:100px;"> <i class="fa fa-circle-o" ></i> {{ trans('message.form.replace') }}</button>
-                @elseif (CRUDBooster::myPrivilegeName() == 'RMA Technician')
+                @elseif (CRUDBooster::myPrivilegeName() == 'RMA Technician' || (CRUDBooster::myPrivilegeName() == 'Super Administrator' && $row->returns_status_1 == '5'))
                     <button class="btn btn-success pull-right" type="submit" id="btnSubmitDone" style="margin-right:10px; width:100px;"> <i class="fa fa-circle-o" style="margin-right:4px;" ></i>Test Done</button>
                     <button class="btn btn-success pull-right" type="submit" id="btnSubmitSave" style="margin-right:10px; width:100px;"> <i class="fa fa-circle-o" style="margin-right:4px;" ></i>Save</button>
                 @elseif ($row->case_status !== 'Closed'  && CRUDBooster::myPrivilegeName() != 'Service Center')
@@ -443,13 +475,13 @@
 
                     @if (CRUDBooster::myPrivilegeName() != 'Service Center')
                     <button class="bottom-btn btn btn-success pull-right" type="submit" id="btnSSR" style="margin-right:10px; width:160px;"> <i class="fa fa-circle-o" style="margin-right:4px;" ></i>Service Center Repair</button>
-                    {{-- <button class="btn btn-success pull-right" type="submit" id="btnSubmitDone" style="margin-right:10px; width:100px;"> <i class="fa fa-circle-o" style="margin-right:4px;" ></i>Test Done</button> --}}
+                     <button class="btn btn-success pull-right" type="submit" id="btnSubmitDone" style="margin-right:10px; width:100px;"> <i class="fa fa-circle-o" style="margin-right:4px;" ></i>Test Done</button>
                     <button class="btn btn-success pull-right" type="submit" id="btnSubmitSave" style="margin-right:10px; width:100px;"> <i class="fa fa-circle-o" style="margin-right:4px;" ></i>Save</button>
                     
                     
                     @endif
 
-                @endif
+                @endif  --}}
             </div>
 
         </form>
@@ -466,7 +498,15 @@ $(".js-example-basic-multiple").select2({
 
 $(document).ready(function() {
         $('.js-example-basic-single').select2();
-
+        const value = $('#case_status').val()
+        if (value === 'Closed') {
+            $('.bottom-btn').removeClass('disabled');
+        } else if (value === 'Pending Supplier') {
+            $('.bottom-btn').addClass('disabled');
+            $('#btnSSR').removeClass('disabled');
+        } else {
+            $('.bottom-btn').addClass('disabled');
+        }
 });
 
 var verified_others_field = <?php echo json_encode($other_verified_items_included); ?>;
@@ -541,18 +581,21 @@ $('#problem_details').change(function(){
 });
 
 
-$('#case_status').on('change', function(){
-    const value = $(this).val();
-    if (value === 'Closed') {
-        $('.bottom-btn').removeClass('disabled');
-    } else if (value === 'Pending Supplier') {
-        $('.bottom-btn').addClass('disabled');
-        $('#btnSSR').removeClass('disabled');
-    }
-     else {
-        $('.bottom-btn').addClass('disabled');
-    }
-})
+
+$(document).ready(function() {
+    $('#case_status').on('change', function(){
+        const value = $(this).val();
+        if (value === 'Closed') {
+            $('.bottom-btn').removeClass('disabled');
+        } else if (value === 'Pending Supplier') {
+            $('.bottom-btn').addClass('disabled');
+            $('#btnSSR').removeClass('disabled');
+        } else {
+            $('.bottom-btn').addClass('disabled');
+        }
+    });
+});
+
 
 $("#btnSubmitSave").on('click',function() {
           $("#diagnose").val("Save");

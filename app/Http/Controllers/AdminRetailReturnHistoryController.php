@@ -713,6 +713,7 @@ use App\StoresFrontEnd;
 			$to_receive_rma = 			ReturnsStatus::where('id','34')->value('warranty_status');
 			$to_receive_sc = 			ReturnsStatus::where('id','35')->value('warranty_status');
 			$to_turnover = 				ReturnsStatus::where('id','37')->value('warranty_status');
+			$to_for_action = 			ReturnsStatus::where('id','38')->value('warranty_status');
 
 
 						if($column_index == 1){
@@ -793,6 +794,9 @@ use App\StoresFrontEnd;
 			
 				}elseif($column_value == $to_turnover){
 					$column_value = '<span class="label label-warning">'.$to_turnover.'</span>';
+			
+				}elseif($column_value == $to_for_action){
+					$column_value = '<span class="label label-warning">'.$to_for_action.'</span>';
 			
 				}
 						}
@@ -899,7 +903,8 @@ use App\StoresFrontEnd;
 			leftjoin('cms_users as created', 'returns_header_retail.created_by','=', 'created.id')
 			->leftjoin('cms_users as scheduled', 'returns_header_retail.level1_personnel','=', 'scheduled.id')			
 			//->leftjoin('cms_users as tagged', 'returns_header_retail.level2_personnel','=', 'tagged.id')
-			->leftjoin('cms_users as diagnosed', 'returns_header_retail.level2_personnel','=', 'diagnosed.id')				
+			->leftjoin('cms_users as diagnosed', 'returns_header_retail.rma_specialist_id','=', 'diagnosed.id')				
+			->leftjoin('cms_users as diagnosed2', 'returns_header_retail.level3_personnel','=', 'diagnosed2.id')				
 			->leftjoin('cms_users as printed', 'returns_header_retail.level3_personnel','=', 'printed.id')																	
 			->leftjoin('cms_users as transacted', 'returns_header_retail.level4_personnel','=', 'transacted.id')
 			->leftjoin('cms_users as received', 'returns_header_retail.level6_personnel','=', 'received.id')
@@ -910,6 +915,7 @@ use App\StoresFrontEnd;
 			'scheduled.name as scheduled_by',
 			//'tagged.name as tagged_by',	
 			'diagnosed.name as diagnosed_by',
+			'diagnosed2.name as diagnosed2_by',
 			'printed.name as printed_by',	
 			'transacted.name as transacted_by',	
 			'received.name as received_by',
@@ -917,8 +923,6 @@ use App\StoresFrontEnd;
 			'created.name as created_by'						
 			)
 			->where('returns_header_retail.id',$id)->first();
-
-			
 
             if($data['row']->returns_status_1 == 1){
             			$data['resultlist'] = ReturnsBodyRTL::
@@ -2083,7 +2087,7 @@ use App\StoresFrontEnd;
 								'DIAGNOSED COMMENTS'
 							);
 								
-					}else if(CRUDBooster::myPrivilegeName() == "RMA"){
+					}else if(in_array(CRUDBooster::myPrivilegeName(), ['RMA', 'RMA Technician', 'RMA Specialist'])){
 								$to_diagnose = ReturnsStatus::where('id','5')->value('id');
 								$orderData = DB::table('returns_header_retail')
 								->leftjoin('via', 'returns_header_retail.via_id','=', 'via.id')
@@ -2096,6 +2100,8 @@ use App\StoresFrontEnd;
 								->leftjoin('cms_users as received', 'returns_header_retail.level6_personnel','=', 'received.id')
 								->leftjoin('cms_users as closed', 'returns_header_retail.level5_personnel','=', 'closed.id')	
 								->leftjoin('cms_users as received1', 'returns_header_retail.received_by_rma_sc','=', 'received1.id')
+								->leftjoin('cms_users as turnover', 'returns_header_retail.rma_receiver_id','=', 'turnover.id')
+								->leftjoin('cms_users as specialist', 'returns_header_retail.rma_specialist_id','=', 'specialist.id')
 								->leftJoin('returns_body_item_retail', 'returns_header_retail.id', '=', 'returns_body_item_retail.returns_header_id')
 								->select(   'returns_header_retail.*', 
 								            'returns_header_retail.created_at as datecreated',
@@ -2108,6 +2114,8 @@ use App\StoresFrontEnd;
 											'transacted.name as transacted_by',	
 											'received.name as received_by',
 											'received1.name as received_by1',
+											'turnover.name as turnover_by',
+											'specialist.name as specialist_by',
 											'closed.name as closed_by',
 											'via.*',
 											'warranty_statuses.*'
@@ -2312,9 +2320,13 @@ use App\StoresFrontEnd;
 									$scheduled_by,
 									$scheduled_date,
 									
+									$orderRow->turnover_by,
+									$orderRow->rma_receiver_date_received,
 									$orderRow->received_by1,
                                     $orderRow->received_at_rma_sc,
 
+									$orderRow->specialist_by,
+									$orderRow->rma_specialist_date_received,
 									$orderRow->diagnosed_by,
 									$orderRow->level2_personnel_edited,
 									$printed_by,
@@ -2383,9 +2395,12 @@ use App\StoresFrontEnd;
 								
 								'RECEIVED BY',
                                 'RECEIVED DATE',
-
+								'TURNOVER BY',
+								'TURNOVER DATE',
 								'DIAGNOSED BY',           //blue  //additional code 20200205
 								'DIAGNOSED DATE',           //blue  //additional code 20200205
+								'RMA SPECIALIST',           //blue  //additional code 20200205
+								'RMA SPECIALIST DATE',  
 								'PRINTED BY',           //blue  //additional code 20200205
 								'PRINTED DATE',           //blue  //additional code 20200205
 								'SOR BY',           //blue  //additional code 20200205
