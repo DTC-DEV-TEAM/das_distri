@@ -569,8 +569,10 @@ use PHPExcel_Style_Fill;
 
 					$postdata['case_status'] =  						$case_status;
 					$postdata['diagnose'] = 							"Service Center Repair";
-					$postdata['level2_personnel'] = 					CRUDBooster::myId();
-					$postdata['level2_personnel_edited']=				date('Y-m-d H:i:s');
+					$postdata['rma_specialist_id'] = 					CRUDBooster::myId();
+					$postdata['rma_specialist_date_received']=			date('Y-m-d H:i:s');
+					// $postdata['level2_personnel'] = 					CRUDBooster::myId();
+					// $postdata['level2_personnel_edited']=				date('Y-m-d H:i:s');
 
 					return redirect()->action('AdminRetailReturnDiagnosingController@ReturnsReturnFormPrintRTL',['id'=>$ReturnRequest->id])->send();
 				}
@@ -584,8 +586,11 @@ use PHPExcel_Style_Fill;
 						$postdata['diagnose_comments'] = 					$field_2;
 						$postdata['warranty_status'] = 						$warranty_status;
 						$postdata['diagnose'] = 							"Test Done";
-						$postdata['rma_specialist_id'] = 					CRUDBooster::myId();
-						$postdata['rma_specialist_date_received']=			date('Y-m-d H:i:s');
+
+						// $postdata['rma_specialist_id'] = 					CRUDBooster::myId();
+						// $postdata['rma_specialist_date_received']=			date('Y-m-d H:i:s');
+						$postdata['level2_personnel'] = 					CRUDBooster::myId();
+						$postdata['level2_personnel_edited']=				date('Y-m-d H:i:s');
 	
 						$postdata['verified_items_included'] = implode(", ",$items_included_lines);
 						$postdata['verified_items_included_others'] = $items_included_others;
@@ -619,8 +624,10 @@ use PHPExcel_Style_Fill;
 						date('Y-m-d H:i:s')
 						]);
 			
-							$postdata['level2_personnel'] = 					CRUDBooster::myId();
-							$postdata['level2_personnel_edited']=				date('Y-m-d H:i:s');
+							// $postdata['level2_personnel'] = 					CRUDBooster::myId();
+							// $postdata['level2_personnel_edited']=				date('Y-m-d H:i:s');
+							$postdata['rma_specialist_id'] = 					CRUDBooster::myId();
+							$postdata['rma_specialist_date_received']=			date('Y-m-d H:i:s');
 							$postdata['returns_status'] = 						$for_replacement_frontend;
 							$postdata['returns_status_1'] = 					$to_sor;
 							$postdata['diagnose_comments'] = 					$field_2;
@@ -662,8 +669,10 @@ use PHPExcel_Style_Fill;
 						date('Y-m-d H:i:s')
 						]);
 			
-							$postdata['level2_personnel'] = 					CRUDBooster::myId();
-							$postdata['level2_personnel_edited']=				date('Y-m-d H:i:s');
+							// $postdata['level2_personnel'] = 					CRUDBooster::myId();
+							// $postdata['level2_personnel_edited']=				date('Y-m-d H:i:s');
+							$postdata['rma_specialist_id'] = 					CRUDBooster::myId();
+							$postdata['rma_specialist_date_received']=			date('Y-m-d H:i:s');
 							$postdata['returns_status'] = 						$repair_approved;
 							$postdata['returns_status_1'] = 					$to_print_return_form;
 							$postdata['diagnose_comments'] = 					$field_2;
@@ -706,8 +715,10 @@ use PHPExcel_Style_Fill;
 						date('Y-m-d H:i:s')
 						]);
 			
-							$postdata['level2_personnel'] = 					CRUDBooster::myId();
-							$postdata['level2_personnel_edited']=				date('Y-m-d H:i:s');
+							// $postdata['level2_personnel'] = 					CRUDBooster::myId();
+							// $postdata['level2_personnel_edited']=				date('Y-m-d H:i:s');
+							$postdata['rma_specialist_id'] = 					CRUDBooster::myId();
+							$postdata['rma_specialist_date_received']=			date('Y-m-d H:i:s');
 							$postdata['returns_status'] = 						$return_rejected;
 							$postdata['returns_status_1'] = 					$to_print_return_form;
 							$postdata['diagnose_comments'] = 					$field_2;
@@ -750,8 +761,10 @@ use PHPExcel_Style_Fill;
 						date('Y-m-d H:i:s')
 						]);
 			
-								$postdata['level2_personnel'] = 					CRUDBooster::myId();
-								$postdata['level2_personnel_edited']=				date('Y-m-d H:i:s');
+								// $postdata['level2_personnel'] = 					CRUDBooster::myId();
+								// $postdata['level2_personnel_edited']=				date('Y-m-d H:i:s');
+								$postdata['rma_specialist_id'] = 					CRUDBooster::myId();
+								$postdata['rma_specialist_date_received']=			date('Y-m-d H:i:s');
 								$postdata['returns_status'] = 						$to_refund_approved;
 								$postdata['returns_status_1'] = 					$to_create_crf;
 								$postdata['diagnose_comments'] = 					$field_2;
@@ -898,7 +911,6 @@ use PHPExcel_Style_Fill;
 			->leftjoin('cms_users as closed', 'returns_header_retail.level7_personnel','=', 'closed.id')	
 			->leftjoin('cms_users as received_item', 'returns_header_retail.received_by_rma_sc','=', 'received_item.id')																	
 			->leftjoin('cms_users as turnover_by', 'returns_header_retail.rma_receiver_id','=', 'turnover_by.id')																	
-			->leftjoin('cms_users as diagnose_by_technician', 'returns_header_retail.rma_specialist_id','=', 'diagnose_by_technician.id')																	
 			->leftjoin('transaction_type', 'returns_header_retail.transaction_type_id', '=', 'transaction_type.id')
 			->select(
 			'returns_header_retail.*',
@@ -907,7 +919,6 @@ use PHPExcel_Style_Fill;
 			'diagnosed.name as diagnosed_by',
 			'received_item.name as received_item_by',
 			'turnover_by.name as turnover_by',
-			'diagnose_by_technician.name as diagnose_by_technician',
 			'printed.name as printed_by',	
 			'transacted.name as transacted_by',	
 			'received.name as received_by',
@@ -1030,7 +1041,6 @@ use PHPExcel_Style_Fill;
 			)
 			->where('returns_header_retail.id',$id)->first();
 
-			
 
 
 			$data['resultlist'] = ReturnsBodyRTL::
