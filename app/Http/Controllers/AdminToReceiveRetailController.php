@@ -416,6 +416,9 @@ use App\TransactionTypeList;
 
 					$sub_query->orWhere('returns_status_1', $to_receive_sc)->where('transaction_type', 1)->whereIn('returns_header_retail.stores_id', $storeList)->orderBy('id', 'asc');
 					$sub_query->orWhere('returns_status_1', $to_receive_sc)->where('transaction_type', 0)->whereIn('returns_header_retail.stores_id', $storeList)->orderBy('id', 'asc');
+
+					$sub_query->orWhere('returns_status_1', $to_receive_sc)->whereIn('transaction_type', [0,1])->whereIn('returns_header_retail.sc_location_id', $storeList)->orderBy('id', 'asc');
+					
 				});   
 
 

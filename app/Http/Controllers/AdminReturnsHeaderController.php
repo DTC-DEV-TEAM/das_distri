@@ -100,7 +100,7 @@ use App\TransactionTypeList;
 			$this->form[] = ['label'=>'Items Included Others','name'=>'items_included_others','type'=>'text','validation'=>'required|min:1|max:255','width'=>'col-sm-10'];
 			$this->form[] = ['label'=>'Comments','name'=>'comments','type'=>'textarea','validation'=>'required|string|min:5|max:5000','width'=>'col-sm-10'];
 			$this->form[] = ['label'=>'Customer Location','name'=>'customer_location','type'=>'text','validation'=>'required|min:1|max:255','width'=>'col-sm-10'];
-			$this->form[] = ['label'=>'Sor No','name'=>'sor_no','type'=>'text','validation'=>'required|min:1|max:255','width'=>'col-sm-10'];
+			// $this->form[] = ['label'=>'Sor No','name'=>'sor_no','type'=>'text','validation'=>'required|min:1|max:255','width'=>'col-sm-10'];
 			$this->form[] = ['label'=>'Created By','name'=>'created_by','type'=>'number','validation'=>'required|integer|min:0','width'=>'col-sm-10'];
 			$this->form[] = ['label'=>'Updated By','name'=>'updated_by','type'=>'number','validation'=>'required|integer|min:0','width'=>'col-sm-10'];
 			# END FORM DO NOT REMOVE THIS LINE
@@ -483,10 +483,10 @@ use App\TransactionTypeList;
 	    */
 	    public function hook_before_edit(&$postdata,$id) {        
 			//Your code here
-
+			
 			$ReturnRequest = ReturnsHeader::where('id',$id)->first();
 			$requested = ReturnsStatus::where('id','1')->value('id');
-
+			
 			if($ReturnRequest->returns_status_1 == $requested){
 				$returns_fields = Input::all();
 				$field_1 		= $returns_fields['customer_location'];
@@ -648,7 +648,7 @@ use App\TransactionTypeList;
 					
 					
 					$ReturnRequest = ReturnsHeader::where('id',$id)->first();
-		
+
 					$ReturnItems = Input::all();
 		
 					$digitsCode 		= $ReturnItems['digits_code'];

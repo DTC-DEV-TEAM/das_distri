@@ -625,13 +625,16 @@ use App\TransactionTypeList;
 							if($itemBrand[$x] == "APPLE" || $itemBrand[$x] == "BEATS"){
 								$postdata['deliver_to'] = 		    $deliver_to;
 								
-								$postdata['stores_id'] =            DB::table("stores")->where('store_name', $deliver_to)->value('id');
+								// $postdata['stores_id'] =            DB::table("stores")->where('store_name', $deliver_to)->value('id');
 								
+								$postdata['sc_location_id'] = DB::table("stores")->where('store_name', $deliver_to)->value('id');
+
 								$postdata['transaction_type'] =     1;
 								
 							}else{
 								$postdata['deliver_to'] = 		    "WAREHOUSE.RMA.DEP";
 								$postdata['transaction_type'] =     0;
+								$postdata['sc_location_id'] = null;
 							}
 					
 					$problem_dataLines = array();

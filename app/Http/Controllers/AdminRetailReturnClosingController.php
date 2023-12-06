@@ -19,6 +19,8 @@ use Excel;
 use Carbon\Carbon;
 use PHPExcel_Style_Border;
 use PHPExcel_Style_Fill;
+use Illuminate\Support\Facades\Validator;
+
 
 	class AdminRetailReturnClosingController extends \crocodicstudio\crudbooster\controllers\CBController {
 
@@ -401,6 +403,12 @@ use PHPExcel_Style_Fill;
     					$sub_query->where('returns_status_1', $to_ship_back)->where('transaction_type','!=', 2)->whereIn('returns_header_retail.stores_id', $storeList)->orderBy('id', 'asc');  
     
     					$sub_query->orWhere('returns_status_1', $for_replacement)->where('transaction_type','!=', 2)->whereIn('returns_header_retail.stores_id', $storeList)->orderBy('id', 'asc'); 
+						
+						$sub_query->orWhereIn('returns_status_1', [$to_ship_back, $for_replacement])
+							->where('transaction_type', '!=', 2)
+							->whereIn('returns_header_retail.sc_location_id', $storeList)
+							->orderBy('id', 'asc');
+
     				});
                 }else{
                     

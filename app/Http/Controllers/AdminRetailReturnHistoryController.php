@@ -632,6 +632,8 @@ use App\StoresFrontEnd;
 				        		$sub_query->where('returns_status_1','!=',	$to_diagnose)->where('transaction_type', 1)->where('returns_status_1','!=',	$to_print_return_form)->where('returns_status_1','!=',	$to_sor)->whereNotNull('diagnose')->whereIn('returns_header_retail.stores_id', $storeList)->orderBy('history_status', 'desc'); 
 				        		
 				        		$sub_query->orwhere('returns_status_1','!=',$to_diagnose)->where('transaction_type', 3)->where('returns_status_1','!=',$to_print_return_form)->where('returns_status_1','!=',$to_sor)->whereNotNull('diagnose')->whereIn('returns_header_retail.stores_id', $storeList)->orderBy('history_status', 'desc'); 
+
+								$sub_query->orwhere('returns_status_1','!=',$to_diagnose)->orWhereIn('transaction_type', [1,3])->where('returns_status_1','!=',$to_print_return_form)->where('returns_status_1','!=',$to_sor)->whereNotNull('diagnose')->whereIn('returns_header_retail.sc_location_id', $storeList)->orderBy('history_status', 'desc'); 
 				});		
 				
 			}else if(CRUDBooster::myPrivilegeName() == "Accounting"){

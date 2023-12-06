@@ -409,6 +409,8 @@ use PHPExcel_Style_Fill;
 					$sub_query->where('returns_status_1', $to_diagnose)->where('transaction_type', 1)->whereIn('returns_header_retail.stores_id', $storeList)->orderBy('id', 'asc');  
 					$sub_query->orWhere('returns_status_1', $to_diagnose)->where('transaction_type', 3)->whereIn('returns_header_retail.stores_id', $storeList)->orderBy('id', 'asc'); 
 					$sub_query->orWhere('returns_status_1', $to_print_return_form)->where('transaction_type', 1)->whereIn('returns_header_retail.stores_id', $storeList)->orderBy('id', 'asc');
+
+					$sub_query->orWhere('returns_status_1', $to_diagnose)->whereIn('transaction_type', [1])->whereIn('returns_header_retail.sc_location_id', $storeList)->orderBy('id', 'asc');
 				});
 
 			}else if (CRUDBooster::myPrivilegeName() == "RMA Technician") {
