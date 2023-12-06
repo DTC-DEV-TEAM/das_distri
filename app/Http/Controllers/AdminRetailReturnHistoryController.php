@@ -903,8 +903,7 @@ use App\StoresFrontEnd;
 			leftjoin('cms_users as created', 'returns_header_retail.created_by','=', 'created.id')
 			->leftjoin('cms_users as scheduled', 'returns_header_retail.level1_personnel','=', 'scheduled.id')			
 			//->leftjoin('cms_users as tagged', 'returns_header_retail.level2_personnel','=', 'tagged.id')
-			->leftjoin('cms_users as diagnosed', 'returns_header_retail.rma_specialist_id','=', 'diagnosed.id')				
-			->leftjoin('cms_users as diagnosed2', 'returns_header_retail.level3_personnel','=', 'diagnosed2.id')				
+			->leftjoin('cms_users as diagnosed', 'returns_header_retail.level2_personnel','=', 'diagnosed.id')				
 			->leftjoin('cms_users as printed', 'returns_header_retail.level3_personnel','=', 'printed.id')																	
 			->leftjoin('cms_users as transacted', 'returns_header_retail.level4_personnel','=', 'transacted.id')
 			->leftjoin('cms_users as received', 'returns_header_retail.level6_personnel','=', 'received.id')
@@ -915,7 +914,6 @@ use App\StoresFrontEnd;
 			'scheduled.name as scheduled_by',
 			//'tagged.name as tagged_by',	
 			'diagnosed.name as diagnosed_by',
-			'diagnosed2.name as diagnosed2_by',
 			'printed.name as printed_by',	
 			'transacted.name as transacted_by',	
 			'received.name as received_by',
@@ -2325,10 +2323,10 @@ use App\StoresFrontEnd;
 									$orderRow->received_by1,
                                     $orderRow->received_at_rma_sc,
 
-									$orderRow->specialist_by,
-									$orderRow->rma_specialist_date_received,
 									$orderRow->diagnosed_by,
 									$orderRow->level2_personnel_edited,
+									$orderRow->specialist_by,
+									$orderRow->rma_specialist_date_received,
 									$printed_by,
 									$printed_date,
 									$transacted_by,							
