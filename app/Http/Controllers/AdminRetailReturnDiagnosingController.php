@@ -410,7 +410,7 @@ use PHPExcel_Style_Fill;
 					$sub_query->orWhere('returns_status_1', $to_diagnose)->where('transaction_type', 3)->whereIn('returns_header_retail.stores_id', $storeList)->orderBy('id', 'asc'); 
 					$sub_query->orWhere('returns_status_1', $to_print_return_form)->where('transaction_type', 1)->whereIn('returns_header_retail.stores_id', $storeList)->orderBy('id', 'asc');
 
-					$sub_query->orWhere('returns_status_1', $to_diagnose)->whereIn('transaction_type', [1])->whereIn('returns_header_retail.sc_location_id', $storeList)->orderBy('id', 'asc');
+					$sub_query->orWhere('returns_status_1', $to_diagnose)->whereIn('transaction_type', [1,3])->whereIn('returns_header_retail.sc_location_id', $storeList)->orderBy('id', 'asc');
 				});
 
 			}else if (CRUDBooster::myPrivilegeName() == "RMA Technician") {
@@ -625,11 +625,14 @@ use PHPExcel_Style_Fill;
 						$for_replacement_frontend,
 						date('Y-m-d H:i:s')
 						]);
-			
-							// $postdata['level2_personnel'] = 					CRUDBooster::myId();
-							// $postdata['level2_personnel_edited']=				date('Y-m-d H:i:s');
-							$postdata['rma_specialist_id'] = 					CRUDBooster::myId();
-							$postdata['rma_specialist_date_received']=			date('Y-m-d H:i:s');
+						
+							if(CRUDBooster::myPrivilegeName() == "Service Center") {
+								$postdata['level2_personnel'] = 					CRUDBooster::myId();
+								$postdata['level2_personnel_edited']=				date('Y-m-d H:i:s');
+							} else {
+								$postdata['rma_specialist_id'] = 					CRUDBooster::myId();
+								$postdata['rma_specialist_date_received']=			date('Y-m-d H:i:s');
+							}
 							$postdata['returns_status'] = 						$for_replacement_frontend;
 							$postdata['returns_status_1'] = 					$to_sor;
 							$postdata['diagnose_comments'] = 					$field_2;
@@ -671,10 +674,14 @@ use PHPExcel_Style_Fill;
 						date('Y-m-d H:i:s')
 						]);
 			
-							// $postdata['level2_personnel'] = 					CRUDBooster::myId();
-							// $postdata['level2_personnel_edited']=				date('Y-m-d H:i:s');
-							$postdata['rma_specialist_id'] = 					CRUDBooster::myId();
-							$postdata['rma_specialist_date_received']=			date('Y-m-d H:i:s');
+								
+							if(CRUDBooster::myPrivilegeName() == "Service Center") {
+								$postdata['level2_personnel'] = 					CRUDBooster::myId();
+								$postdata['level2_personnel_edited']=				date('Y-m-d H:i:s');
+							} else {
+								$postdata['rma_specialist_id'] = 					CRUDBooster::myId();
+								$postdata['rma_specialist_date_received']=			date('Y-m-d H:i:s');
+							}
 							$postdata['returns_status'] = 						$repair_approved;
 							$postdata['returns_status_1'] = 					$to_print_return_form;
 							$postdata['diagnose_comments'] = 					$field_2;
@@ -717,10 +724,14 @@ use PHPExcel_Style_Fill;
 						date('Y-m-d H:i:s')
 						]);
 			
-							// $postdata['level2_personnel'] = 					CRUDBooster::myId();
-							// $postdata['level2_personnel_edited']=				date('Y-m-d H:i:s');
-							$postdata['rma_specialist_id'] = 					CRUDBooster::myId();
-							$postdata['rma_specialist_date_received']=			date('Y-m-d H:i:s');
+								
+							if(CRUDBooster::myPrivilegeName() == "Service Center") {
+								$postdata['level2_personnel'] = 					CRUDBooster::myId();
+								$postdata['level2_personnel_edited']=				date('Y-m-d H:i:s');
+							} else {
+								$postdata['rma_specialist_id'] = 					CRUDBooster::myId();
+								$postdata['rma_specialist_date_received']=			date('Y-m-d H:i:s');
+							}
 							$postdata['returns_status'] = 						$return_rejected;
 							$postdata['returns_status_1'] = 					$to_print_return_form;
 							$postdata['diagnose_comments'] = 					$field_2;
@@ -763,10 +774,14 @@ use PHPExcel_Style_Fill;
 						date('Y-m-d H:i:s')
 						]);
 			
-								// $postdata['level2_personnel'] = 					CRUDBooster::myId();
-								// $postdata['level2_personnel_edited']=				date('Y-m-d H:i:s');
+								
+							if(CRUDBooster::myPrivilegeName() == "Service Center") {
+								$postdata['level2_personnel'] = 					CRUDBooster::myId();
+								$postdata['level2_personnel_edited']=				date('Y-m-d H:i:s');
+							} else {
 								$postdata['rma_specialist_id'] = 					CRUDBooster::myId();
 								$postdata['rma_specialist_date_received']=			date('Y-m-d H:i:s');
+							}
 								$postdata['returns_status'] = 						$to_refund_approved;
 								$postdata['returns_status_1'] = 					$to_create_crf;
 								$postdata['diagnose_comments'] = 					$field_2;
