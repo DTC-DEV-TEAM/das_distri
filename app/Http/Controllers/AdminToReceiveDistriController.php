@@ -431,9 +431,11 @@ class AdminToReceiveDistriController extends \crocodicstudio\crudbooster\control
 						$to_receive = ReturnsStatus::where('id','29')->value('id');
 						$pending = ReturnsStatus::where('id','19')->value('id');
 						$to_print_srr  =  ReturnsStatus::where('id','32')->value('id');
+						$to_turnover  =  ReturnsStatus::where('id','37')->value('id');
 						// $to_receive_rma = ReturnsStatus::where('id','34')->value('id');
 
 						$sub_query->where('returns_status_1', $to_receive)->orderBy('id', 'asc');  
+						$sub_query->orWhere('returns_status_1', $to_turnover)->orderBy('id', 'asc');  
 						// $sub_query->orWhere('returns_status_1', $to_print_pf)->orderBy('id', 'asc');
 						$sub_query->orWhere('returns_status_1', $pending)->where('pickup_schedule',null);
 						// $sub_query->orwhere('returns_status_1', $to_receive_rma)->orderBy('id', 'asc');
