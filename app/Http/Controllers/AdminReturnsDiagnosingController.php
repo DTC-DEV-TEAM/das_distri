@@ -5,6 +5,7 @@ use Session;
 use DB;
 use CRUDBooster;
 use App\ReturnsStatus;
+use App\CaseStatus;
 use App\ReturnsHeader;
 use App\ReturnsBody;
 use App\ReturnsSerials;
@@ -107,7 +108,7 @@ use PHPExcel_Style_Fill;
 			$this->form[] = ['label'=>'Items Included Others','name'=>'items_included_others','type'=>'text','validation'=>'required|min:1|max:255','width'=>'col-sm-10'];
 			$this->form[] = ['label'=>'Comments','name'=>'comments','type'=>'textarea','validation'=>'required|string|min:5|max:5000','width'=>'col-sm-10'];
 			$this->form[] = ['label'=>'Customer Location','name'=>'customer_location','type'=>'text','validation'=>'required|min:1|max:255','width'=>'col-sm-10'];
-			$this->form[] = ['label'=>'Sor No','name'=>'sor_no','type'=>'text','validation'=>'required|min:1|max:255','width'=>'col-sm-10'];
+			// $this->form[] = ['label'=>'Sor No','name'=>'sor_no','type'=>'text','validation'=>'required|min:1|max:255','width'=>'col-sm-10'];
 			$this->form[] = ['label'=>'Total Quantity','name'=>'total_quantity','type'=>'number','validation'=>'required|integer|min:0','width'=>'col-sm-10'];
 			$this->form[] = ['label'=>'Created By','name'=>'created_by','type'=>'number','validation'=>'required|integer|min:0','width'=>'col-sm-10'];
 			$this->form[] = ['label'=>'Updated By','name'=>'updated_by','type'=>'number','validation'=>'required|integer|min:0','width'=>'col-sm-10'];
@@ -199,12 +200,14 @@ use PHPExcel_Style_Fill;
 	        */
 	        $this->addaction = array();
 			$to_diagnose = ReturnsStatus::where('id','5')->value('id');
+			$to_for_action = ReturnsStatus::where('id','38')->value('id');
 			$to_receive_sor = ReturnsStatus::where('id','10')->value('id');
 			$to_print_return_form = ReturnsStatus::where('id','13')->value('id');
 			$requested = ReturnsStatus::where('id','1')->value('id');
 
 
 				$this->addaction[] = ['title'=>'Edit','url'=>CRUDBooster::mainpath('ReturnsDiagnosingEdit/[id]'),'icon'=>'fa fa-pencil', "showIf"=>"[returns_status_1] == $to_diagnose"];
+				$this->addaction[] = ['title'=>'Edit','url'=>CRUDBooster::mainpath('ReturnsDiagnosingEdit/[id]'),'icon'=>'fa fa-pencil', "showIf"=>"[returns_status_1] == $to_for_action"];
 				$this->addaction[] = ['title'=>'Edit','url'=>CRUDBooster::mainpath('ReturnsSORReceivingEdit/[id]'),'icon'=>'fa fa-pencil', "showIf"=>"[returns_status_1] == $to_receive_sor"];
 				$this->addaction[] = ['title'=>'Print','url'=>CRUDBooster::mainpath('ReturnsReturnFormPrint/[id]'),'icon'=>'fa fa-print', "showIf"=>"[returns_status_1] == $to_print_return_form"];
 		
@@ -448,6 +451,7 @@ use PHPExcel_Style_Fill;
 			$requested = 				ReturnsStatus::where('id','1')->value('warranty_status');
 			$to_indicate_store = 		ReturnsStatus::where('id','3')->value('warranty_status');
 			$to_diagnose = 				ReturnsStatus::where('id','5')->value('warranty_status');
+			$to_for_action = ReturnsStatus::where('id','38')->value('warranty_status');
 			$to_receive_sor = ReturnsStatus::where('id','10')->value('warranty_status');
 			$to_print_return_form = ReturnsStatus::where('id','13')->value('warranty_status');
 
@@ -460,6 +464,9 @@ use PHPExcel_Style_Fill;
 			
 				}elseif($column_value == $to_diagnose){
 					$column_value = '<span class="label label-warning">'.$to_diagnose.'</span>';
+			
+				}elseif($column_value == $to_for_action){
+					$column_value = '<span class="label label-warning">'.$to_for_action.'</span>';
 			
 				}elseif($column_value == $to_receive_sor){
 					$column_value = '<span class="label label-warning">'.$to_receive_sor.'</span>';
@@ -542,9 +549,10 @@ use PHPExcel_Style_Fill;
 				}else{
 
 					$returns_fields = Input::all();
+		
 					$field_1 		= $returns_fields['diagnose'];
 					$field_2 		= $returns_fields['diagnose_comments'];
-
+					$case_status 	= $returns_fields['case_status'];
 					$problem_details_lines = array();
 					$items_included_lines = array();
 
@@ -568,8 +576,68 @@ use PHPExcel_Style_Fill;
 					}
 
 					$items_included_lines = $items_included_lines;
+					
+					if ($field_1 == 'Save' && CRUDBooster::myPrivilegeName() == "RMA Specialist") {
 
-					if($field_1 == "Repair"){
+						$postdata['case_status'] =  $case_status;
+						
+					}else if($field_1 == 'Save'){
+						try {
+							
+								$postdata['case_status'] =  $case_status;
+								$postdata['diagnose_comments'] = $field_2;
+								$postdata['warranty_status'] = $warranty_status;
+	
+								$postdata['verified_items_included'] = implode(", ",$items_included_lines);
+								$postdata['verified_items_included_others'] = $items_included_others;
+		
+								ReturnsBody::where('returns_header_id',$ReturnRequest->id)->whereNotNull('brand')
+								->update([		
+									'problem_details'=> implode(", ",$problem_details_lines),
+									'problem_details_other'=> $problem_details_other
+								]);
+						}catch (\Exception $e) {
+							DB::rollback();
+							CRUDBooster::redirect(CRUDBooster::mainpath(), trans("crudbooster.alert_database_error",['database_error'=>$e]), 'danger');
+						}
+					}
+					else if($field_1 == 'PrintSSR'){
+	
+						$postdata['case_status'] =  						$case_status;
+						$postdata['diagnose'] = 							"Service Center Repair";
+						$postdata['rma_specialist_id'] = 					CRUDBooster::myId();
+						$postdata['rma_specialist_date_received']=			date('Y-m-d H:i:s');
+	
+						return redirect()->action('AdminRetailReturnDiagnosingController@ReturnsReturnFormPrintRTL',['id'=>$ReturnRequest->id])->send();
+					}
+					else if ($field_1 == 'Test Done') {
+						if(CRUDBooster::myPrivilegeName() == "RMA Technician" || CRUDBooster::myPrivilegeName() == "SuperAdministrator"){
+					
+							$to_for_action = ReturnsStatus::where('id','38')->value('id');
+			
+							$postdata['case_status'] =  						$case_status;
+							$postdata['returns_status_1'] = 					$to_for_action;
+							$postdata['diagnose_comments'] = 					$field_2;
+							$postdata['warranty_status'] = 						$warranty_status;
+							$postdata['diagnose'] = 							"Test Done";
+
+							// $postdata['rma_specialist_id'] = 					CRUDBooster::myId();
+							// $postdata['rma_specialist_date_received']=			date('Y-m-d H:i:s');
+							$postdata['level3_personnel'] = 					CRUDBooster::myId();
+							$postdata['level3_personnel_edited']=				date('Y-m-d H:i:s');
+		
+							$postdata['verified_items_included'] = implode(", ",$items_included_lines);
+							$postdata['verified_items_included_others'] = $items_included_others;
+		
+							ReturnsBody::where('returns_header_id',$ReturnRequest->id)->whereNotNull('brand')
+							->update([		
+								'problem_details'=> implode(", ",$problem_details_lines),
+								'problem_details_other'=> $problem_details_other
+							]);
+		
+						}
+					}
+					else if($field_1 == "Repair"){
 
 						$repair_approved = 	  ReturnsStatus::where('id','16')->value('id');
 						$to_print_return_form = ReturnsStatus::where('id','13')->value('id');
@@ -585,8 +653,8 @@ use PHPExcel_Style_Fill;
 							date('Y-m-d H:i:s')
 							]);
 				
-								$postdata['level3_personnel'] = 					CRUDBooster::myId();
-								$postdata['level3_personnel_edited']=				date('Y-m-d H:i:s');
+								$postdata['rma_specialist_id'] = 					CRUDBooster::myId();
+								$postdata['rma_specialist_date_received']=			date('Y-m-d H:i:s');
 								$postdata['returns_status'] = 						$repair_approved;
 								$postdata['returns_status_1'] = 					$to_print_return_form;
 								$postdata['diagnose_comments'] = 					$field_2;
@@ -625,8 +693,8 @@ use PHPExcel_Style_Fill;
 							date('Y-m-d H:i:s')
 							]);
 				
-								$postdata['level3_personnel'] = 					CRUDBooster::myId();
-								$postdata['level3_personnel_edited']=				date('Y-m-d H:i:s');
+								$postdata['rma_specialist_id'] = 					CRUDBooster::myId();
+								$postdata['rma_specialist_date_received']=			date('Y-m-d H:i:s');
 								$postdata['returns_status'] = 						$return_rejected;
 								$postdata['returns_status_1'] = 					$to_print_return_form;
 								$postdata['diagnose_comments'] = 					$field_2;
@@ -667,9 +735,9 @@ use PHPExcel_Style_Fill;
 							$to_refund_approved,
 							date('Y-m-d H:i:s')
 							]);
-				
-									$postdata['level3_personnel'] = 					CRUDBooster::myId();
-									$postdata['level3_personnel_edited']=				date('Y-m-d H:i:s');
+							
+									$postdata['rma_specialist_id'] = 					CRUDBooster::myId();
+									$postdata['rma_specialist_date_received']=			date('Y-m-d H:i:s');
 									$postdata['returns_status'] = 						$to_refund_approved;
 									$postdata['returns_status_1'] = 					$to_create_crf;
 									$postdata['diagnose_comments'] = 					$field_2;
@@ -710,8 +778,8 @@ use PHPExcel_Style_Fill;
 									date('Y-m-d H:i:s')
 									]);
 						
-										$postdata['level3_personnel'] = 					CRUDBooster::myId();
-										$postdata['level3_personnel_edited']=				date('Y-m-d H:i:s');
+										$postdata['rma_specialist_id'] = 					CRUDBooster::myId();
+										$postdata['rma_specialist_date_received']=			date('Y-m-d H:i:s');
 										$postdata['returns_status'] = 						$for_replacement_frontend;
 										$postdata['returns_status_1'] = 					$to_sor;
 										$postdata['diagnose_comments'] = 					$field_2;
@@ -872,20 +940,22 @@ use PHPExcel_Style_Fill;
 			$data['row'] = ReturnsHeader::
 			//->leftjoin('stores', 'pullout_headers.pull_out_from', '=', 'stores.id')	
 			leftjoin('cms_users as scheduled', 'returns_header.level2_personnel','=', 'scheduled.id')			
-			->leftjoin('cms_users as tagged', 'returns_header.level1_personnel','=', 'tagged.id')
+			// ->leftjoin('cms_users as tagged', 'returns_header.level1_personnel','=', 'tagged.id')
 			->leftjoin('cms_users as diagnosed', 'returns_header.level3_personnel','=', 'diagnosed.id')				
 			->leftjoin('cms_users as printed', 'returns_header.level4_personnel','=', 'printed.id')																	
 			->leftjoin('cms_users as transacted', 'returns_header.level5_personnel','=', 'transacted.id')
 			->leftjoin('cms_users as received', 'returns_header.level6_personnel','=', 'received.id')
 			->leftjoin('cms_users as closed', 'returns_header.level7_personnel','=', 'closed.id')	
 			->leftjoin('cms_users as received_item', 'returns_header.received_by_rma_sc','=', 'received_item.id')
+			->leftjoin('cms_users as turnover_by', 'returns_header.rma_receiver_id','=', 'turnover_by.id')																	
 			->leftjoin('cms_users as scheduled_logistics', 'returns_header.level8_personnel','=', 'scheduled_logistics.id')																	
 			->select(
 			'returns_header.*',
 			'scheduled.name as scheduled_by',
-			'tagged.name as tagged_by',	
+			// 'tagged.name as tagged_by',	
 			'received_item.name as received_item_by',	
-			'tagged.name as diagnosed_by',
+			'turnover_by.name as turnover_by',
+			'diagnosed.name as diagnosed_by',
 			'printed.name as printed_by',	
 			'transacted.name as transacted_by',	
 			'received.name as received_by',
@@ -893,8 +963,8 @@ use PHPExcel_Style_Fill;
 			'scheduled_logistics.name as scheduled_by_logistics'						
 			)
 			->where('returns_header.id',$id)->first();
-
-
+			$data['page_title'] = $data['row']->returns_status_1 == 5 ? 'Returns For Diagnosing' : 'Returns For Specialist';
+			$data['case_status'] = CaseStatus::where('status','=','ACTIVE')->pluck('case_status_name');
 
 			$data['resultlist'] = ReturnsBody::
 			leftjoin('returns_serial', 'returns_body_item.id', '=', 'returns_serial.returns_body_item_id')					
@@ -907,7 +977,6 @@ use PHPExcel_Style_Fill;
 			$channels = Channel::where('channel_name', 'ONLINE')->first();
 
 			$data['store_list'] = Stores::where('channels_id',$channels->id)->get();
-			
 		
 			
 	
@@ -954,7 +1023,6 @@ use PHPExcel_Style_Fill;
 			'scheduled_logistics.name as scheduled_by_logistics'						
 			)
 			->where('returns_header.id',$id)->first();
-
 
 
 			$data['resultlist'] = ReturnsBody::
@@ -1034,7 +1102,8 @@ use PHPExcel_Style_Fill;
 			//->leftjoin('stores', 'pullout_headers.pull_out_from', '=', 'stores.id')	
 			leftjoin('cms_users as scheduled', 'returns_header.level2_personnel','=', 'scheduled.id')			
 			->leftjoin('cms_users as tagged', 'returns_header.level1_personnel','=', 'tagged.id')
-			->leftjoin('cms_users as diagnosed', 'returns_header.level3_personnel','=', 'diagnosed.id')				
+			->leftjoin('cms_users as diagnosed', 'returns_header_retail.rma_specialist_id','=', 'diagnosed.id')				
+			->leftjoin('cms_users as diagnosed2', 'returns_header_retail.level3_personnel','=', 'diagnosed2.id')				
 			->leftjoin('cms_users as printed', 'returns_header.level4_personnel','=', 'printed.id')																	
 			->leftjoin('cms_users as transacted', 'returns_header.level5_personnel','=', 'transacted.id')
 			->leftjoin('cms_users as received', 'returns_header.level6_personnel','=', 'received.id')																		
@@ -1043,6 +1112,7 @@ use PHPExcel_Style_Fill;
 			'scheduled.name as scheduled_by',
 			'tagged.name as tagged_by',	
 			'diagnosed.name as diagnosed_by',
+			'diagnosed2.name as diagnosed2_by',
 			'printed.name as printed_by',	
 			'transacted.name as transacted_by',	
 			'received.name as received_by'							
