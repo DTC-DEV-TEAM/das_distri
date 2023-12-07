@@ -383,6 +383,7 @@ use PHPExcel_Style_Fill;
 	    */
 	    public function hook_query_index(&$query) {
 	        //Your code here
+			
 		
 			if(CRUDBooster::myPrivilegeName() == "Service Center"){ 
 				$query->where(function($sub_query){
@@ -394,19 +395,23 @@ use PHPExcel_Style_Fill;
 					$to_print_return_form = ReturnsStatus::where('id','13')->value('id');
 					
 					
-					    $approvalMatrix = DB::table("cms_users")->where('cms_users.id', CRUDBooster::myId())->get();
-        				$approval_array = array();
-        				foreach($approvalMatrix as $matrix){
-        				    array_push($approval_array, $matrix->stores_id);
-        				}
-        				$approval_string = implode(",",$approval_array);
-        				$storeList = array_map('intval',explode(",",$approval_string));      
+					$approvalMatrix = DB::table("cms_users")->where('cms_users.id', CRUDBooster::myId())->get();
+					$approval_array = array();
+
+					foreach($approvalMatrix as $matrix){
+						array_push($approval_array, $matrix->stores_id);
+					}
+
+					$approval_string = implode(",",$approval_array);
+					$storeList = array_map('intval',explode(",",$approval_string));      
 	 
 					$sub_query->where('returns_status_1', $to_diagnose)->where('transaction_type', 1)->whereIn('returns_header.stores_id', $storeList)->orderBy('id', 'asc');  
 					$sub_query->orWhere('returns_status_1', $to_receive_sor)->where('transaction_type', 1)->whereIn('returns_header.stores_id', $storeList)->orderBy('id', 'asc');
 					$sub_query->orWhere('returns_status_1', $to_print_return_form)->where('transaction_type', 1)->whereIn('returns_header.stores_id', $storeList)->orderBy('id', 'asc');
-				});
 
+					// sc_id
+					$sub_query->orWhereIn('returns_status_1', [$to_diagnose, $to_receive_sor, $to_print_return_form])->where('transaction_type', 1)->whereIn('returns_header.sc_location_id', $storeList)->orderBy('id', 'asc');
+				});
 			}
 			else if(CRUDBooster::myPrivilegeName() == "RMA Technician"){
 				$query->where(function($sub_query){

@@ -416,7 +416,10 @@ use PHPExcel_Style_Fill;
 
 					$sub_query->orWhere('returns_status_1', $to_receive_sc)->where('transaction_type', 1)->whereIn('returns_header.stores_id', $storeList)->orderBy('id', 'asc');
 					$sub_query->orWhere('returns_status_1', $to_receive_sc)->where('transaction_type', 0)->whereIn('returns_header.stores_id', $storeList)->orderBy('id', 'asc');
-					
+
+					// sc_id
+					$sub_query->orWhere('returns_status_1', $to_receive_sc)->whereIn('transaction_type', [0,1])->whereIn('returns_header.sc_location_id', $storeList)->orderBy('id', 'asc');
+
 				});
 
 			}else{

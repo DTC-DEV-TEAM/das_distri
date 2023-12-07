@@ -482,17 +482,21 @@ use App\StoresFrontEnd;
 				$postdata['returns_status_1']=				$to_ship_back;
 				$postdata['return_delivery_date']=			$delivery_date;
 				
-			}elseif($ReturnRequest->returns_status_1 == 33 && $ReturnRequest->diagnose == 'REPLACE'){
+			}
+			elseif($ReturnRequest->returns_status_1 == 33 && $ReturnRequest->diagnose == 'REPLACE'){
 				$postdata['level8_personnel'] = 					CRUDBooster::myId();
 				$postdata['level8_personnel_edited']=				date('Y-m-d H:i:s');
 				$postdata['pickup_schedule'] = 						$pick_up;
 				$postdata['returns_status_1'] = 					$for_replacement;				
 			
-			}elseif($ReturnRequest->returns_status_1 == 23){
+			}
+			// SC Location ID
+			elseif($ReturnRequest->returns_status_1 == 23){
 				$postdata['level8_personnel'] = 					CRUDBooster::myId();
 				$postdata['level8_personnel_edited']=				date('Y-m-d H:i:s');
 				$postdata['pickup_schedule'] = 						$pick_up;
-				$postdata['returns_status_1'] = 					$pf;				
+				$postdata['returns_status_1'] = 					$pf;		
+				$postdata['sc_location_id'] = 						$ReturnRequest->deliver_to == 'WAREHOUSE.RMA.DEP' ? null : DB::table('stores')->where('store_name',$ReturnRequest->deliver_to)->first()->id;		
 			}
 			else{
 				$postdata['level1_personnel'] = 					CRUDBooster::myId();
@@ -689,6 +693,7 @@ use App\StoresFrontEnd;
 			$request_id = $data['return_id']; 
 			$to_pickup   = ReturnsStatus::where('id','2')->value('id');
 			$to_rma = ReturnsStatus::where('id','34')->value('id');
+			$to_sc = ReturnsStatus::where('id','35')->value('id');
 			$return_request =  ReturnsHeaderDISTRI::where('id',$request_id)->first();
 
 			if($return_request->returns_status_1 != $to_rma){
@@ -704,12 +709,23 @@ use App\StoresFrontEnd;
 							$to_pickup,
 							date('Y-m-d H:i:s')
 						]);
-		
-					ReturnsHeaderDISTRI::where('id',(int)$request_id)
+
+					if($return_request->deliver_to == 'WAREHOUSE.RMA.DEP'){
+
+						ReturnsHeaderDISTRI::where('id',(int)$request_id)
+							->update([
+								'returns_status'=> 			$to_pickup,
+								'returns_status_1'=> 		$to_rma
+							]);	
+					}else{
+						// SERVICE CENTER.AYALA.BONIFACIO HIGH STREET.RTL
+						ReturnsHeaderDISTRI::where('id',(int)$request_id)
 						->update([
 							'returns_status'=> 			$to_pickup,
-							'returns_status_1'=> 		$to_rma
+							'returns_status_1'=> 		$to_sc
 						]);	
+					}
+		
 						
 					DB::commit();
 	
@@ -721,7 +737,6 @@ use App\StoresFrontEnd;
 				DB::disconnect('mysql_distri');
 			}
 
-			dd('success');
 		}
 
 		public function GetExtractSchedulingReturnsDISTRI() {

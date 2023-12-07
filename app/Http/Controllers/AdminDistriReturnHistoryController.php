@@ -505,6 +505,7 @@ use App\StoresFrontEnd;
             $to_print_pf = 				ReturnsStatus::where('id','19')->value('warranty_status');
             $received = 	            ReturnsStatus::where('id','31')->value('warranty_status');
             $to_receive_rma = 			ReturnsStatus::where('id','34')->value('warranty_status');
+			$to_receive_sc = 			ReturnsStatus::where('id','35')->value('warranty_status');
             $to_receive  = 	            ReturnsStatus::where('id','29')->value('warranty_status');    
             $return_delivery_date =     ReturnsStatus::where('id','33')->value('warranty_status');
 			$to_schedule_logistics = 	ReturnsStatus::where('id','23')->value('warranty_status');
@@ -579,6 +580,9 @@ use App\StoresFrontEnd;
 					
 				}elseif($column_value == $to_receive_rma){
 					$column_value = '<span class="label label-warning">'.$to_receive_rma.'</span>';
+					
+				}elseif($column_value == $to_receive_scq){
+					$column_value = '<span class="label label-warning">'.$to_receive_sc .'</span>';
 					
 				}elseif($column_value == $to_schedule_logistics){
 					$column_value = '<span class="label label-warning">'.$to_schedule_logistics.'</span>';

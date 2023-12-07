@@ -243,7 +243,8 @@ class AdminToReceiveDistriController extends \crocodicstudio\crudbooster\control
 		$to_print_srr  = ReturnsStatus::where('id','19')->value('id');
 		$to_diagnose = ReturnsStatus::where('id','5')->value('id');
 		$to_receive_rma = ReturnsStatus::where('id','34')->value('id');
-		$to_turnover_rma = ReturnsStatus::where('id','37')->value('id');
+		$to_receive_sc = ReturnsStatus::where('id','35')->value('id');
+		$to_turnover = ReturnsStatus::where('id','37')->value('id');
 
 
 		$this->addaction[] = ['title'=>'Edit','url'=>CRUDBooster::mainpath('ReturnsToReceiveEditDISTRI/[id]'),'icon'=>'fa fa-pencil', "showIf"=>"[returns_status_1] == $to_diagnose"];
@@ -251,13 +252,19 @@ class AdminToReceiveDistriController extends \crocodicstudio\crudbooster\control
 		// if(CRUDBooster::myPrivilegeName() == "Distri Logistics" || CRUDBooster::myPrivilegeName() == "Logistics"){
 			$this->addaction[] = ['title'=>'Print','url'=>CRUDBooster::mainpath('ReturnsSRRPrint/[id]'),'icon'=>'fa fa-print', "showIf"=>"[returns_status_1] == $to_print_srr"];
 		// }
+		// RMA
 		if(CRUDBooster::myPrivilegeId() == 4){
 			$this->addaction[] = ['title'=>'Edit','url'=>CRUDBooster::mainpath('ToReceiveDistri/[id]'),'icon'=>'fa fa-pencil', "showIf"=>"[returns_status_1] == $to_receive_rma"];
-			$this->addaction[] = ['title'=>'Edit','url'=>CRUDBooster::mainpath('ToReceiveDistri/[id]'),'icon'=>'fa fa-pencil', "showIf"=>"[returns_status_1] == $to_turnover_rma"];
+			$this->addaction[] = ['title'=>'Edit','url'=>CRUDBooster::mainpath('ToReceiveDistri/[id]'),'icon'=>'fa fa-pencil', "showIf"=>"[returns_status_1] == $to_turnover"];
+		}
+		// SC
+		elseif(CRUDBooster::myPrivilegeId() == 5){
+			$this->addaction[] = ['title'=>'Edit','url'=>CRUDBooster::mainpath('ToReceiveDistri/[id]'),'icon'=>'fa fa-pencil', "showIf"=>"[returns_status_1] == $to_receive_sc"];
 		}
 		else{
+			$this->addaction[] = ['title'=>'Edit','url'=>CRUDBooster::mainpath('ToReceiveDistri/[id]'),'icon'=>'fa fa-pencil', "showIf"=>"[returns_status_1] == $to_receive_sc"];
 			$this->addaction[] = ['title'=>'Edit','url'=>CRUDBooster::mainpath('ToReceiveDistri/[id]'),'icon'=>'fa fa-pencil', "showIf"=>"[returns_status_1] == $to_receive_rma"];
-			$this->addaction[] = ['title'=>'Edit','url'=>CRUDBooster::mainpath('ToReceiveDistri/[id]'),'icon'=>'fa fa-pencil', "showIf"=>"[returns_status_1] == $to_turnover_rma"];
+			$this->addaction[] = ['title'=>'Edit','url'=>CRUDBooster::mainpath('ToReceiveDistri/[id]'),'icon'=>'fa fa-pencil', "showIf"=>"[returns_status_1] == $to_turnover"];
 			$this->addaction[] = ['title'=>'Edit','url'=>CRUDBooster::mainpath('ReturnsDiagnosingDISTRIEditSC/[id]'),'icon'=>'fa fa-pencil', "showIf"=>"[returns_status_1] == $to_receive"];
 		}
 
@@ -423,63 +430,73 @@ class AdminToReceiveDistriController extends \crocodicstudio\crudbooster\control
 	|
 	*/
 	public function hook_query_index(&$query) {
-	        //Your code here
-	
-				if(CRUDBooster::myPrivilegeName() == "Retail Ops" || CRUDBooster::myPrivilegeName() == "Store Ops" ){
-					$query->where(function($sub_query){
+	    //Your code here
 
-						$to_receive = ReturnsStatus::where('id','29')->value('id');
-						$pending = ReturnsStatus::where('id','19')->value('id');
-						$to_print_srr  =  ReturnsStatus::where('id','32')->value('id');
-						$to_turnover  =  ReturnsStatus::where('id','37')->value('id');
-						// $to_receive_rma = ReturnsStatus::where('id','34')->value('id');
+		$user = DB::table('cms_users')->where('id', CRUDBooster::myId())->first();
+		$user_store_id = explode(',', $user->stores_id);
 
-						$sub_query->where('returns_status_1', $to_receive)->orderBy('id', 'asc');  
-						$sub_query->orWhere('returns_status_1', $to_turnover)->orderBy('id', 'asc');  
-						// $sub_query->orWhere('returns_status_1', $to_print_pf)->orderBy('id', 'asc');
-						$sub_query->orWhere('returns_status_1', $pending)->where('pickup_schedule',null);
-						// $sub_query->orwhere('returns_status_1', $to_receive_rma)->orderBy('id', 'asc');
+		if(CRUDBooster::myPrivilegeName() == "Retail Ops" || CRUDBooster::myPrivilegeName() == "Store Ops" ){
+			$query->where(function($sub_query){
 
-					});
-				}
-				if(CRUDBooster::myPrivilegeName() == "Distri Logistics" || CRUDBooster::myPrivilegeName() == "Logistics"){
-					$query->where(function($sub_query){
+				$to_receive = ReturnsStatus::where('id','29')->value('id');
+				$pending = ReturnsStatus::where('id','19')->value('id');
+				$to_print_srr  =  ReturnsStatus::where('id','32')->value('id');
+				// $to_receive_rma = ReturnsStatus::where('id','34')->value('id');
 
-						$to_receive = ReturnsStatus::where('id','29')->value('id');
-						$pending = ReturnsStatus::where('id','19')->value('id');
-						$to_print_srr  =  ReturnsStatus::where('id','32')->value('id');
-						$to_receive_rma = ReturnsStatus::where('id','34')->value('id');
+				$sub_query->where('returns_status_1', $to_receive)->orderBy('id', 'asc');  
+				// $sub_query->orWhere('returns_status_1', $to_print_pf)->orderBy('id', 'asc');
+				$sub_query->orWhere('returns_status_1', $pending)->where('pickup_schedule',null);
+				// $sub_query->orwhere('returns_status_1', $to_receive_rma)->orderBy('id', 'asc');
+			});
+		}
+		if(CRUDBooster::myPrivilegeName() == "Distri Logistics" || CRUDBooster::myPrivilegeName() == "Logistics"){
+			$query->where(function($sub_query){
 
-						// $sub_query->orWhere('returns_status_1', $to_print_pf)->orderBy('id', 'asc');
-						$sub_query->orWhere('returns_status_1', $pending)->where('pickup_schedule',null);
+				$to_receive = ReturnsStatus::where('id','29')->value('id');
+				$pending = ReturnsStatus::where('id','19')->value('id');
+				$to_print_srr  =  ReturnsStatus::where('id','32')->value('id');
+				$to_receive_rma = ReturnsStatus::where('id','34')->value('id');
 
-					});
-				}
-				if(CRUDBooster::myPrivilegeName() == "Service Center" || CRUDBooster::myPrivilegeName() == "RMA" ){
-					$query->where(function($sub_query){
+				// $sub_query->orWhere('returns_status_1', $to_print_pf)->orderBy('id', 'asc');
+				$sub_query->orWhere('returns_status_1', $pending)->where('pickup_schedule',null);
+			});
+		}
+		if(CRUDBooster::myPrivilegeName() == "RMA" ){
+			$query->where(function($sub_query){
 
-						$to_receive_rma = ReturnsStatus::where('id','34')->value('id');;
-						$sub_query->where('returns_status_1', $to_receive_rma)->orderBy('id', 'asc');
+				$to_receive_rma = ReturnsStatus::where('id','34')->value('id');
+				$to_turnover  =  ReturnsStatus::where('id','37')->value('id');
 
+				$sub_query->where('returns_status_1', $to_receive_rma)->orderBy('id', 'asc');
+				$sub_query->orWhere('returns_status_1', $to_turnover)->orderBy('id', 'asc');  
+			});
+		}
+		if(CRUDBooster::myPrivilegeName() == "Service Center"){
+			$query->where(function($sub_query){
 
-					});
-				}
-				else{
-					$query->where(function($sub_query){
-						$to_receive = ReturnsStatus::where('id','29')->value('id');
-						$to_print_return_form = ReturnsStatus::where('id','13')->value('id');
-						$to_diagnose = ReturnsStatus::where('id','5')->value('id');
-						$to_print_srr  =  ReturnsStatus::where('id','19')->value('id');
-						$to_receive_rma = ReturnsStatus::where('id','34')->value('id');
-						$to_turnover = ReturnsStatus::where('id','37')->value('id');
-						
-						$sub_query->where('returns_status_1', $to_receive)->orderBy('id', 'asc');  
-						$sub_query->orWhere('returns_status_1', $to_print_srr)->orderBy('id', 'asc');
-						$sub_query->orWhere('returns_status_1', $to_receive_rma)->orderBy('id', 'asc');
-						$sub_query->orWhere('returns_status_1', $to_turnover)->orderBy('id', 'asc');
+				$to_receive_sc = ReturnsStatus::where('id','35')->value('id');
 
-					});   
-				}
+				$sub_query->where('returns_status_1', $to_receive_sc)->whereIn('returns_header_distribution.sc_location_id', $user_store_id)->orderBy('id', 'asc');
+			});
+		}
+		else{
+			$query->where(function($sub_query){
+
+				$to_receive = ReturnsStatus::where('id','29')->value('id');
+				$to_print_return_form = ReturnsStatus::where('id','13')->value('id');
+				$to_diagnose = ReturnsStatus::where('id','5')->value('id');
+				$to_print_srr  =  ReturnsStatus::where('id','19')->value('id');
+				$to_receive_rma = ReturnsStatus::where('id','34')->value('id');
+				$to_turnover = ReturnsStatus::where('id','37')->value('id');
+				$to_receive_sc = ReturnsStatus::where('id','35')->value('id');
+
+				$sub_query->where('returns_status_1', $to_receive)->orderBy('id', 'asc');  
+				$sub_query->orWhere('returns_status_1', $to_print_srr)->orderBy('id', 'asc');
+				$sub_query->orWhere('returns_status_1', $to_receive_rma)->orderBy('id', 'asc');
+				$sub_query->orWhere('returns_status_1', $to_turnover)->orderBy('id', 'asc');
+				$sub_query->orWhere('returns_status_1', $to_receive_sc)->orderBy('id', 'asc');
+			});   
+		}
     
 		}
 
@@ -498,6 +515,7 @@ class AdminToReceiveDistriController extends \crocodicstudio\crudbooster\control
 			$to_print_return_form = ReturnsStatus::where('id','13')->value('warranty_status');
 			$to_receive = ReturnsStatus::where('id','29')->value('warranty_status');
 			$to_receive_rma = ReturnsStatus::where('id','34')->value('warranty_status');
+			$to_receive_sc = ReturnsStatus::where('id','35')->value('warranty_status');
 			$to_turnover = ReturnsStatus::where('id','37')->value('warranty_status');
             
             $to_print_srr  =     ReturnsStatus::where('id','19')->value('warranty_status');
@@ -525,6 +543,10 @@ class AdminToReceiveDistriController extends \crocodicstudio\crudbooster\control
 				
 				}elseif($column_value == $to_receive_rma){
 					$column_value = '<span class="label label-warning">'.$to_receive_rma.'</span>';
+					
+				}elseif($column_value == $to_receive_sc){
+					$column_value = '<span class="label label-warning">'.$to_receive_sc.'</span>';
+
 				}elseif($column_value == $to_turnover){
 					$column_value = '<span class="label label-warning">'.$to_turnover.'</span>';
 				}
@@ -566,7 +588,7 @@ class AdminToReceiveDistriController extends \crocodicstudio\crudbooster\control
 		public function hook_before_edit(&$postdata,$id) {        
 			$ReturnRequest = ReturnsHeaderDISTRI::where('id',$id)->first();
 			
-			if(CRUDBooster::myPrivilegeName() == "Service Center"){
+			if(CRUDBooster::myPrivilegeName() == "Service Center" || (CRUDBooster::myPrivilegeName() == "Super Administrator" && $ReturnRequest->returns_status_1 == 35)){
 
 				$to_receive_sc = ReturnsStatus::where('id','35')->value('id');
 				

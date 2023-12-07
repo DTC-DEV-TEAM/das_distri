@@ -1100,7 +1100,8 @@ use App\StoresFrontEnd;
         					        
                 					    ReturnsHeader::where('id',$request_id)
                 					    ->update([
-                							'stores_id'=> 		DB::table("stores")->where('store_name', $return_request->deliver_to)->value('id')
+                							'stores_id'=> 		DB::table("stores")->where('store_name', $return_request->deliver_to)->value('id'),
+											'sc_location_id'=>	DB::table("stores")->where('store_name', $return_request->deliver_to)->value('id')
                 						]);	
                 						
         					    }

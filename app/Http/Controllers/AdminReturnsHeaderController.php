@@ -668,7 +668,7 @@ use App\TransactionTypeList;
 					
 					$Itemproblem_details_text	 		= $ReturnItems['problem_details_text'];
 					$Itemproblem_details_other_text	 	= $ReturnItems['problem_details_other_text'];
-		
+					// dd($deliver_to);
 					for($x=0; $x < count($digitsCode); $x++){
 					    
 					    
@@ -686,6 +686,7 @@ use App\TransactionTypeList;
 
 										$postdata['stores_id'] =            DB::table("stores")->where('store_name', $deliver_to)->value('id');
 
+										$postdata['sc_location_id'] = 			DB::table("stores")->where('store_name', $deliver_to)->value('id');
 									}
 									
 
