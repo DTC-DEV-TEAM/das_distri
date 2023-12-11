@@ -408,8 +408,11 @@ use App\TransactionTypeList;
 					//$sub_query->orWhere('returns_status_1', $to_print_return_form)->where('transaction_type', 3)->where('stores_id', CRUDBooster::myStoreId())->orderBy('id', 'asc');
 					
 					$sub_query->where('returns_status_1', $to_receive)->where('transaction_type', 3)->whereIn('returns_header_retail.stores_id', $storeList)->orderBy('id', 'asc');  
+
 					$sub_query->orWhere('returns_status_1', $to_print_return_form)->where('transaction_type', 3)->whereIn('returns_header_retail.stores_id', $storeList)->orderBy('id', 'asc');
+
 					$sub_query->orWhere('returns_status_1', $to_print_srr)->where('transaction_type', 3)->whereIn('returns_header_retail.stores_id', $storeList)->orderBy('id', 'asc');
+
 					$sub_query->orWhere('returns_status_1', $to_diagnose)->where('transaction_type', 3)->whereIn('returns_header_retail.stores_id', $storeList)->orderBy('id', 'asc');
 
 					$sub_query->where('returns_status_1', $to_receive)->where('transaction_type', 1)->whereIn('returns_header_retail.stores_id', $storeList)->orderBy('id', 'asc');  
@@ -1456,6 +1459,9 @@ use App\TransactionTypeList;
 					));
 
 					$requested = ReturnsStatus::where('id','1')->value('id');
+					$to_receive = ReturnsStatus::where('id','29')->value('id');
+					$to_receive_rma = ReturnsStatus::where('id','34')->value('id');
+					$to_receive_sc = ReturnsStatus::where('id','35')->value('id');
 					//$to_receive_sor = 		ReturnsStatus::where('id','10')->value('id');
 					$to_print_return_form = ReturnsStatus::where('id','13')->value('id');
 					
@@ -1465,7 +1471,7 @@ use App\TransactionTypeList;
         				    array_push($approval_array, $matrix->stores_id);
         				}
         				$approval_string = implode(",",$approval_array);
-        				$storeList = array_map('intval',explode(",",$approval_string)); 					
+        				$storeList = array_map('intval',explode(",",$approval_string)); 		
 
 					$orderData = DB::table('returns_header_retail')
 					->leftjoin('warranty_statuses', 'returns_header_retail.returns_status_1','=', 'warranty_statuses.id')
@@ -1488,12 +1494,24 @@ use App\TransactionTypeList;
 								'received.name as received_by',
 								'closed.name as closed_by',
 								'warranty_statuses.*'
-								)->whereNull('returns_body_item_retail.category')->where('transaction_type', 2)->where('returns_status_1', $requested)->whereIn('returns_header_retail.stores_id', $storeList)->groupby('returns_body_item_retail.digits_code')
+								)
+					->whereIn('returns_header_retail.stores_id', $storeList)
+					->whereNull('returns_body_item_retail.category')
+					->where(function ($query) {
+						$query->where('returns_header_retail.returns_status_1', 35)
+							->whereIn('transaction_type', [1,0]);
+						$query->orWhere('returns_header_retail.returns_status_1', 29)
+							->whereIn('transaction_type', [1,3]);
+					});
+					// ->whereIn('returns_header_retail.returns_status_1', [$to_receive_sc, $to_receive_rma])
+					// ->whereIn('transaction_type', [0,1])
+					// ->groupby('returns_body_item_retail.digits_code');
+					// ->orWhereIn('returns_header_retail.returns_status_1'
+					// ->get();
+								// ->whereNull('returns_body_item_retail.category')->where('transaction_type', 2)->where('returns_status_1', $to_receive_sc)->whereIn('returns_header_retail.stores_id', $storeList)->groupby('returns_body_item_retail.digits_code');
 						//->orwhereNotNull('returns_body_item.category')->where('transaction_type', 0)->where('returns_status_1', $to_receive_sor)
-						->orwhereNull('returns_body_item_retail.category')->where('transaction_type', 2)->where('returns_status_1', $to_print_return_form)->whereIn('returns_header_retail.stores_id', $storeList)->groupby('returns_body_item_retail.digits_code');
-					
-
-						if(\Request::get('filter_column')) {
+						// ->orwhereNull('returns_body_item_retail.category')->where('transaction_type', 2)->where('returns_status_1', $to_print_return_form)->whereIn('returns_header_retail.stores_id', $storeList)->groupby('returns_body_item_retail.digits_code');
+					if(\Request::get('filter_column')) {
 
 						$filter_column = \Request::get('filter_column');
 

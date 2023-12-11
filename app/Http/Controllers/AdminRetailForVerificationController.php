@@ -625,7 +625,7 @@ use App\TransactionTypeList;
 							if($itemBrand[$x] == "APPLE" || $itemBrand[$x] == "BEATS"){
 								$postdata['deliver_to'] = 		    $deliver_to;
 								
-								// $postdata['stores_id'] =            DB::table("stores")->where('store_name', $deliver_to)->value('id');
+								$postdata['stores_id'] =            DB::table("stores")->where('store_name', $deliver_to)->value('id');
 								
 								$postdata['sc_location_id'] = DB::table("stores")->where('store_name', $deliver_to)->value('id');
 
