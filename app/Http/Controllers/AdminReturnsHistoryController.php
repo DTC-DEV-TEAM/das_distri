@@ -684,6 +684,7 @@ use App\StoresFrontEnd;
 			$to_receive_rma = 			ReturnsStatus::where('id','34')->value('warranty_status');
 			$to_receive_sc = 			ReturnsStatus::where('id','35')->value('warranty_status');
 			$to_turnover = 				ReturnsStatus::where('id','37')->value('warranty_status');
+			$to_for_action = 			ReturnsStatus::where('id','38')->value('warranty_status');
 
 			$to_create_crf = 			ReturnsStatus::where('id','25')->value('warranty_status');
 
@@ -796,6 +797,10 @@ use App\StoresFrontEnd;
 				}
 				elseif($column_value == $to_turnover){
 					$column_value = '<span class="label label-warning">'.$to_turnover.'</span>';
+			
+				}
+				elseif($column_value == $to_for_action){
+					$column_value = '<span class="label label-warning">'.$to_for_action.'</span>';
 			
 				}
 			}
@@ -1597,6 +1602,8 @@ use App\StoresFrontEnd;
 						->leftjoin('cms_users as received', 'returns_header.level6_personnel','=', 'received.id')
 						->leftjoin('cms_users as closed', 'returns_header.level7_personnel','=', 'closed.id')
 						->leftjoin('cms_users as received1', 'returns_header.received_by_rma_sc','=', 'received1.id')
+						->leftjoin('cms_users as turnover', 'returns_header.rma_receiver_id','=', 'turnover.id')
+						->leftjoin('cms_users as specialist', 'returns_header.rma_specialist_id','=', 'specialist.id')
 						->leftJoin('returns_body_item', 'returns_header.id', '=', 'returns_body_item.returns_header_id')
 						->select(   'returns_header.*', 
 						            'returns_header.created_at as datecreated',
@@ -1609,6 +1616,8 @@ use App\StoresFrontEnd;
 									'printed.name as printed_by',	
 									'transacted.name as transacted_by',	
 									'received.name as received_by',
+									'turnover.name as turnover_by',
+									'specialist.name as specialist_by',
 									'closed.name as closed_by',
 									'received1.name as received_by1',
 									'via.*',
@@ -1853,10 +1862,13 @@ use App\StoresFrontEnd;
     						'SCHEDULED DATE',           //blue  //additional code 20200205
     						
     						'RECEIVED BY',
-    						'RECEIVED DATE',
-    						
+                            'RECEIVED DATE',
+							'TURNOVER BY',
+							'TURNOVER DATE',
     						'DIAGNOSED BY',           //blue  //additional code 20200205
     						'DIAGNOSED DATE',           //blue  //additional code 20200205
+							'PROCESSED BY',           //blue  //additional code 20200205
+							'PROCESSED DATE',  
     						'PRINTED BY',           //blue  //additional code 20200205
     						'PRINTED DATE',           //blue  //additional code 20200205
     						'SOR BY',           //blue  //additional code 20200205
@@ -1882,6 +1894,8 @@ use App\StoresFrontEnd;
 						->leftjoin('cms_users as received', 'returns_header.level6_personnel','=', 'received.id')
 						->leftjoin('cms_users as closed', 'returns_header.level7_personnel','=', 'closed.id')	
 						->leftjoin('cms_users as received1', 'returns_header.received_by_rma_sc','=', 'received1.id')
+						->leftjoin('cms_users as turnover', 'returns_header.rma_receiver_id','=', 'turnover.id')
+						->leftjoin('cms_users as specialist', 'returns_header.rma_specialist_id','=', 'specialist.id')
 						->leftJoin('returns_body_item', 'returns_header.id', '=', 'returns_body_item.returns_header_id')
 						->select(   'returns_header.*', 
 						            'returns_header.created_at as datecreated',
@@ -1895,6 +1909,8 @@ use App\StoresFrontEnd;
 									'transacted.name as transacted_by',	
 									'received.name as received_by',
 									'received1.name as received_by1',
+									'turnover.name as turnover_by',
+									'specialist.name as specialist_by',
 									'closed.name as closed_by',
 									'via.*',
 									'warranty_statuses.*'
@@ -2137,9 +2153,12 @@ use App\StoresFrontEnd;
     						
     						'RECEIVED BY',
                             'RECEIVED DATE',
-
+							'TURNOVER BY',
+							'TURNOVER DATE',
     						'DIAGNOSED BY',           //blue  //additional code 20200205
     						'DIAGNOSED DATE',           //blue  //additional code 20200205
+							'PROCESSED BY',           //blue  //additional code 20200205
+							'PROCESSED DATE',  
     						'PRINTED BY',           //blue  //additional code 20200205
     						'PRINTED DATE',           //blue  //additional code 20200205
     						'SOR BY',           //blue  //additional code 20200205
@@ -2166,6 +2185,8 @@ use App\StoresFrontEnd;
 						->leftjoin('cms_users as received', 'returns_header.level6_personnel','=', 'received.id')
 						->leftjoin('cms_users as closed', 'returns_header.level7_personnel','=', 'closed.id')	
 						->leftjoin('cms_users as received1', 'returns_header.received_by_rma_sc','=', 'received1.id')
+						->leftjoin('cms_users as turnover', 'returns_header.rma_receiver_id','=', 'turnover.id')
+						->leftjoin('cms_users as specialist', 'returns_header.rma_specialist_id','=', 'specialist.id')
 						->leftJoin('returns_body_item', 'returns_header.id', '=', 'returns_body_item.returns_header_id')
 						->select(   'returns_header.*', 
 						            'returns_header.created_at as datecreated',
@@ -2178,6 +2199,8 @@ use App\StoresFrontEnd;
 									'printed.name as printed_by',	
 									'transacted.name as transacted_by',	
 									'received.name as received_by',
+									'turnover.name as turnover_by',
+									'specialist.name as specialist_by',
 									'closed.name as closed_by',
 									'received1.name as received_by1',
 									'via.*',
@@ -2421,9 +2444,12 @@ use App\StoresFrontEnd;
     						
     						'RECEIVED BY',
                             'RECEIVED DATE',
-
+							'TURNOVER BY',
+							'TURNOVER DATE',
     						'DIAGNOSED BY',           //blue  //additional code 20200205
     						'DIAGNOSED DATE',           //blue  //additional code 20200205
+							'PROCESSED BY',           //blue  //additional code 20200205
+							'PROCESSED DATE',  
     						'PRINTED BY',           //blue  //additional code 20200205
     						'PRINTED DATE',           //blue  //additional code 20200205
     						'SOR BY',           //blue  //additional code 20200205
@@ -2459,6 +2485,8 @@ use App\StoresFrontEnd;
 							->leftjoin('cms_users as received', 'returns_header.level6_personnel','=', 'received.id')
 							->leftjoin('cms_users as closed', 'returns_header.level7_personnel','=', 'closed.id')	
 							->leftjoin('cms_users as received1', 'returns_header.received_by_rma_sc','=', 'received1.id')
+							->leftjoin('cms_users as turnover', 'returns_header.rma_receiver_id','=', 'turnover.id')
+							->leftjoin('cms_users as specialist', 'returns_header.rma_specialist_id','=', 'specialist.id')
 							->leftJoin('returns_body_item', 'returns_header.id', '=', 'returns_body_item.returns_header_id')
 							->select(   'returns_header.*', 
 							            'returns_header.created_at as datecreated',
@@ -2712,10 +2740,13 @@ use App\StoresFrontEnd;
 								'SCHEDULED DATE',           //blue  //additional code 20200205
 								
 								'RECEIVED BY',
-                                'RECEIVED DATE',
-
+								'RECEIVED DATE',
+								'TURNOVER BY',
+								'TURNOVER DATE',
 								'DIAGNOSED BY',           //blue  //additional code 20200205
 								'DIAGNOSED DATE',           //blue  //additional code 20200205
+								'PROCESSED BY',           //blue  //additional code 20200205
+								'PROCESSED DATE',  
 								'PRINTED BY',           //blue  //additional code 20200205
 								'PRINTED DATE',           //blue  //additional code 20200205
 								'SOR BY',           //blue  //additional code 20200205
@@ -2725,9 +2756,9 @@ use App\StoresFrontEnd;
 								'COMMENTS',
 								'DIAGNOSED COMMENTS'
 							);		
-					}elseif(CRUDBooster::myPrivilegeName() == "RMA"){ 
+					}elseif(in_array(CRUDBooster::myPrivilegeName(), ['RMA', 'RMA Technician', 'RMA Specialist'])){ 
 		
-						$to_diagnose = ReturnsStatus::where('id','5')->value('id');
+						// $to_diagnose = ReturnsStatus::where('id','5')->value('id');
 			
 						$orderData = DB::table('returns_header')
 						->leftjoin('via', 'returns_header.via_id','=', 'via.id')
@@ -2741,6 +2772,8 @@ use App\StoresFrontEnd;
 						->leftjoin('cms_users as received', 'returns_header.level6_personnel','=', 'received.id')
 						->leftjoin('cms_users as closed', 'returns_header.level7_personnel','=', 'closed.id')	
 						->leftjoin('cms_users as received1', 'returns_header.received_by_rma_sc','=', 'received1.id')
+						->leftjoin('cms_users as turnover', 'returns_header.rma_receiver_id','=', 'turnover.id')
+						->leftjoin('cms_users as specialist', 'returns_header.rma_specialist_id','=', 'specialist.id')
 						->leftJoin('returns_body_item', 'returns_header.id', '=', 'returns_body_item.returns_header_id')
 						->select(   'returns_header.*', 
 						            'returns_header.created_at as datecreated',
@@ -2754,10 +2787,13 @@ use App\StoresFrontEnd;
 									'transacted.name as transacted_by',	
 									'received.name as received_by',
 									'received1.name as received_by1',
+									'turnover.name as turnover_by',
+									'specialist.name as specialist_by',
 									'closed.name as closed_by',
 									'via.*',
 									'warranty_statuses.*'
-						)->where('returns_status_1', 28)->whereNull('returns_body_item.category')->orwhereNotNull('returns_body_item.category')->where('transaction_type', 0)->where('returns_status_1','!=',	$to_diagnose)->whereNotNull('diagnose')->where('returns_status_1','!=', 28)->groupby('returns_header.return_reference_no');
+						)->where('returns_status_1', 28)->whereNull('returns_body_item.category')->orwhereNotNull('returns_body_item.category')->where('transaction_type', 0)->where('returns_status_1','!=', 28)->groupby('returns_header.return_reference_no');
+						// )->where('returns_status_1', 28)->whereNull('returns_body_item.category')->orwhereNotNull('returns_body_item.category')->where('transaction_type', 0)->where('returns_status_1','!=',	$to_diagnose)->whereNotNull('diagnose')->where('returns_status_1','!=', 28)->groupby('returns_header.return_reference_no');
 		
 		    						if(\Request::get('filter_column')) {
     
@@ -2923,11 +2959,15 @@ use App\StoresFrontEnd;
     							$scheduled_by,
     							$scheduled_date,
     							
+								$orderRow->turnover_by,
+								$orderRow->rma_receiver_date_received,
     							$orderRow->received_by1,
                                 $orderRow->received_at_rma_sc,
 
     							$orderRow->diagnosed_by,
     							$orderRow->level3_personnel_edited,
+								$orderRow->specialist_by,
+								$orderRow->rma_specialist_date_received,
     							$orderRow->printed_by,
     							$orderRow->level4_personnel_edited,
     							$transacted_personnel,							
@@ -2997,9 +3037,12 @@ use App\StoresFrontEnd;
     						
     						'RECEIVED BY',
                             'RECEIVED DATE',
-
+							'TURNOVER BY',
+							'TURNOVER DATE',
     						'DIAGNOSED BY',           //blue  //additional code 20200205
     						'DIAGNOSED DATE',           //blue  //additional code 20200205
+							'PROCESSED BY',           //blue  //additional code 20200205
+							'PROCESSED DATE',  
     						'PRINTED BY',           //blue  //additional code 20200205
     						'PRINTED DATE',           //blue  //additional code 20200205
     						'SOR BY',           //blue  //additional code 20200205
@@ -3325,6 +3368,8 @@ use App\StoresFrontEnd;
 						->leftjoin('cms_users as received', 'returns_header.level6_personnel','=', 'received.id')
 						->leftjoin('cms_users as closed', 'returns_header.level7_personnel','=', 'closed.id')	
 						->leftjoin('cms_users as received1', 'returns_header.received_by_rma_sc','=', 'received1.id')
+						->leftjoin('cms_users as turnover', 'returns_header.rma_receiver_id','=', 'turnover.id')
+						->leftjoin('cms_users as specialist', 'returns_header.rma_specialist_id','=', 'specialist.id')
 						->leftJoin('returns_body_item', 'returns_header.id', '=', 'returns_body_item.returns_header_id')
 						->select(   'returns_header.*', 
 						            'returns_header.created_at as datecreated',
@@ -3338,6 +3383,8 @@ use App\StoresFrontEnd;
 									'transacted.name as transacted_by',	
 									'received.name as received_by',
 									'received1.name as received_by1',
+									'turnover.name as turnover_by',
+									'specialist.name as specialist_by',
 									'closed.name as closed_by',
 									'via.*',
 									'warranty_statuses.*'
@@ -3504,11 +3551,15 @@ use App\StoresFrontEnd;
     							$scheduled_by,
     							$scheduled_date,
     							
+								$orderRow->turnover_by,
+								$orderRow->rma_receiver_date_received,
     							$orderRow->received_by1,
                                 $orderRow->received_at_rma_sc,
 
     							$orderRow->diagnosed_by,
     							$orderRow->level3_personnel_edited,
+								$orderRow->specialist_by,
+								$orderRow->rma_specialist_date_received,
     							$orderRow->printed_by,
     							$orderRow->level4_personnel_edited,
     							$transacted_personnel,							
@@ -3572,11 +3623,14 @@ use App\StoresFrontEnd;
     						'SCHEDULED BY',           //blue  //additional code 20200205
     						'SCHEDULED DATE',           //blue  //additional code 20200205
     						
-    						'RECEIVED BY',
+							'RECEIVED BY',
                             'RECEIVED DATE',
-
+							'TURNOVER BY',
+							'TURNOVER DATE',
     						'DIAGNOSED BY',           //blue  //additional code 20200205
     						'DIAGNOSED DATE',           //blue  //additional code 20200205
+							'PROCESSED BY',           //blue  //additional code 20200205
+							'PROCESSED DATE',  
     						'PRINTED BY',           //blue  //additional code 20200205
     						'PRINTED DATE',           //blue  //additional code 20200205
     						'SOR BY',           //blue  //additional code 20200205
@@ -3867,6 +3921,8 @@ use App\StoresFrontEnd;
 						->leftjoin('cms_users as received', 'returns_header.level6_personnel','=', 'received.id')
 						->leftjoin('cms_users as closed', 'returns_header.level7_personnel','=', 'closed.id')	
 						->leftjoin('cms_users as received1', 'returns_header.received_by_rma_sc','=', 'received1.id')
+						->leftjoin('cms_users as turnover', 'returns_header.rma_receiver_id','=', 'turnover.id')
+						->leftjoin('cms_users as specialist', 'returns_header.rma_specialist_id','=', 'specialist.id')
 						->leftJoin('returns_body_item', 'returns_header.id', '=', 'returns_body_item.returns_header_id')
 						->select(   'returns_header.*', 
 						            'returns_header.created_at as datecreated',
@@ -3880,6 +3936,8 @@ use App\StoresFrontEnd;
 									'transacted.name as transacted_by',	
 									'received1.name as received_by1',
 									'received.name as received_by',
+									'turnover.name as turnover_by',
+									'specialist.name as specialist_by',
 									'closed.name as closed_by',
 									'via.*',
 									'warranty_statuses.*'
@@ -4049,11 +4107,15 @@ use App\StoresFrontEnd;
     							$scheduled_by,
     							$scheduled_date,
     							
+								$orderRow->turnover_by,
+								$orderRow->rma_receiver_date_received,
     							$orderRow->received_by1,
                                 $orderRow->received_at_rma_sc,
 
     							$orderRow->diagnosed_by,
     							$orderRow->level3_personnel_edited,
+								$orderRow->specialist_by,
+								$orderRow->rma_specialist_date_received,
     							$orderRow->printed_by,
     							$orderRow->level4_personnel_edited,
     							$transacted_personnel,							
@@ -4121,11 +4183,14 @@ use App\StoresFrontEnd;
     						'SCHEDULED BY',           //blue  //additional code 20200205
     						'SCHEDULED DATE',           //blue  //additional code 20200205
     						
-    						'RECEIVED BY',
+							'RECEIVED BY',
                             'RECEIVED DATE',
-
+							'TURNOVER BY',
+							'TURNOVER DATE',
     						'DIAGNOSED BY',           //blue  //additional code 20200205
     						'DIAGNOSED DATE',           //blue  //additional code 20200205
+							'PROCESSED BY',           //blue  //additional code 20200205
+							'PROCESSED DATE',  
     						'PRINTED BY',           //blue  //additional code 20200205
     						'PRINTED DATE',           //blue  //additional code 20200205
     						'SOR BY',           //blue  //additional code 20200205

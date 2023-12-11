@@ -363,6 +363,20 @@
                                 </div>
                             </div>
 
+                       
+                            @if (CRUDBooster::myPrivilegeName() == 'Service Center')
+                            <hr/>
+                            <div class="row">                           
+                                <label class="control-label col-md-2">{{ trans('message.form-label.received_by_rma_sc') }}</label>
+                                <div class="col-md-4">
+                                    <p>{{$row->received_item_by}}</p>
+                                </div>
+                                <label class="control-label col-md-2">{{ trans('message.form-label.received_at_rma_sc') }}</label>
+                                <div class="col-md-4">
+                                    <p>{{$row->received_at_rma_sc}}</p>
+                                </div>
+                            </div>
+                            @else
                             <hr/>
                             <div class="row">                           
                                 <label class="control-label col-md-2">{{ trans('message.form-label.received_by_rma_sc') }}</label>
@@ -385,16 +399,18 @@
                                     <p>{{$row->received_at_rma_sc}}</p>
                                 </div>
                             </div>
+                            @endif
+                         
                             @if ($row->returns_status_1 == '38')
                             <hr/>
                             <div class="row">                           
                                 <label class="control-label col-md-2">Diagnosed By:</label>
                                 <div class="col-md-4">
-                                    <p>{{$row->diagnose_by_technician}}</p>
+                                    <p>{{$row->diagnosed_by}}</p>
                                 </div>
                                 <label class="control-label col-md-2">Diagnosed Date:</label>
                                 <div class="col-md-4">
-                                    <p>{{$row->rma_specialist_date_received}}</p>
+                                    <p>{{$row->level2_personnel_edited}}</p>
                                 </div>
                             </div>
                             @endif

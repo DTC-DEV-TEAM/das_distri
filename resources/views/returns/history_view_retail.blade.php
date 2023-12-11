@@ -226,19 +226,11 @@
                             <div class="row">                           
                                 <label class="control-label col-md-2">{{ trans('message.form-label.diagnosed_by') }}</label>
                                 <div class="col-md-4">
-                                    @if (CRUDBooster::myPrivilegeName() == "Service Center")
-                                    <p>{{$row->diagnosed2_by}}</p>
-                                    @else
                                     <p>{{$row->diagnosed_by}}</p>
-                                    @endif
                                 </div>
                                 <label class="control-label col-md-2">{{ trans('message.form-label.diagnosed_at') }}</label>
                                 <div class="col-md-4">
-                                    @if (CRUDBooster::myPrivilegeName() == "Service Center")
-                                    <p>{{$row->level3_personnel_edited }}</p>
-                                    @else
-                                    <p>{{$row->rma_specialist_date_received}}</p>
-                                    @endif
+                                    <p>{{$row->level2_personnel_edited}}</p>
                                 </div>
                             </div>
 

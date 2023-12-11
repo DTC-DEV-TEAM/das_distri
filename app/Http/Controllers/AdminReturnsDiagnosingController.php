@@ -613,7 +613,7 @@ use PHPExcel_Style_Fill;
 						$postdata['rma_specialist_id'] = 					CRUDBooster::myId();
 						$postdata['rma_specialist_date_received']=			date('Y-m-d H:i:s');
 	
-						return redirect()->action('AdminRetailReturnDiagnosingController@ReturnsReturnFormPrintRTL',['id'=>$ReturnRequest->id])->send();
+					return redirect()->action('AdminReturnsDiagnosingController@ReturnsReturnFormPrint',['id'=>$ReturnRequest->id])->send();
 					}
 					else if ($field_1 == 'Test Done') {
 						if(CRUDBooster::myPrivilegeName() == "RMA Technician" || CRUDBooster::myPrivilegeName() == "SuperAdministrator"){
@@ -658,21 +658,30 @@ use PHPExcel_Style_Fill;
 							date('Y-m-d H:i:s')
 							]);
 				
-								$postdata['rma_specialist_id'] = 					CRUDBooster::myId();
-								$postdata['rma_specialist_date_received']=			date('Y-m-d H:i:s');
+								if(CRUDBooster::myPrivilegeName() == "Service Center") {
+									$postdata['level3_personnel'] = 					CRUDBooster::myId();
+									$postdata['level3_personnel_edited']=				date('Y-m-d H:i:s');
+									$postdata['diagnose_comments'] = 					$field_2;
+									$postdata['verified_items_included'] = 				implode(", ",$items_included_lines);
+									$postdata['verified_items_included_others'] = 		$items_included_others;
+									$postdata['warranty_status'] = 						$warranty_status;
+
+									ReturnsBody::where('returns_header_id',$ReturnRequest->id)->whereNotNull('brand')
+									->update([		
+										'problem_details'=> implode(", ",$problem_details_lines),
+										'problem_details_other'=> $problem_details_other
+									]);
+								}
+								else {
+									$postdata['rma_specialist_id'] = 					CRUDBooster::myId();
+									$postdata['rma_specialist_date_received']=			date('Y-m-d H:i:s');
+								}
 								$postdata['returns_status'] = 						$repair_approved;
 								$postdata['returns_status_1'] = 					$to_print_return_form;
-								$postdata['diagnose_comments'] = 					$field_2;
 								$postdata['diagnose'] = 							"REPAIR";
-								$postdata['verified_items_included'] = 				implode(", ",$items_included_lines);
-								$postdata['verified_items_included_others'] = 		$items_included_others;
-								$postdata['warranty_status'] = 						$warranty_status;
-
-								ReturnsBody::where('returns_header_id',$ReturnRequest->id)->whereNotNull('brand')
-								->update([		
-									'problem_details'=> implode(", ",$problem_details_lines),
-									'problem_details_other'=> $problem_details_other
-								]);
+								$postdata['case_status'] =  						$case_status;
+				
+						
 
 							DB::commit();
 			
@@ -698,22 +707,29 @@ use PHPExcel_Style_Fill;
 							date('Y-m-d H:i:s')
 							]);
 				
-								$postdata['rma_specialist_id'] = 					CRUDBooster::myId();
-								$postdata['rma_specialist_date_received']=			date('Y-m-d H:i:s');
+								if (CRUDBooster::myPrivilegeName() == "Service Center") {
+									$postdata['level3_personnel'] = 					CRUDBooster::myId();
+									$postdata['level3_personnel_edited']=				date('Y-m-d H:i:s');
+									$postdata['diagnose_comments'] = 					$field_2;
+									$postdata['verified_items_included'] = 				implode(", ",$items_included_lines);
+									$postdata['verified_items_included_others'] = 		$items_included_others;
+									$postdata['warranty_status'] = 						$warranty_status;
+
+									ReturnsBody::where('returns_header_id',$ReturnRequest->id)->whereNotNull('brand')
+									->update([		
+										'problem_details'=> implode(", ",$problem_details_lines),
+										'problem_details_other'=> $problem_details_other
+									]);
+								}else {
+									$postdata['rma_specialist_id'] = 					CRUDBooster::myId();
+									$postdata['rma_specialist_date_received']=			date('Y-m-d H:i:s');
+								}
+
 								$postdata['returns_status'] = 						$return_rejected;
 								$postdata['returns_status_1'] = 					$to_print_return_form;
-								$postdata['diagnose_comments'] = 					$field_2;
 								$postdata['diagnose'] = 							"REJECT";
-								$postdata['verified_items_included'] = 				implode(", ",$items_included_lines);
-								$postdata['verified_items_included_others'] = 		$items_included_others;
-								$postdata['warranty_status'] = 						$warranty_status;
-
-								ReturnsBody::where('returns_header_id',$ReturnRequest->id)->whereNotNull('brand')
-								->update([		
-									'problem_details'=> implode(", ",$problem_details_lines),
-									'problem_details_other'=> $problem_details_other
-								]);
-
+								$postdata['case_status'] =  						$case_status;
+				
 							DB::commit();
 			
 						}catch (\Exception $e) {
@@ -741,22 +757,28 @@ use PHPExcel_Style_Fill;
 							date('Y-m-d H:i:s')
 							]);
 							
+							if (CRUDBooster::myPrivilegeName() == "Service Center") {
+								$postdata['level3_personnel'] = 					CRUDBooster::myId();
+								$postdata['level3_personnel_edited']=				date('Y-m-d H:i:s');
+								$postdata['diagnose_comments'] = 					$field_2;
+								$postdata['verified_items_included'] = 				implode(", ",$items_included_lines);
+								$postdata['verified_items_included_others'] = 		$items_included_others;
+								$postdata['warranty_status'] = 						$warranty_status;
+
+								ReturnsBody::where('returns_header_id',$ReturnRequest->id)->whereNotNull('brand')
+								->update([		
+									'problem_details'=> implode(", ",$problem_details_lines),
+									'problem_details_other'=> $problem_details_other
+								]);
+							} else {
 									$postdata['rma_specialist_id'] = 					CRUDBooster::myId();
 									$postdata['rma_specialist_date_received']=			date('Y-m-d H:i:s');
+								}
 									$postdata['returns_status'] = 						$to_refund_approved;
 									$postdata['returns_status_1'] = 					$to_create_crf;
-									$postdata['diagnose_comments'] = 					$field_2;
 									$postdata['diagnose'] = 							"REFUND";
-									$postdata['verified_items_included'] = 				implode(", ",$items_included_lines);
-									$postdata['verified_items_included_others'] = 		$items_included_others;
-									$postdata['warranty_status'] = 						$warranty_status;
+									$postdata['case_status'] =  						$case_status;
 
-									ReturnsBody::where('returns_header_id',$ReturnRequest->id)->whereNotNull('brand')
-									->update([		
-										'problem_details'=> implode(", ",$problem_details_lines),
-										'problem_details_other'=> $problem_details_other
-									]);
-			
 							DB::commit();
 			
 						}catch (\Exception $e) {
@@ -783,21 +805,32 @@ use PHPExcel_Style_Fill;
 									date('Y-m-d H:i:s')
 									]);
 						
-										$postdata['rma_specialist_id'] = 					CRUDBooster::myId();
-										$postdata['rma_specialist_date_received']=			date('Y-m-d H:i:s');
-										$postdata['returns_status'] = 						$for_replacement_frontend;
-										$postdata['returns_status_1'] = 					$to_sor;
-										$postdata['diagnose_comments'] = 					$field_2;
-										$postdata['diagnose'] = 							"REPLACE";
-										$postdata['verified_items_included'] = 				implode(", ",$items_included_lines);
-										$postdata['verified_items_included_others'] = 		$items_included_others;
-										$postdata['warranty_status'] = 						$warranty_status;
 
-										ReturnsBody::where('returns_header_id',$ReturnRequest->id)->whereNotNull('brand')
+										if ((CRUDBooster::myPrivilegeName() == "Service Center")) {
+											$postdata['level3_personnel'] = 					CRUDBooster::myId();
+											$postdata['level3_personnel_edited']=				date('Y-m-d H:i:s');
+											$postdata['diagnose_comments'] = 					$field_2;
+											$postdata['verified_items_included'] = 				implode(", ",$items_included_lines);
+											$postdata['verified_items_included_others'] = 		$items_included_others;
+											$postdata['warranty_status'] = 						$warranty_status;
+											
+											ReturnsBody::where('returns_header_id',$ReturnRequest->id)->whereNotNull('brand')
 										->update([		
 											'problem_details'=> implode(", ",$problem_details_lines),
 											'problem_details_other'=> $problem_details_other
 										]);
+
+										}else {
+											$postdata['rma_specialist_id'] = 					CRUDBooster::myId();
+											$postdata['rma_specialist_date_received']=			date('Y-m-d H:i:s');
+										}
+						
+										$postdata['returns_status'] = 						$for_replacement_frontend;
+										$postdata['returns_status_1'] = 					$to_sor;
+										$postdata['diagnose'] = 							"REPLACE";
+										$postdata['case_status'] =  						$case_status;
+										
+										
 
 									DB::commit();
 					
@@ -1107,8 +1140,7 @@ use PHPExcel_Style_Fill;
 			//->leftjoin('stores', 'pullout_headers.pull_out_from', '=', 'stores.id')	
 			leftjoin('cms_users as scheduled', 'returns_header.level2_personnel','=', 'scheduled.id')			
 			->leftjoin('cms_users as tagged', 'returns_header.level1_personnel','=', 'tagged.id')
-			->leftjoin('cms_users as diagnosed', 'returns_header_retail.rma_specialist_id','=', 'diagnosed.id')				
-			->leftjoin('cms_users as diagnosed2', 'returns_header_retail.level3_personnel','=', 'diagnosed2.id')				
+			->leftjoin('cms_users as diagnosed', 'returns_header.level3_personnel','=', 'diagnosed.id')				
 			->leftjoin('cms_users as printed', 'returns_header.level4_personnel','=', 'printed.id')																	
 			->leftjoin('cms_users as transacted', 'returns_header.level5_personnel','=', 'transacted.id')
 			->leftjoin('cms_users as received', 'returns_header.level6_personnel','=', 'received.id')																		
@@ -1117,7 +1149,6 @@ use PHPExcel_Style_Fill;
 			'scheduled.name as scheduled_by',
 			'tagged.name as tagged_by',	
 			'diagnosed.name as diagnosed_by',
-			'diagnosed2.name as diagnosed2_by',
 			'printed.name as printed_by',	
 			'transacted.name as transacted_by',	
 			'received.name as received_by'							
