@@ -27,6 +27,7 @@ use App\Mail\Gmail;
 use App\Item;
 use App\StoresFrontEnd;
 use App\TransactionTypeList;
+use DateTime;
 
 	class AdminReturnsHeaderController extends \crocodicstudio\crudbooster\controllers\CBController {
 
@@ -957,7 +958,7 @@ use App\TransactionTypeList;
 						$postdata['level6_personnel_edited']=		date('Y-m-d H:i:s');
 						$postdata['returns_status']=				$to_ship_back;
 						$postdata['returns_status_1']=				$to_ship_back;
-    					$postdata['return_delivery_date']=			$delivery_date;
+    					$postdata['return_delivery_date']=			(new DateTime($delivery_date))->format('Y-m-d');
     					
     					
     					 $user_info =   DB::table("cms_users")->where('cms_users.id', $ReturnRequest->received_by)->first();
@@ -1013,10 +1014,9 @@ use App\TransactionTypeList;
 
 						//$indicate_store = ReturnsStatus::where('warranty_status','INDICATE STORE')->value('id');
 						$dataLines = array();
-			
 						$postdata['level2_personnel'] = 					CRUDBooster::myId();
 						$postdata['level2_personnel_edited']=				date('Y-m-d H:i:s');
-						$postdata['return_schedule'] = 						$field_1;
+						$postdata['return_schedule'] = 						(new DateTime($field_1))->format('Y-m-d');
 						
 						$postdata['dr_number'] = 						    $dr_number;
 						
