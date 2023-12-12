@@ -3,6 +3,9 @@
 
 @section('content')
 
+@include('plugins.plugins')
+<link rel="stylesheet" href="{{ asset('css/sweet_alert_size.css') }}">
+
 @if(g('return_url'))
 	<p class="noprint"><a title='Return' href='{{g("return_url")}}'><i class='fa fa-chevron-circle-left '></i> &nbsp; {{trans("crudbooster.form_back_to_list",['module'=>CRUDBooster::getCurrentModule()->name])}}</a></p>       
 @else
@@ -14,8 +17,30 @@
     <form method='post' id="myform" action='{{CRUDBooster::mainpath('edit-save/'.$row->id)}}'>
         <input type="hidden" value="{{csrf_token()}}" name="_token" id="token">
         <input type="hidden"  name="diagnose" id="diagnose">
+        <input type="hidden" name="transaction_id" id="transaction_id" value="{{ $row->id }}">
         <div id="requestform" class='panel-body'>
-            <div>   
+            <div>
+                @if ($row->returns_status_1 == 39 )
+                <div class="row">
+                  
+                </div>
+                <div class="row">
+                    <div class="col-md-6">
+                            
+                    </div>
+
+                    <label class="control-label col-md-2">Technicians</label>
+                    <div class="col-md-4">
+                        <select class="js-example-basic-single" name="technician" id="technician" required>
+                            <option value="" selected disabled>Select Technician</option>
+                          @foreach ($technicians as $technician)
+                              <option value="{{ $technician->id }}">{{ $technician->name }}</option>
+                          @endforeach
+                        </select>
+                    </div>
+                </div>
+                <br>
+                @endif   
                 <div class="row">
                     <label class="control-label col-md-2">{{ trans('message.form-label.return_reference_no') }}</label>
                     <div class="col-md-4">
@@ -292,9 +317,120 @@
         <div class='panel-footer'>          
             <a href="{{ CRUDBooster::mainpath() }}" class="btn btn-default">{{ trans('message.form.cancel') }}</a>
 
-            <button class="btn btn-primary pull-right" type="submit" id="btnSubmit"> <i class="fa fa-save" ></i> {{ $row->returns_status_1 == 37 ? trans('message.form.turnover') : trans('message.form.receive')  }}</button>
+            <button class="btn btn-primary pull-right hide" type="submit" id="btnSubmit"> <i class="fa fa-save" ></i> {{ $row->returns_status_1 == 37 ? trans('message.form.turnover') : trans('message.form.receive')  }}</button>
+
+            @if ($row->returns_status_1 == 39)
+            <button class="btn btn-primary pull-right f-btn" type="button" id="btnSubmit"> <i class="fa fa-save" ></i>  Assign</button>
+            @elseif ($row->returns_status_1 == 37)
+            <button class="btn btn-primary pull-right f-btn" type="button" id="btnSubmit"> <i class="fa fa-save" ></i> {{trans('message.form.turnover')}}</button>
+            @else
+            <button class="btn btn-primary pull-right f-btn" type="button" id="btnSubmit"> <i class="fa fa-save" ></i> {{trans('message.form.receive')}}</button>
+            @endif
         </div>
     </form>
 </div>
+
+<script>
+
+    $(document).ready(function() {
+            $('.js-example-basic-single').select2(
+            { width: '75%'}
+            );
+    });
+
+    function toTurnOver(id, table_name, module_mainpath){
+        $.ajax({
+            type: 'POST',
+            url: '{{ route('turnover') }}',
+            dataType: 'json',
+            data: {
+                _token: "{{ csrf_token() }}",
+                id: id,
+                table_name: table_name,
+            },
+            success: function(res){
+                if(res.success){
+                    Swal.fire({
+                    title: "INC Number",
+                    icon: 'success',
+                    showCancelButton: false,
+                    confirmButtonColor: '#3085d6',
+                    confirmButtonText: 'Ok',
+                    returnFocus: false,
+                    html: res.success,
+                    allowOutsideClick: false,
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        let inc_reference_number = "{{ route('custom_reference_number', ['#ref_num','#mainpath']) }}";
+                        inc_reference_number = inc_reference_number.replace('#ref_num', res.success);
+                        inc_reference_number = inc_reference_number.replace('#mainpath', module_mainpath);
+                        // console.log(inc_reference_number);
+                        location.assign(inc_reference_number);
+                    }
+                });
+                }
+            },
+            error: function(err){
+                console.log(err);
+            }
+        });
+    }
+    
+    if("{{ $row->returns_status_1 == 37 }}") {
+
+        $('.f-btn').on('click', function(){
+            const id = $('#transaction_id').val();
+            const module_mainpath = "{{ Request::segment(2) }}";
+            let table_name = "{{ Request::segment(2) }}";
+
+            if (table_name == 'to_receive_ecomm'){
+                table_name = 'returns_header';
+            }
+            else if (table_name == 'to_receive_retail'){
+                table_name = 'returns_header_retail';
+            }
+            else if(table_name == 'to_receive_distri'){
+                table_name = 'returns_header_distribution';
+            }
+
+            Swal.fire({
+                title: "Are you sure?",
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#3085d6',
+                cancelButtonColor: '#d33',
+                confirmButtonText: 'Yes',
+                reverseButtons: true,
+                returnFocus: false,
+                allowOutsideClick: false,
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    toTurnOver(id, table_name, module_mainpath);
+                }
+            });
+        })
+    }else{
+        $('.f-btn').on('click', function(){
+            const id = $('#transaction_id').val();
+    
+            Swal.fire({
+                title: "Are you sure?",
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#3085d6',
+                cancelButtonColor: '#d33',
+                confirmButtonText: 'Yes',
+                reverseButtons: true,
+                returnFocus: false,
+                allowOutsideClick: false,
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    $('#btnSubmit').click();
+                }
+            });
+        })
+    }
+    
+</script>
 
 @endsection

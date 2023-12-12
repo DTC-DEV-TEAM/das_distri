@@ -24,6 +24,7 @@ use PHPExcel_Style_Border;
 use PHPExcel_Style_Fill;
 use App\Item;
 use App\ItemsIncluded;
+use App\ReferenceCounter;
 use App\TransactionTypeList;
 
 
@@ -1381,6 +1382,58 @@ use App\TransactionTypeList;
 	        //Your code here
 
 	    }
+
+		public function toTurnOverProcess(Request $request){
+			
+			$return_input = $request->all();
+
+			$transaction_information = DB::table($return_input['table_name'])->where('id', $return_input['id'])->first();
+
+			$to_diagnose = ReturnsStatus::where('id','5')->value('id');
+			$to_tech_lead = ReturnsStatus::where('id','39')->value('id');
+
+			if(CRUDBooster::myPrivilegeName() == "RMA Inbound" || CRUDBooster::myPrivilegeName() == "Super Administrator"){
+
+				$counter = new ReferenceCounter();
+				$inc_count_number = $counter->incrementCounter('INC');
+				$formatted_counter = 'INC-'.str_pad($inc_count_number, 6, '0', STR_PAD_LEFT);
+				
+				DB::table($return_input['table_name'])->where('id', $return_input['id'])
+					->update([
+						'returns_status_1' => $to_tech_lead,
+						'received_by_rma_sc' => CRUDBooster::myId(),
+						'received_at_rma_sc' => date('Y-m-d H:i:s'),
+						'inc_number' => $formatted_counter,
+					]);
+
+				DB::beginTransaction();
+				
+				try {
+	
+					DB::connection('mysql_front_end')
+					->statement('insert into returns_tracking_status (return_reference_no, returns_status, 	created_at) values (?, ?, ?)', 
+					[   $transaction_information->return_reference_no, 
+						$to_diagnose,
+						date('Y-m-d H:i:s')
+					]);
+
+					DB::commit();
+	
+				}catch (\Exception $e) {
+					DB::rollback();
+					CRUDBooster::redirect(CRUDBooster::mainpath(), trans("crudbooster.alert_database_error",['database_error'=>$e]), 'danger');
+				}
+	
+				DB::disconnect('mysql_front_end');	
+			}
+
+			return response()->json(['success' => $formatted_counter]);
+		}
+
+		public function returnReferenceNumber($ref_number, $module_mainpath){
+			
+			CRUDBooster::redirect(CRUDBooster::adminPath()."/{$module_mainpath}", "Request successfully turned over to Tech Lead with INC #: $ref_number", 'success');
+		}
 
 
 

@@ -67,6 +67,7 @@ Route::group(['middleware' => ['web']], function() {
     Route::get('/admin/returns_diagnosing/ReturnsDiagnosingEdit/{id}','AdminReturnsDiagnosingController@ReturnsDiagnosingEdit'); 
     Route::get('/admin/returns_diagnosing/ReturnsDiagnosingDetail/{id}','AdminReturnsDiagnosingController@ReturnsDiagnosingDetail'); 
     Route::get('/admin/returns_diagnosing/ReturnsSORReceivingEdit/{id}','AdminReturnsDiagnosingController@ReturnsSORReceivingEdit'); 
+    Route::get('/admin/returns_diagnosing/TechLeadECOMM/{id}','AdminReturnsDiagnosingController@TechLeadECOMM');
     Route::get('/admin/returns_diagnosing/ReturnsReturnFormPrint/{id}','AdminReturnsDiagnosingController@ReturnsReturnFormPrint');
     Route::get('admin/returns_diagnosing/FormRejectUpdateStatus','AdminReturnsDiagnosingController@FormRejectUpdateStatus');
     Route::get('admin/returns_diagnosing/FormRepairUpdateStatus','AdminReturnsDiagnosingController@FormRepairUpdateStatus');
@@ -114,6 +115,7 @@ Route::group(['middleware' => ['web']], function() {
     //retaildiagnosing
     Route::get('/admin/retail_return_diagnosing/ReturnsDiagnosingRTLEdit/{id}','AdminRetailReturnDiagnosingController@ReturnsDiagnosingRTLEdit');
     Route::get('/admin/retail_return_diagnosing/ReturnsReturnFormPrintRTL/{id}','AdminRetailReturnDiagnosingController@ReturnsReturnFormPrintRTL');  
+    Route::get('/admin/retail_return_diagnosing/TechLeadRTL/{id}','AdminRetailReturnDiagnosingController@TechLeadRTL');
     Route::get('/admin/retail_return_diagnosing/FormRejectUpdateStatusRTL','AdminRetailReturnDiagnosingController@FormRejectUpdateStatusRTL'); 
     Route::get('/admin/retail_return_diagnosing/FormRepairUpdateStatusRTL','AdminRetailReturnDiagnosingController@FormRepairUpdateStatusRTL'); 
     
@@ -338,13 +340,14 @@ Route::group(['middleware' => ['web']], function() {
 
 
 
- Route::get('/admin/scheduling/ReturnsSchedulingEdit/{id}','AdminReturnsHeaderController@ReturnsSchedulingEdit'); 
+    Route::get('/admin/scheduling/ReturnsSchedulingEdit/{id}','AdminReturnsHeaderController@ReturnsSchedulingEdit'); 
     
     Route::get('admin/returns_history/import-ecomm', 'AdminReturnsHistoryController@importPage');
 
     Route::post('admin/returns_history/import-ecomms','AdminReturnsHistoryController@importExcel')->name('upload.importECOMM');
 
-
-
+    // Step that can reuse, no editing of data
+    Route::post('/admin/to_receive_retail/ReturnsToReceiveEditRTL/turnover','AdminToReceiveRetailController@toTurnOverProcess')->name('turnover');
+    Route::get('/admin/to_receive_retail/ReturnsToReceiveEditRTL/custom_reference_number/{ref_number}/{module_mainpath}','AdminToReceiveRetailController@returnReferenceNumber')->name('custom_reference_number');
 });
 
