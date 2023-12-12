@@ -1126,7 +1126,7 @@ use App\TransactionTypeList;
 			}else if($ReturnRequest->returns_status_1 == 37){
 				$to_diagnose = ReturnsStatus::where('id','5')->value('id');
 
-				if(CRUDBooster::myPrivilegeName() == "RMA" || CRUDBooster::myPrivilegeName() == "Super Administrator"){
+				if(CRUDBooster::myPrivilegeName() == "RMA Inbound" || CRUDBooster::myPrivilegeName() == "Super Administrator"){
 
 					$postdata['returns_status_1'] = 					$to_diagnose;
 					$postdata['received_by_rma_sc'] = 					CRUDBooster::myId();
@@ -1156,7 +1156,7 @@ use App\TransactionTypeList;
 			// To pickup by log
 			else if($ReturnRequest->returns_status_1 == 34){
 
-				if(CRUDBooster::myPrivilegeName() == "RMA" || CRUDBooster::myPrivilegeName() == "Super Administrator"){
+				if(CRUDBooster::myPrivilegeName() == "RMA Inbound" || CRUDBooster::myPrivilegeName() == "Super Administrator"){
 
 					$to_diagnose = ReturnsStatus::where('id','5')->value('id');
 					// TO TURNOVER STATUS
