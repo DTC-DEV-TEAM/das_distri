@@ -22,7 +22,16 @@ class WarrantyStatusSeeder extends Seeder
 
         DB::table('warranty_statuses')->updateOrInsert(['warranty_status' => 'FOR ACTION'],
             [
-                'warranty_status' => 'FOR ACTION',
+                'warranty_status' => 'FOR WARRANTY CLAIM',
+                'created_by' => 3,
+                'created_at' => date('Y-m-d H:i:s')
+            ]
+        );
+
+        
+        DB::table('warranty_statuses')->updateOrInsert(['warranty_status' => 'TO ASSIGN INC'],
+            [
+                'warranty_status' => 'TO ASSIGN INC',
                 'created_by' => 3,
                 'created_at' => date('Y-m-d H:i:s')
             ]
