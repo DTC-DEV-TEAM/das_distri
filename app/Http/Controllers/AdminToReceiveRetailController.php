@@ -212,11 +212,11 @@ use App\TransactionTypeList;
 			}else{
 
 				$to_receive_rma = ReturnsStatus::where('id','34')->value('id');
-				$to_turnover_rma = ReturnsStatus::where('id','37')->value('id');
+				$to_rma_received = ReturnsStatus::where('id','37')->value('id');
 
 				if(CRUDBooster::myPrivilegeId() == 4){
 					$this->addaction[] = ['title'=>'Edit','url'=>CRUDBooster::mainpath('ToReceiveRTL/[id]'),'icon'=>'fa fa-pencil', "showIf"=>"[returns_status_1] == $to_receive_rma"];
-					$this->addaction[] = ['title'=>'Edit','url'=>CRUDBooster::mainpath('ToReceiveRTL/[id]'),'icon'=>'fa fa-pencil', "showIf"=>"[returns_status_1] == $to_turnover_rma"];
+					$this->addaction[] = ['title'=>'Edit','url'=>CRUDBooster::mainpath('ToReceiveRTL/[id]'),'icon'=>'fa fa-pencil', "showIf"=>"[returns_status_1] == $to_rma_received"];
 				}
 				else{
 					$this->addaction[] = ['title'=>'Edit','url'=>CRUDBooster::mainpath('ToReceiveRTL/[id]'),'icon'=>'fa fa-pencil'];
@@ -431,9 +431,9 @@ use App\TransactionTypeList;
 				$query->where(function($sub_query){
 			
 					$to_receive_rma = ReturnsStatus::where('id','34')->value('id');
-					$to_turnover = ReturnsStatus::where('id','37')->value('id');
+					$to_rma_received = ReturnsStatus::where('id','37')->value('id');
 					
-					$sub_query->whereIn('returns_status_1', [$to_receive_rma, $to_turnover])->where('transaction_type', 0)->orderBy('id', 'asc');  
+					$sub_query->whereIn('returns_status_1', [$to_receive_rma, $to_rma_received])->where('transaction_type', 0)->orderBy('id', 'asc');  
 
 				});
 			}       
@@ -456,8 +456,8 @@ use App\TransactionTypeList;
             
             $to_print_srr  =     ReturnsStatus::where('id','19')->value('warranty_status');
 
-			$to_receive_rma = 			ReturnsStatus::where('id','34')->value('warranty_status');
-			$to_turnover_rma = 			ReturnsStatus::where('id','37')->value('warranty_status');
+			$to_pickup_by_log = 			ReturnsStatus::where('id','34')->value('warranty_status');
+			$to_rma_received = 			ReturnsStatus::where('id','37')->value('warranty_status');
 			$to_receive_sc = 			ReturnsStatus::where('id','35')->value('warranty_status');
 
 			if($column_index == 1){
@@ -482,14 +482,14 @@ use App\TransactionTypeList;
 				}elseif($column_value == $to_print_srr){
 					$column_value = '<span class="label label-warning">'.$to_print_srr.'</span>';
 			
-				}elseif($column_value == $to_receive_rma){
-					$column_value = '<span class="label label-warning">'.$to_receive_rma.'</span>';
+				}elseif($column_value == $to_pickup_by_log){
+					$column_value = '<span class="label label-warning">'.$to_pickup_by_log.'</span>';
 			
 				}elseif($column_value == $to_receive_sc){
 					$column_value = '<span class="label label-warning">'.$to_receive_sc.'</span>';
 			
-				}elseif($column_value == $to_turnover_rma){
-					$column_value = '<span class="label label-warning">'.$to_turnover_rma.'</span>';
+				}elseif($column_value == $to_rma_received){
+					$column_value = '<span class="label label-warning">'.$to_rma_received.'</span>';
 			
 				}
 			}
@@ -1125,10 +1125,11 @@ use App\TransactionTypeList;
 
 			}else if($ReturnRequest->returns_status_1 == 37){
 				$to_diagnose = ReturnsStatus::where('id','5')->value('id');
+				$to_tech_lead = ReturnsStatus::where('id','39')->value('id');
 
 				if(CRUDBooster::myPrivilegeName() == "RMA Inbound" || CRUDBooster::myPrivilegeName() == "Super Administrator"){
 
-					$postdata['returns_status_1'] = 					$to_diagnose;
+					$postdata['returns_status_1'] = 					$to_tech_lead;
 					$postdata['received_by_rma_sc'] = 					CRUDBooster::myId();
 					$postdata['received_at_rma_sc']=					date('Y-m-d H:i:s');
 	
@@ -1159,10 +1160,10 @@ use App\TransactionTypeList;
 				if(CRUDBooster::myPrivilegeName() == "RMA Inbound" || CRUDBooster::myPrivilegeName() == "Super Administrator"){
 
 					$to_diagnose = ReturnsStatus::where('id','5')->value('id');
-					// TO TURNOVER STATUS
-					$to_turnover = ReturnsStatus::where('id','37')->value('id');
+					// TO RMA RECEIVED STATUS
+					$to_rma_received = ReturnsStatus::where('id','37')->value('id');
 	
-					$postdata['returns_status_1'] = 					$to_turnover;
+					$postdata['returns_status_1'] = 					$to_rma_received;
 					$postdata['rma_receiver_id'] = 					CRUDBooster::myId();
 					$postdata['rma_receiver_date_received']=					date('Y-m-d H:i:s');
 					
