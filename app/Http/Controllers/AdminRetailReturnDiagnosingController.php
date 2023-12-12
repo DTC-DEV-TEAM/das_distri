@@ -220,6 +220,7 @@ use PHPExcel_Style_Fill;
 
 				if(CRUDBooster::myPrivilegeName() == "Tech Lead") {
 					$this->addaction[] = ['title'=>'Edit','url'=>CRUDBooster::mainpath('TechLeadRTL/[id]'),'icon'=>'fa fa-pencil', "showIf"=>"[returns_status_1] == $to_assign_inc"];
+					$this->addaction[] = ['title'=>'Edit','url'=>CRUDBooster::mainpath('TechLeadRTL/[id]'),'icon'=>'fa fa-pencil', "showIf"=>"[returns_status_1] == $to_assign_inc"];
 				}else {
 					$this->addaction[] = ['title'=>'Edit','url'=>CRUDBooster::mainpath('ReturnsDiagnosingRTLEdit/[id]'),'icon'=>'fa fa-pencil', "showIf"=>"[returns_status_1] == $to_diagnose "];
 					$this->addaction[] = ['title'=>'Edit','url'=>CRUDBooster::mainpath('ReturnsDiagnosingRTLEdit/[id]'),'icon'=>'fa fa-pencil', "showIf"=>"[returns_status_1] == $to_for_action"];
