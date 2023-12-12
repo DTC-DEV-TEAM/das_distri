@@ -204,13 +204,16 @@ use PHPExcel_Style_Fill;
 			$to_receive_sor = ReturnsStatus::where('id','10')->value('id');
 			$to_print_return_form = ReturnsStatus::where('id','13')->value('id');
 			$requested = ReturnsStatus::where('id','1')->value('id');
+			$to_assign_inc = ReturnsStatus::where('id','39')->value('id');
 
-
+			if(CRUDBooster::myPrivilegeName() == "Tech Lead") {
+				$this->addaction[] = ['title'=>'Edit','url'=>CRUDBooster::mainpath('TechLeadECOMM/[id]'),'icon'=>'fa fa-pencil', "showIf"=>"[returns_status_1] == $to_assign_inc"];
+			}else {
 				$this->addaction[] = ['title'=>'Edit','url'=>CRUDBooster::mainpath('ReturnsDiagnosingEdit/[id]'),'icon'=>'fa fa-pencil', "showIf"=>"[returns_status_1] == $to_diagnose"];
 				$this->addaction[] = ['title'=>'Edit','url'=>CRUDBooster::mainpath('ReturnsDiagnosingEdit/[id]'),'icon'=>'fa fa-pencil', "showIf"=>"[returns_status_1] == $to_for_action"];
 				$this->addaction[] = ['title'=>'Edit','url'=>CRUDBooster::mainpath('ReturnsSORReceivingEdit/[id]'),'icon'=>'fa fa-pencil', "showIf"=>"[returns_status_1] == $to_receive_sor"];
 				$this->addaction[] = ['title'=>'Print','url'=>CRUDBooster::mainpath('ReturnsReturnFormPrint/[id]'),'icon'=>'fa fa-print', "showIf"=>"[returns_status_1] == $to_print_return_form"];
-		
+			}
 			//$this->addaction[] = ['title'=>'Detail','url'=>CRUDBooster::mainpath('ReturnsDiagnosingDetail/[id]'),'icon'=>'fa fa-eye'];
 
 	        /* 
@@ -412,11 +415,19 @@ use PHPExcel_Style_Fill;
 					// sc_id
 					$sub_query->orWhereIn('returns_status_1', [$to_diagnose, $to_receive_sor, $to_print_return_form])->where('transaction_type', 1)->whereIn('returns_header.sc_location_id', $storeList)->orderBy('id', 'asc');
 				});
-			}
-			else if(CRUDBooster::myPrivilegeName() == "RMA Technician"){
+			}else if (CRUDBooster::myPrivilegeName() == "Tech Lead") {
+				$query->where(function($sub_query){
+					$to_assign_inc = 39;
+					$to_diagnose = 5;
+					$sub_query->whereIn('returns_status_1', [$to_assign_inc])->where('transaction_type', 0)->orderBy('id', 'desc');
+					$sub_query->orWhereIn('returns_status_1', [$to_diagnose])->where('level3_personnel', CRUDBooster::myId())->where('transaction_type', 0)->orderBy('id', 'desc');
+
+				});
+			}else if(CRUDBooster::myPrivilegeName() == "RMA Technician"){
 				$query->where(function($sub_query){
 					$to_diagnose = ReturnsStatus::where('id','5')->value('id');
-					$sub_query->where('returns_status_1', $to_diagnose)->where('transaction_type', 0)->orderBy('id', 'asc');  
+					$sub_query->whereIn('returns_status_1', [$to_diagnose])->where('level3_personnel', CRUDBooster::myId())->where('transaction_type', 0)->orderBy('id', 'desc');
+
 				});
 			}
 			else{
@@ -426,6 +437,7 @@ use PHPExcel_Style_Fill;
 					//$to_indicate_store = 	ReturnsStatus::where('id','3')->value('id');
 					$to_diagnose = ReturnsStatus::where('id','5')->value('id');
 					$to_diagnose_action = ReturnsStatus::where('id','38')->value('id');
+					$to_assign_inc = ReturnsStatus::where('id','39')->value('id');
 					$to_receive_sor = 		ReturnsStatus::where('id','10')->value('id');
 					$to_print_return_form = ReturnsStatus::where('id','13')->value('id');
 	
@@ -434,6 +446,7 @@ use PHPExcel_Style_Fill;
 					}else{
 						$sub_query->where('returns_status_1', $to_diagnose)->where('transaction_type', 0)->orderBy('id', 'asc');  
 						$sub_query->orWhere('returns_status_1', $to_diagnose_action)->where('transaction_type', 0)->orderBy('id', 'asc'); 
+						$sub_query->orWhere('returns_status_1', $to_assign_inc)->where('transaction_type', 0)->orderBy('id', 'asc'); 
 					}
 					$sub_query->orWhere('returns_status_1', $to_receive_sor)->where('transaction_type', 0)->orderBy('id', 'asc');
 					$sub_query->orWhere('returns_status_1', $to_print_return_form)->where('transaction_type', 0)->orderBy('id', 'asc');
@@ -459,6 +472,7 @@ use PHPExcel_Style_Fill;
 			$to_for_action = ReturnsStatus::where('id','38')->value('warranty_status');
 			$to_receive_sor = ReturnsStatus::where('id','10')->value('warranty_status');
 			$to_print_return_form = ReturnsStatus::where('id','13')->value('warranty_status');
+			$to_assign_inc = ReturnsStatus::where('id','39')->value('warranty_status');
 
 			if($column_index == 1){
 				if($column_value == $requested){
@@ -478,6 +492,9 @@ use PHPExcel_Style_Fill;
 			
 				}elseif($column_value == $to_print_return_form){
 					$column_value = '<span class="label label-warning">'.$to_print_return_form.'</span>';
+			
+				}elseif($column_value == $to_assign_inc){
+					$column_value = '<span class="label label-warning">'.$to_assign_inc.'</span>';
 			
 				}
 			}
@@ -520,7 +537,7 @@ use PHPExcel_Style_Fill;
 			$ReturnRequest = ReturnsHeader::where('id',$id)->first();
 
 			$to_receive_sor = ReturnsStatus::where('id','10')->value('id');
-
+			$to_assign_inc = ReturnsStatus::where('id','39')->value('id');
             
 				if($ReturnRequest->returns_status_1 == $to_receive_sor){
 					$refund_in_process = ReturnsStatus::where('id','8')->value('id');
@@ -551,7 +568,16 @@ use PHPExcel_Style_Fill;
 		
 					DB::disconnect('mysql_front_end');
 
-				}else{
+				}else if ($ReturnRequest->returns_status_1 == $to_assign_inc) {
+					$returns_fields = Input::all();
+					$to_diagnose = ReturnsStatus::where('id','5')->value('id');
+				
+					$postdata['level3_personnel'] = 					$returns_fields['technician'];
+					$postdata['returns_status_1'] = 					$to_diagnose;
+					$postdata['assigned_by_tech_lead_id'] = 			CRUDBooster::myId();
+					$postdata['assigned_date_by_tech_lead']=			date('Y-m-d H:i:s');
+				}
+				else{
 
 					$returns_fields = Input::all();
 		
@@ -956,6 +982,66 @@ use PHPExcel_Style_Fill;
 
 	    }
 
+		public function TechLeadECOMM($id)
+		{
+			$this->cbLoader();
+			if(!CRUDBooster::isUpdate() && $this->global_privilege==FALSE) {    
+				CRUDBooster::redirect(CRUDBooster::adminPath(),trans("crudbooster.denied_access"));
+			}
+
+			$data = array();
+
+
+			$data['problem_details_list'] = ProblemDetails::all();
+			
+			$data['technicians'] = DB::table('cms_users')->whereIn('id_cms_privileges', ['20', '22'])->where('status', "ACTIVE")->orderBy('id','asc')->get();
+			
+			$data['items_included_list'] = ItemsIncluded::orderBy('items_description_included','asc')->get();
+
+			$data['warranty_status'] = DiagnoseWarranty::orderBy('warranty_name','asc')->get();
+		
+			$data['row'] = ReturnsHeader::
+			//->leftjoin('stores', 'pullout_headers.pull_out_from', '=', 'stores.id')	
+			leftjoin('cms_users as scheduled', 'returns_header.level2_personnel','=', 'scheduled.id')			
+			->leftjoin('cms_users as tagged', 'returns_header.level1_personnel','=', 'tagged.id')
+			->leftjoin('cms_users as diagnosed', 'returns_header.level3_personnel','=', 'diagnosed.id')				
+			->leftjoin('cms_users as printed', 'returns_header.level4_personnel','=', 'printed.id')																	
+			->leftjoin('cms_users as transacted', 'returns_header.level5_personnel','=', 'transacted.id')
+			->leftjoin('cms_users as received', 'returns_header.level6_personnel','=', 'received.id')
+			->leftjoin('cms_users as closed', 'returns_header.level7_personnel','=', 'closed.id')	
+			->leftjoin('cms_users as scheduled_logistics', 'returns_header.level8_personnel','=', 'scheduled_logistics.id')																	
+			->select(
+			'returns_header.*',
+			'scheduled.name as scheduled_by',
+			'tagged.name as tagged_by',	
+			'tagged.name as diagnosed_by',
+			'printed.name as printed_by',	
+			'transacted.name as transacted_by',	
+			'received.name as received_by',
+			'closed.name as closed_by',
+			'scheduled_logistics.name as scheduled_by_logistics'						
+			)
+			->where('returns_header.id',$id)->first();
+
+
+
+			$data['resultlist'] = ReturnsBody::
+			leftjoin('returns_serial', 'returns_body_item.id', '=', 'returns_serial.returns_body_item_id')					
+			->select(
+			'returns_body_item.*',
+			'returns_serial.*'					
+			)
+			->where('returns_body_item.returns_header_id',$data['row']->id)->whereNotNull('returns_body_item.category')->groupby('returns_body_item.digits_code')->get();
+			
+			$channels = Channel::where('channel_name', 'ONLINE')->first();
+
+			$data['store_list'] = Stores::where('channels_id',$channels->id)->get();
+			
+			
+			// $this->cbView("returns.to_receive_ecomm_rma", $data);
+			$this->cbView("components.to_receive_rma", $data);
+
+		}
 
 
 	    //By the way, you can still create your own method in here... :) 

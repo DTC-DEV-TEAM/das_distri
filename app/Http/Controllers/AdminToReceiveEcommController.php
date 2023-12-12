@@ -954,7 +954,7 @@ use PHPExcel_Style_Fill;
 				// To pickup by log
 				if($ReturnRequest->returns_status_1 == 34){
 
-					if(CRUDBooster::myPrivilegeName() == "RMA" || CRUDBooster::myPrivilegeName() == "Super Administrator"){
+					if(CRUDBooster::myPrivilegeName() == "RMA Inbound" || CRUDBooster::myPrivilegeName() == "Super Administrator"){
 
 						$to_diagnose = ReturnsStatus::where('id','5')->value('id');
 						// TO TURNOVER STATUS
@@ -969,7 +969,7 @@ use PHPExcel_Style_Fill;
 
 					$to_diagnose = ReturnsStatus::where('id','5')->value('id');
 					
-					if(CRUDBooster::myPrivilegeName() == "RMA" || CRUDBooster::myPrivilegeName() == "Super Administrator"){
+					if(CRUDBooster::myPrivilegeName() == "RMA Inbound" || CRUDBooster::myPrivilegeName() == "Super Administrator"){
 
 						$postdata['returns_status_1'] = 					$to_diagnose;
 						$postdata['received_by_rma_sc'] = 					CRUDBooster::myId();

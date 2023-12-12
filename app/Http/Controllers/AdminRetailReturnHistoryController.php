@@ -2125,7 +2125,7 @@ use App\StoresFrontEnd;
 								'DIAGNOSED COMMENTS'
 							);
 								
-					}else if(in_array(CRUDBooster::myPrivilegeName(), ['RMA', 'RMA Technician', 'RMA Specialist'])){
+					}else if(in_array(CRUDBooster::myPrivilegeName(), ['RMA Inbound', 'RMA Technician', 'RMA Specialist'])){
 								// $to_diagnose = ReturnsStatus::where('id','5')->value('id');
 								$orderData = DB::table('returns_header_retail')
 								->leftjoin('via', 'returns_header_retail.via_id','=', 'via.id')
