@@ -12,9 +12,9 @@ class WarrantyStatusSeeder extends Seeder
     public function run()
     {
         
-        DB::table('warranty_statuses')->updateOrInsert(['warranty_status' => 'TO TURNOVER'],
+        DB::table('warranty_statuses')->updateOrInsert(['warranty_status' => 'RMA RECEIVED'],
             [
-                'warranty_status' => 'TO TURNOVER',
+                'warranty_status' => 'RMA RECEIVED',
                 'created_by' => 3,
                 'created_at' => date('Y-m-d H:i:s')
             ]
