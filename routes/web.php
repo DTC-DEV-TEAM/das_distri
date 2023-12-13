@@ -347,7 +347,12 @@ Route::group(['middleware' => ['web']], function() {
     Route::post('admin/returns_history/import-ecomms','AdminReturnsHistoryController@importExcel')->name('upload.importECOMM');
 
     // Step that can reuse, no editing of data
+    // Turnover Process
     Route::post('/admin/to_receive_retail/ReturnsToReceiveEditRTL/turnover','AdminToReceiveRetailController@toTurnOverProcess')->name('turnover');
     Route::get('/admin/to_receive_retail/ReturnsToReceiveEditRTL/custom_reference_number/{ref_number}/{module_mainpath}','AdminToReceiveRetailController@returnReferenceNumber')->name('custom_reference_number');
+    // For Warranty Claim
+    Route::post('/admin/to_receive_retail/ReturnsDiagnosingRTLEdit/for_warranty_claim','AdminRetailReturnDiagnosingController@forWarrantyClaim')->name('for_warranty_claim');
+    Route::get('/admin/to_receive_retail/ReturnsDiagnosingRTLEdit/custom_reference_number/{ref_number}/{module_mainpath}','AdminRetailReturnDiagnosingController@returnReferenceNumber')->name('fwc_custom_reference_number');
+    
 });
 

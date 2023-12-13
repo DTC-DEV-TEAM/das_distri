@@ -15,7 +15,7 @@ class AddReceivedByAndAtRmaScColumn extends Migration
     {
         Schema::table('returns_header_distribution', function (Blueprint $table) {
             $table->integer('received_by_rma_sc')->unsigned()->nullable()->after('received_at_sc');
-            $table->date('received_at_rma_sc')->nullable()->after('received_by_rma_sc');
+            $table->timestamp('received_at_rma_sc')->nullable()->after('received_by_rma_sc');
 
         });
     }

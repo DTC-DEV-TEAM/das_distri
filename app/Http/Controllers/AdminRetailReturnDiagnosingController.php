@@ -14,6 +14,7 @@ use App\Stores;
 use App\Channel;
 use App\ItemsIncluded;
 use App\DiagnoseWarranty;
+use App\ReferenceCounter;
 use App\StoresFrontEnd;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Input;
@@ -221,7 +222,11 @@ use PHPExcel_Style_Fill;
 				if(CRUDBooster::myPrivilegeName() == "Tech Lead") {
 					$this->addaction[] = ['title'=>'Edit','url'=>CRUDBooster::mainpath('TechLeadRTL/[id]'),'icon'=>'fa fa-pencil', "showIf"=>"[returns_status_1] == $to_assign_inc"];
 					$this->addaction[] = ['title'=>'Edit','url'=>CRUDBooster::mainpath('ReturnsDiagnosingRTLEdit/[id]'),'icon'=>'fa fa-pencil', "showIf"=>"[returns_status_1] == $to_diagnose "];
-				}else {
+				}else if(CRUDBooster::myPrivilegeName() == "Super Administrator"){
+					$this->addaction[] = ['title'=>'Edit','url'=>CRUDBooster::mainpath('ReturnsDiagnosingRTLEdit/[id]'),'icon'=>'fa fa-pencil'];
+				}
+				else {
+					$this->addaction[] = ['title'=>'Edit','url'=>CRUDBooster::mainpath('ReturnsDiagnosingRTLEdit/[id]'),'icon'=>'fa fa-pencil', "showIf"=>"[returns_status_1] == $to_diagnose"];
 					$this->addaction[] = ['title'=>'Edit','url'=>CRUDBooster::mainpath('ReturnsDiagnosingRTLEdit/[id]'),'icon'=>'fa fa-pencil', "showIf"=>"[returns_status_1] == $to_for_action"];
 					$this->addaction[] = ['title'=>'Print','url'=>CRUDBooster::mainpath('ReturnsReturnFormPrintRTL/[id]'),'icon'=>'fa fa-print', "showIf"=>"[returns_status_1] == $to_print_return_form"];
 				}
@@ -438,19 +443,22 @@ use PHPExcel_Style_Fill;
 					$to_print_return_form = 13;
 					$sub_query->whereIn('returns_status_1', [$to_for_action, $to_print_return_form])->where('transaction_type', 0)->orderBy('id', 'desc');
 				});
-			}
-			
-			else{
-
+			}else if (CRUDBooster::myPrivilegeName() == "Super Administrator") {
+				$query->where(function($sub_query){
+					$to_diagnose = 5;
+					$to_assign_inc = 39;
+					$to_for_action = 38;
+					$to_print_return_form = 13;
+					$sub_query->whereIn('returns_status_1', [$to_diagnose, $to_for_action, $to_print_return_form,$to_assign_inc])->orderBy('id', 'desc');
+				});
+			}else{
 				$query->where(function($sub_query){
 					$to_diagnose = 5;
 					$to_assign_inc = 39;
 					$to_for_action = 38;
 					$to_print_return_form = 13;
 					$sub_query->whereIn('returns_status_1', [$to_diagnose, $to_for_action, $to_print_return_form,$to_assign_inc])->where('transaction_type', 0)->orderBy('id', 'desc');
-
 				});
-
 			}
 	    }
 
@@ -528,8 +536,9 @@ use PHPExcel_Style_Fill;
 	    public function hook_before_edit(&$postdata,$id) {        
 			//Your code here
 			$ReturnRequest = ReturnsHeaderRTL::where('id',$id)->first();
-	
-			if(CRUDBooster::myPrivilegeName() == "Tech Lead") {
+			$to_assign_inc = ReturnsStatus::where('id','39')->value('id');
+			
+			if($ReturnRequest->returns_status_1 == $to_assign_inc) {
 				$returns_fields = Input::all();
 				$to_diagnose = ReturnsStatus::where('id','5')->value('id');
 			
@@ -606,8 +615,8 @@ use PHPExcel_Style_Fill;
 						return redirect()->action('AdminRetailReturnDiagnosingController@ReturnsReturnFormPrintRTL',['id'=>$ReturnRequest->id])->send();
 					}
 					else if ($field_1 == 'Test Done') {
-						if(CRUDBooster::myPrivilegeName() == "RMA Technician" || CRUDBooster::myPrivilegeName() == "SuperAdministrator"){
-					
+						if(in_array(CRUDBooster::myPrivilegeName(), ['Tech Lead', 'RMA Technician', 'SuperAdministrator'])){
+
 							$to_for_action = ReturnsStatus::where('id','38')->value('id');
 			
 							$postdata['case_status'] =  						$case_status;
@@ -935,6 +944,96 @@ use PHPExcel_Style_Fill;
 
 
 	    //By the way, you can still create your own method in here... :) 
+
+		public function forWarrantyClaim(Request $request){
+
+			$return_input = $request->all();
+			$transaction_information = DB::table($return_input['table_name'])->where('id', $return_input['id'])->first();
+
+			$to_print_return_form = 13;
+			// Replacement
+			$for_replacement = 20;
+			$for_replacement_frontend =	27;
+			$to_sor = 9;
+			// Repair
+			$repair_approved = 16;
+			// Reject
+			$return_rejected = 12;
+			// Refund
+			$to_refund_approved = 6;
+			$to_print_crf = 7;
+			$to_create_crf = 25;
+
+			$date = date('Y-m-d H:i:s');
+
+			$frontend_to_insert = [$date];
+
+			$return_status = 0;
+			$return_status_1 = 0;
+
+			if($return_input['diagnose'] == 'Replace'){
+				$arr = [$transaction_information->return_reference_no, $for_replacement_frontend];
+				$frontend_to_insert = array_merge($arr, $frontend_to_insert);
+				$return_status = $for_replacement_frontend;
+				$return_status_1 = $to_sor;
+			}elseif($return_input['diagnose'] == 'Repair'){
+				$arr = [$transaction_information->return_reference_no, $repair_approved];
+				$frontend_to_insert = array_merge($arr, $frontend_to_insert);
+				$return_status = $repair_approved;
+				$return_status_1 = $to_print_return_form;
+			}elseif($return_input['diagnose'] == 'Reject'){
+				$arr = [$transaction_information->return_reference_no, $return_rejected];
+				$frontend_to_insert = array_merge($arr, $frontend_to_insert);
+				$return_status = $return_rejected;
+				$return_status_1 = $to_print_return_form;
+			}elseif($return_input['diagnose'] == 'Refund'){
+				$arr = [$transaction_information->return_reference_no, $to_refund_approved];
+				$frontend_to_insert = array_merge($arr, $frontend_to_insert);
+				$return_status = $to_refund_approved;
+				$return_status_1 = $to_create_crf;
+			}
+			if(CRUDBooster::myPrivilegeName() == "RMA Specialist" || CRUDBooster::myPrivilegeName() == "Super Administrator"){
+
+				DB::beginTransaction();
+			
+				try {
+					
+					$counter = new ReferenceCounter();
+					$rma_count_number = $counter->incrementCounter('RMA');
+					$formatted_counter = 'RMA-'.str_pad($rma_count_number, 6, '0', STR_PAD_LEFT);
+					
+					DB::table($return_input['table_name'])->where('id', $return_input['id'])
+						->update([
+							'rma_specialist_id' => CRUDBooster::myId(),
+							'rma_specialist_date_received' => $date,
+							'returns_status' => $return_status,
+							// 'returns_status_1' => $return_status_1,
+							'diagnose' => $return_input['diagnose'],
+							'case_status' => $return_input['case_status'],
+							'rma_number' => $formatted_counter,
+						]);
+
+					// DB::connection('mysql_front_end')
+					// ->statement('insert into returns_tracking_status (return_reference_no, returns_status, 	created_at) values (?, ?, ?)', 
+					// $frontend_to_insert);
+
+					DB::commit();
+
+				}catch (\Exception $e) {
+					DB::rollback();
+					CRUDBooster::redirect(CRUDBooster::mainpath(), trans("crudbooster.alert_database_error",['database_error'=>$e]), 'danger');
+				}
+
+				DB::disconnect('mysql_front_end');
+			}
+
+			return response()->json(['success' => $formatted_counter]);
+		}
+
+		public function returnReferenceNumber($ref_number, $module_mainpath){
+			
+			CRUDBooster::redirect(CRUDBooster::adminPath()."/{$module_mainpath}", "Request submitted successfully RMA #: $ref_number", 'success');
+		}
 
 		public function ReturnsDiagnosingRTLEdit($id)
 		{

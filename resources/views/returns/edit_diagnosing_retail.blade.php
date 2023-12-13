@@ -2,6 +2,10 @@
 @extends('crudbooster::admin_template')
 
 @section('content')
+
+@include('plugins.plugins')
+<link rel="stylesheet" href="{{ asset('css/sweet_alert_size.css') }}">
+
 @if(g('return_url'))
 	<p class="noprint"><a title='Return' href='{{g("return_url")}}'><i class='fa fa-chevron-circle-left '></i> &nbsp; {{trans("crudbooster.form_back_to_list",['module'=>CRUDBooster::getCurrentModule()->name])}}</a></p>       
 @else
@@ -13,6 +17,7 @@
         <form method='post' id="myform" action='{{CRUDBooster::mainpath('edit-save/'.$row->id)}}'>
             <input type="hidden" value="{{csrf_token()}}" name="_token" id="token">
             <input type="hidden"  name="diagnose" id="diagnose">
+            <input type="hidden" name="transaction_id" id="transaction_id" value="{{ $row->id }}">
                 <div id="requestform" class='panel-body'>
                     <div> 
                             <div class="row"> 
@@ -457,10 +462,10 @@
                             <button class="btn btn-success pull-right"  type="submit" id="btnSubmitRepair" style="margin-right:10px; width:100px;" disabled> <i class="fa fa-circle-o" ></i> {{ trans('message.form.repair') }}</button>
                             <button class="btn btn-success pull-right"  type="submit" id="btnSubmitReplace" style="margin-right:10px; width:100px;"> <i class="fa fa-circle-o" ></i> {{ trans('message.form.replace') }}</button>
                         @else
-                            <button class="bottom-btn btn btn-danger pull-right disabled" type="submit" id="btnSubmitRefund" style="margin-right:10px; width:100px;"> <i class="fa fa-circle-o" ></i> {{ trans('message.form.refund') }}</button>
-                            <button class="bottom-btn btn btn-success pull-right disabled" type="submit" id="btnSubmitReject" style="margin-right:10px; width:100px;" > <i class="fa fa-circle-o" ></i> {{ trans('message.form.reject') }}</button>
-                            <button class="bottom-btn btn btn-success pull-right disabled"  type="submit" id="btnSubmitRepair" style="margin-right:10px; width:100px;" > <i class="fa fa-circle-o" ></i> {{ trans('message.form.repair') }}</button>
-                            <button class="bottom-btn btn btn-success pull-right disabled"  type="submit" id="btnSubmitReplace" style="margin-right:10px; width:100px;"> <i class="fa fa-circle-o" ></i> {{ trans('message.form.replace') }}</button>
+                            <button class="bottom-btn btn btn-danger  pull-right btn-sbmt disabled" type="submit" style="margin-right:10px; width:100px;"> <i class="fa fa-circle-o" ></i> {{ trans('message.form.refund') }}</button>
+                            <button class="bottom-btn btn btn-success pull-right btn-sbmt disabled" type="submit" style="margin-right:10px; width:100px;" > <i class="fa fa-circle-o" ></i> {{ trans('message.form.reject') }}</button>
+                            <button class="bottom-btn btn btn-success pull-right btn-sbmt disabled"  type="submit" style="margin-right:10px; width:100px;" > <i class="fa fa-circle-o" ></i> {{ trans('message.form.repair') }}</button>
+                            <button class="bottom-btn btn btn-success pull-right btn-sbmt disabled"  type="submit" style="margin-right:10px; width:100px;"> <i class="fa fa-circle-o" ></i> {{ trans('message.form.replace') }}</button>
                             <button class="bottom-btn btn btn-success pull-right disabled" type="submit" id="btnSSR" style="margin-right:10px; width:160px;"> <i class="fa fa-circle-o" style="margin-right:4px;" ></i>Service Center Repair</button>
                             <button class="btn btn-success pull-right" type="submit" id="btnSubmitSave" style="margin-right:10px; width:100px;"> <i class="fa fa-circle-o" style="margin-right:4px;" ></i>Save</button>
                         @endif
@@ -513,302 +518,325 @@
 @push('bottom')
 <script type="text/javascript">
 
-$('.js-example-basic-multiple').select2();
-$(".js-example-basic-multiple").select2({
-     theme: "classic"
-});
+    $('.js-example-basic-single').select2();
+    $(".js-example-basic-multiple").select2({
+        theme: "classic"
+    });
 
-$(document).ready(function() {
-        $('.js-example-basic-single').select2();
-        const value = $('#case_status').val()
-        if (value === 'Closed') {
-            $('.bottom-btn').removeClass('disabled');
-        } else if (value === 'Pending Supplier') {
-            $('.bottom-btn').addClass('disabled');
+    $(document).ready(function() {
+
+        if ($('#case_status').val() == 'Closed'){
+            $('.btn-sbmt').removeClass('disabled');
             $('#btnSSR').removeClass('disabled');
-        } else {
-            $('.bottom-btn').addClass('disabled');
+        }else if ($('#case_status').val() == 'Pending Supplier'){
+            $('#btnSSR').removeClass('disabled');
+        }else{
+            $('.btn-sbmt').addClass('disabled');
+            $('#btnSSR').addClass('disabled');
         }
-});
 
-var verified_others_field = <?php echo json_encode($other_verified_items_included); ?>;
-var problem_others_field = <?php echo json_encode($other_problem_details); ?>;
+        $('#case_status').on('change', function(){
+            const value = $(this).val();
+            if (value === 'Closed') {
+                $('.btn-sbmt').removeClass('disabled');
+                $('#btnSSR').removeClass('disabled');
+            }else if (value === 'Pending Supplier') {
+                $('.btn-sbmt').addClass('disabled', true);
+                $('#btnSSR').removeClass('disabled', false);
+            }else {
+                $('.btn-sbmt').addClass('disabled', true);
+                $('#btnSSR').addClass('disabled', true);
+            }
+        });
+    });
 
-if(verified_others_field == null || verified_others_field == ""){
-        $('#verified_items_included_others').val("");
-        $('#verified_items_included_others').hide();  
-        $('#verified_items_included_others').attr("required", false);
-}
+    var verified_others_field = <?php echo json_encode($other_verified_items_included); ?>;
+    var problem_others_field = <?php echo json_encode($other_problem_details); ?>;
 
-
-if(problem_others_field == null || problem_others_field == ""){
-        $('#problem_details_other').val("");
-        $('#problem_details_other').hide();  
-        $('#problem_details_other').attr("required", false);
-}
-
-$("#items_included_others").hide();
-
-
-
-$('#items_included').change(function(){
-    if($('#items_included').val() != null){
-        var items = $(this).val();
-    }else{
-        var items = "";
-     }
-    if(items.includes("OTHERS")) {
-        $('#items_included_others').show();
-        $('#items_included_others').attr("required", true);
-    }else{
-        $('#items_included_others').val("");
-        $('#items_included_others').hide();  
-        $('#items_included_others').attr("required", false);
+    if(verified_others_field == null || verified_others_field == ""){
+            $('#verified_items_included_others').val("");
+            $('#verified_items_included_others').hide();  
+            $('#verified_items_included_others').attr("required", false);
     }
-});
 
-
-
-$('#verified_items_included').change(function(){
-    if($('#verified_items_included').val() != null){
-        var items = $(this).val();
-    }else{
-        var items = "";
-     }
-    if(items.includes("OTHERS")) {
-
-        $('#verified_items_included_others').show();
-        $('#verified_items_included_others').attr("required", true);
-    }else{
-        $('#verified_items_included_others').val("");
-        $('#verified_items_included_others').hide();  
-        $('#verified_items_included_others').attr("required", false);
+    if(problem_others_field == null || problem_others_field == ""){
+            $('#problem_details_other').val("");
+            $('#problem_details_other').hide();  
+            $('#problem_details_other').attr("required", false);
     }
-});
 
-$('#problem_details').change(function(){
-    if($('#problem_details').val() != null){
-        var items = $(this).val();
-    }else{
-        var items = "";
-     }
-    if(items.includes("OTHERS")) {
-        $('#problem_details_other').show();
-        $('#problem_details_other').attr("required", true);
-    }else{
-        $('#problem_details_other').val("");
-        $('#problem_details_other').hide();  
-        $('#problem_details_other').attr("required", false);
-    }
-});
+    $("#items_included_others").hide();
 
-
-
-$(document).ready(function() {
-    $('#case_status').on('change', function(){
-        const value = $(this).val();
-        if (value === 'Closed') {
-            $('.bottom-btn').removeClass('disabled');
-        } else if (value === 'Pending Supplier') {
-            $('.bottom-btn').addClass('disabled');
-            $('#btnSSR').removeClass('disabled');
-        } else {
-            $('.bottom-btn').addClass('disabled');
+    $('#items_included').change(function(){
+        
+        if($('#items_included').val() != null){
+            var items = $(this).val();
+        }else{
+            var items = "";
+        }
+        if(items.includes("OTHERS")) {
+            $('#items_included_others').show();
+            $('#items_included_others').attr("required", true);
+        }else{
+            $('#items_included_others').val("");
+            $('#items_included_others').hide();  
+            $('#items_included_others').attr("required", false);
         }
     });
-});
 
-
-$("#btnSubmitSave").on('click',function() {
-          $("#diagnose").val("Save");
-});
-
-$("#btnSubmitDone").on('click',function() {
-          var strconfirm = confirm("Are you sure you want to Test Done this return request?");
-        if (strconfirm == true) {
-          $("#diagnose").val("Test Done");
-          if($("#diagnose_comments").val() == "" || $("#diagnose_comments").val() == null){
-              alert("Please put a comment!");
-              return false;
-              window.stop();
-            }else{
-             /*var data = $('#myform').serialize();
-                $.ajax({
-                        type: 'GET',
-                        url: '{{ url('admin/rma_level2_request/VoidWarrantyRequestRMALVL2') }}',
-                        data: data,
-                        success: function( response ){
-                            console.log( response );
-                        },
-                        error: function( e ) {
-                            console.log(e);
-                        }
-                  });
-                  return true;*/
-            }
+    $('#verified_items_included').change(function(){
+        if($('#verified_items_included').val() != null){
+            var items = $(this).val();
         }else{
-                  return false;
-                  window.stop();
+            var items = "";
         }
-});
+        if(items.includes("OTHERS")) {
 
-$("#btnSSR").on('click', function(){
-    const isDisabled = $(this).hasClass('disabled');
-    if(isDisabled){
-        alert('Case Status shoud be Pending Supplier')
-        event.preventDefault();
-        return;
-    }
-    $("#diagnose").val("PrintSSR");
-})
-
-
-
-$("#btnSubmitRepair").on('click',function(event) {
-    const isDisabled = $(this).hasClass('disabled');
-    if (isDisabled) {
-        alert('Case Status should be Closed');
-        event.preventDefault();
-        return;
-    }
-    var strconfirm = confirm("Are you sure you want to Repair this return request?");
-        if (strconfirm == true) {
-          $("#diagnose").val("Repair");
-          if($("#diagnose_comments").val() == "" || $("#diagnose_comments").val() == null){
-              alert("Please put a comment!");
-              return false;
-              window.stop();
-            }else{
-             /*var data = $('#myform').serialize();
-                $.ajax({
-                        type: 'GET',
-                        url: '{{ url('admin/rma_level2_request/VoidWarrantyRequestRMALVL2') }}',
-                        data: data,
-                        success: function( response ){
-                            console.log( response );
-                        },
-                        error: function( e ) {
-                            console.log(e);
-                        }
-                  });
-                  return true;*/
-            }
+            $('#verified_items_included_others').show();
+            $('#verified_items_included_others').attr("required", true);
         }else{
-                  return false;
-                  window.stop();
+            $('#verified_items_included_others').val("");
+            $('#verified_items_included_others').hide();  
+            $('#verified_items_included_others').attr("required", false);
         }
-});
+    });
 
-$("#btnSubmitReject").on('click',function() {
-    const isDisabled = $(this).hasClass('disabled');
-    if (isDisabled) {
-        alert('Case Status should be Closed');
-        event.preventDefault();
-        return;
-    }
-    var strconfirm = confirm("Are you sure you want to Reject this return request?");
-        if (strconfirm == true) {
-          $("#diagnose").val("Reject");
-          if($("#diagnose_comments").val() == "" || $("#diagnose_comments").val() == null){
-              alert("Please put a comment!");
-              return false;
-              window.stop();
-            }else{
-             /*var data = $('#myform').serialize();
-                $.ajax({
-                        type: 'GET',
-                        url: '{{ url('admin/rma_level2_request/VoidWarrantyRequestRMALVL2') }}',
-                        data: data,
-                        success: function( response ){
-                            console.log( response );
-                        },
-                        error: function( e ) {
-                            console.log(e);
-                        }
-                  });
-                  return true;*/
-            }
+    $('#problem_details').change(function(){
+        if($('#problem_details').val() != null){
+            var items = $(this).val();
         }else{
-                  return false;
-                  window.stop();
+            var items = "";
         }
-});
-
-$("#btnSubmitRefund").on('click',function() {
-    const isDisabled = $(this).hasClass('disabled');
-    if (isDisabled) {
-        alert('Case Status should be Closed');
-        event.preventDefault();
-        return;
-    }
-    var strconfirm = confirm("Please contact your RMA head for special approval.\n\nAre you sure you want to Refund this return request?");
-        if (strconfirm == true) {
-          $("#diagnose").val("Refund");
-          if($("#diagnose_comments").val() == "" || $("#diagnose_comments").val() == null){
-              alert("Please put a comment!");
-              return false;
-              window.stop();
-            }else{
-             /*var data = $('#myform').serialize();
-                $.ajax({
-                        type: 'GET',
-                        url: '{{ url('admin/rma_level2_request/VoidWarrantyRequestRMALVL2') }}',
-                        data: data,
-                        success: function( response ){
-                            console.log( response );
-                        },
-                        error: function( e ) {
-                            console.log(e);
-                        }
-                  });
-                  return true;*/
-            }
+        if(items.includes("OTHERS")) {
+            $('#problem_details_other').show();
+            $('#problem_details_other').attr("required", true);
         }else{
-                  return false;
-                  window.stop();
+            $('#problem_details_other').val("");
+            $('#problem_details_other').hide();  
+            $('#problem_details_other').attr("required", false);
         }
-});
+    });
 
-$("#btnSubmitReplace").on('click',function() {
-    const isDisabled = $(this).hasClass('disabled');
-    if (isDisabled) {
-        alert('Case Status should be Closed');
-        event.preventDefault();
-        return;
-    }
-    var strconfirm = confirm("Are you sure you want to Replace this return request?");
-        if (strconfirm == true) {
-          $("#diagnose").val("Replace");
-          if($("#diagnose_comments").val() == "" || $("#diagnose_comments").val() == null){
-              alert("Please put a comment!");
-              return false;
-              window.stop();
+    $("#btnSubmitSave").on('click',function() {
+        $("#diagnose").val("Save");
+    });
+
+    $("#btnSubmitDone").on('click',function() {
+        var strconfirm = confirm("Are you sure you want to Test Done this return request?");
+            if (strconfirm == true) {
+                $("#diagnose").val("Test Done");
+                if($("#diagnose_comments").val() == "" || $("#diagnose_comments").val() == null){
+                    alert("Please put a comment!");
+                    return false;
+                    window.stop();
+                }else{
+                }
             }else{
-             /*var data = $('#myform').serialize();
-                $.ajax({
-                        type: 'GET',
-                        url: '{{ url('admin/rma_level2_request/VoidWarrantyRequestRMALVL2') }}',
-                        data: data,
-                        success: function( response ){
-                            console.log( response );
-                        },
-                        error: function( e ) {
-                            console.log(e);
-                        }
-                  });
-                  return true;*/
+                return false;
+                window.stop();
             }
-        }else{
-                  return false;
-                  window.stop();
-        }
-});
+    });
 
-$(document).on('keydown', 'input', function(event) {
-    if (event.keyCode === 13) {
-        event.preventDefault()
-    }
-});
+    $("#btnSSR").on('click', function(){
+        const isDisabled = $(this).hasClass('disabled');
+        if(isDisabled){
+            alert('Case Status shoud be Pending Supplier')
+            event.preventDefault();
+            return;
+        }
+        $("#diagnose").val("PrintSSR");
+    })
+
+    // Custom BTN
+    $('.btn-sbmt').on('click', function(event){
+        
+        let clickedText = $(this).text().trim();
+        let clickedDescription = clickedText == 'Refund' ? `<span style="color: red;">${clickedText}</span>` : `<span style="color: green;">${clickedText}</span>`;
+        let btnDisabled = $(this).hasClass('disabled');
+        let diagnose = clickedText == 'Service Center Repair' ? 'PrintSSR' : clickedText;
+
+        const id = $('#transaction_id').val();
+        const moduleMainpath = "{{ Request::segment(2) }}";
+        const caseStatus = $('#case_status').val();
+
+        let tableName = "{{ Request::segment(2) }}";
+
+        if (tableName == 'returns_diagnosing'){
+            tableName = 'returns_header';
+        }
+        else if (tableName == 'retail_return_diagnosing'){
+            tableName = 'returns_header_retail';
+        }
+        else if(tableName == 'distri_return_diagnosing'){
+            tableName = 'returns_header_distribution';
+        }
+
+        event.preventDefault();
+        
+        if (btnDisabled){
+            Swal.fire({
+                title: `Case Status should be "<span style='color: orange;'>CLOSED</span>"`,
+                icon: 'warning',
+                showCancelButton: false,
+                confirmButtonColor: '#3085d6',
+                confirmButtonText: 'Ok',
+                returnFocus: false,
+                allowOutsideClick: true,
+            });
+        }
+        else{
+            Swal.fire({
+                title: `Are you sure you want to ${clickedDescription} this return request?`,
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#3085d6',
+                cancelButtonColor: '#d33',
+                confirmButtonText: 'Yes',
+                reverseButtons: true,
+                returnFocus: false,
+                allowOutsideClick: true,
+            }).then((result) => {
+                if (result.isConfirmed) {
+
+                    $("#diagnose").val(diagnose);
+
+                    $.ajax({
+                        type: 'POST',
+                        url: '{{ route('for_warranty_claim') }}',
+                        dataType: 'json',
+                        data: {
+                            _token: "{{ csrf_token() }}",
+                            id: id,
+                            table_name: tableName,
+                            diagnose: diagnose,
+                            case_status: caseStatus
+                        },
+                        success: function(res){
+                            if(res.success){
+                                Swal.fire({
+                                    title: "RMA Number",
+                                    icon: 'success',
+                                    showCancelButton: false,
+                                    confirmButtonColor: '#3085d6',
+                                    confirmButtonText: 'Ok',
+                                    returnFocus: false,
+                                    html: res.success,
+                                    allowOutsideClick: false,
+                                }).then((result) => {
+                                    if (result.isConfirmed) {
+                                        let inc_reference_number = "{{ route('fwc_custom_reference_number', ['#ref_num','#mainpath']) }}";
+                                        inc_reference_number = inc_reference_number.replace('#ref_num', res.success);
+                                        inc_reference_number = inc_reference_number.replace('#mainpath', moduleMainpath);
+                                        // console.log(inc_reference_number);
+                                        location.assign(inc_reference_number);
+                                    }
+                                });
+                            }
+                        },
+                        error: function(err){
+
+                        }
+                    });
+                }
+            });
+        }
+    });
+
+    
+    // Diagnose BTNS
+    $("#btnSubmitRepair").on('click',function(event) {
+        const isDisabled = $(this).hasClass('disabled');
+        if (isDisabled) {
+            alert('Case Status should be Closed');
+            event.preventDefault();
+            return;
+        }
+        var strconfirm = confirm("Are you sure you want to Repair this return request?");
+            if (strconfirm == true) {
+            $("#diagnose").val("Repair");
+            if($("#diagnose_comments").val() == "" || $("#diagnose_comments").val() == null){
+                alert("Please put a comment!");
+                return false;
+                window.stop();
+                }else{
+                }
+            }else{
+                return false;
+                window.stop();
+            }
+    });
+
+    $("#btnSubmitReject").on('click',function() {
+        const isDisabled = $(this).hasClass('disabled');
+        if (isDisabled) {
+            alert('Case Status should be Closed');
+            event.preventDefault();
+            return;
+        }
+        var strconfirm = confirm("Are you sure you want to Reject this return request?");
+            if (strconfirm == true) {
+            $("#diagnose").val("Reject");
+            if($("#diagnose_comments").val() == "" || $("#diagnose_comments").val() == null){
+                alert("Please put a comment!");
+                return false;
+                window.stop();
+                }else{
+                }
+            }else{
+                    return false;
+                    window.stop();
+            }
+    });
+
+    $("#btnSubmitRefund").on('click',function() {
+        const isDisabled = $(this).hasClass('disabled');
+        if (isDisabled) {
+            alert('Case Status should be Closed');
+            event.preventDefault();
+            return;
+        }
+        var strconfirm = confirm("Please contact your RMA head for special approval.\n\nAre you sure you want to Refund this return request?");
+            if (strconfirm == true) {
+            $("#diagnose").val("Refund");
+            if($("#diagnose_comments").val() == "" || $("#diagnose_comments").val() == null){
+                alert("Please put a comment!");
+                return false;
+                window.stop();
+                }else{
+                }
+            }else{
+                    return false;
+                    window.stop();
+            }
+    });
+
+    $("#btnSubmitReplace").on('click',function() {
+        const isDisabled = $(this).hasClass('disabled');
+        if (isDisabled) {
+            alert('Case Status should be Closed');
+            event.preventDefault();
+            return;
+        }
+        var strconfirm = confirm("Are you sure you want to Replace this return request?");
+            if (strconfirm == true) {
+            $("#diagnose").val("Replace");
+            if($("#diagnose_comments").val() == "" || $("#diagnose_comments").val() == null){
+                alert("Please put a comment!");
+                return false;
+                window.stop();
+                }else{
+                }
+            }else{
+                    return false;
+                    window.stop();
+            }
+    });
+
+    $(document).on('keydown', 'input', function(event) {
+        if (event.keyCode === 13) {
+            event.preventDefault()
+        }
+    });
 
 </script>
 @endpush 

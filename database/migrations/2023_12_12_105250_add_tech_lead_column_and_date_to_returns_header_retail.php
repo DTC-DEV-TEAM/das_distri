@@ -15,7 +15,7 @@ class AddTechLeadColumnAndDateToReturnsHeaderRetail extends Migration
     {
         Schema::table('returns_header_retail', function (Blueprint $table) {
             $table->integer('assigned_by_tech_lead_id')->unsigned()->nullable()->after('rma_specialist_date_received');
-            $table->date('assigned_date_by_tech_lead')->nullable()->after('assigned_by_tech_lead_id');
+            $table->timestamp('assigned_date_by_tech_lead')->nullable()->after('assigned_by_tech_lead_id');
         });
     }
 

@@ -18,5 +18,13 @@ class ReferenceCounterSeeder extends Seeder
                 'created_at' => date('Y-m-d H:i:s')
             ]
         );
+
+        DB::table('reference_counters')->updateOrInsert(['name' => 'RMA'],
+        [
+            'name' => 'RMA',
+            'created_by' => 3,
+            'created_at' => date('Y-m-d H:i:s')
+        ]
+    );
     }
 }

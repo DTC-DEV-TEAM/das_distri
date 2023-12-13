@@ -1399,12 +1399,12 @@ use App\TransactionTypeList;
 				$formatted_counter = 'INC-'.str_pad($inc_count_number, 6, '0', STR_PAD_LEFT);
 				
 				DB::table($return_input['table_name'])->where('id', $return_input['id'])
-					->update([
-						'returns_status_1' => $to_tech_lead,
-						'received_by_rma_sc' => CRUDBooster::myId(),
-						'received_at_rma_sc' => date('Y-m-d H:i:s'),
-						'inc_number' => $formatted_counter,
-					]);
+				->update([
+					'returns_status_1' => $to_tech_lead,
+					'received_by_rma_sc' => CRUDBooster::myId(),
+					'received_at_rma_sc' => date('Y-m-d H:i:s'),
+					'inc_number' => $formatted_counter,
+				]);
 
 				DB::beginTransaction();
 				
