@@ -419,7 +419,7 @@
                                 </div>
                                 <label class="control-label col-md-2">Turnover Date:</label>
                                 <div class="col-md-4">
-                                    <p>{{$row->received_at_sc}}</p>
+                                    <p>{{$row->received_at_rma_sc}}</p>
                                 </div>
                             </div>
                             <hr/>

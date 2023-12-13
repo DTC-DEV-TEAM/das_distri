@@ -270,8 +270,8 @@ use App\StoresFrontEnd;
 			$this->form[] = ['label'=>'History Status','name'=>'history_status','type'=>'number','validation'=>'required|integer|min:0','width'=>'col-sm-10'];
 			$this->form[] = ['label'=>'Stores Id','name'=>'stores_id','type'=>'select2','validation'=>'required|integer|min:0','width'=>'col-sm-10','datatable'=>'stores,store_name'];
 			$this->form[] = ['label'=>'Return Delivery Date','name'=>'return_delivery_date','type'=>'date','validation'=>'required|date','width'=>'col-sm-10'];
-			$this->form[] = ['label'=>'Received By Sc','name'=>'received_by_sc','type'=>'number','validation'=>'required|integer|min:0','width'=>'col-sm-10'];
-			$this->form[] = ['label'=>'Received At Sc','name'=>'received_at_sc','type'=>'datetime','validation'=>'required|date_format:Y-m-d H:i:s','width'=>'col-sm-10'];
+			$this->form[] = ['label'=>'Received By Sc','name'=>'received_by_rma_sc','type'=>'number','validation'=>'required|integer|min:0','width'=>'col-sm-10'];
+			$this->form[] = ['label'=>'Received At Sc','name'=>'received_at_rma_sc','type'=>'datetime','validation'=>'required|date_format:Y-m-d H:i:s','width'=>'col-sm-10'];
 			# END FORM DO NOT REMOVE THIS LINE
 
 			/* 
@@ -898,7 +898,7 @@ use App\StoresFrontEnd;
 						->leftjoin('cms_users as printed', 'returns_header_distribution.level3_personnel','=', 'printed.id')																	
 						->leftjoin('cms_users as transacted', 'returns_header_distribution.level4_personnel','=', 'transacted.id')
 						->leftjoin('cms_users as received', 'returns_header_distribution.level6_personnel','=', 'received.id')
-						->leftjoin('cms_users as received1', 'returns_header_distribution.received_by_sc','=', 'received1.id')
+						->leftjoin('cms_users as received1', 'returns_header_distribution.received_by_rma_sc','=', 'received1.id')
 						->leftjoin('cms_users as turnover', 'returns_header_distribution.rma_receiver_id','=', 'turnover.id')
 						->leftjoin('cms_users as specialist', 'returns_header_distribution.rma_specialist_id','=', 'specialist.id')
 						->leftjoin('cms_users as closed', 'returns_header_distribution.level5_personnel','=', 'closed.id')	
@@ -1118,7 +1118,7 @@ use App\StoresFrontEnd;
 							$orderRow->turnover_by,
 							$orderRow->rma_receiver_date_received,
 							$orderRow->received_by1,
-							$orderRow->received_at_sc,
+							$orderRow->received_at_rma_sc,
 
 							$orderRow->diagnosed_by,
 							$orderRow->level2_personnel_edited,
@@ -1217,7 +1217,7 @@ use App\StoresFrontEnd;
 						->leftjoin('cms_users as printed', 'returns_header_distribution.level3_personnel','=', 'printed.id')																	
 						->leftjoin('cms_users as transacted', 'returns_header_distribution.level4_personnel','=', 'transacted.id')
 						->leftjoin('cms_users as received', 'returns_header_distribution.level6_personnel','=', 'received.id')
-						->leftjoin('cms_users as received1', 'returns_header_distribution.received_by_sc','=', 'received1.id')
+						->leftjoin('cms_users as received1', 'returns_header_distribution.received_by_rma_sc','=', 'received1.id')
 						->leftjoin('cms_users as turnover', 'returns_header_distribution.rma_receiver_id','=', 'turnover.id')
 						->leftjoin('cms_users as specialist', 'returns_header_distribution.rma_specialist_id','=', 'specialist.id')
 						->leftjoin('cms_users as closed', 'returns_header_distribution.level5_personnel','=', 'closed.id')	
@@ -1435,7 +1435,7 @@ use App\StoresFrontEnd;
 							$orderRow->turnover_by,
 							$orderRow->rma_receiver_date_received,
 							$orderRow->received_by1,
-							$orderRow->received_at_sc,
+							$orderRow->received_at_rma_sc,
 
 							$orderRow->diagnosed_by,
 							$orderRow->level2_personnel_edited,
@@ -1527,7 +1527,7 @@ use App\StoresFrontEnd;
 						->leftjoin('cms_users as printed', 'returns_header_distribution.level3_personnel','=', 'printed.id')																	
 						->leftjoin('cms_users as transacted', 'returns_header_distribution.level4_personnel','=', 'transacted.id')
 						->leftjoin('cms_users as received', 'returns_header_distribution.level6_personnel','=', 'received.id')
-						->leftjoin('cms_users as received1', 'returns_header_distribution.received_by_sc','=', 'received1.id')
+						->leftjoin('cms_users as received1', 'returns_header_distribution.received_by_rma_sc','=', 'received1.id')
 						->leftjoin('cms_users as turnover', 'returns_header_distribution.rma_receiver_id','=', 'turnover.id')
 						->leftjoin('cms_users as specialist', 'returns_header_distribution.rma_specialist_id','=', 'specialist.id')
 						->leftjoin('cms_users as closed', 'returns_header_distribution.level5_personnel','=', 'closed.id')	
@@ -1744,7 +1744,7 @@ use App\StoresFrontEnd;
 							$orderRow->turnover_by,
 							$orderRow->rma_receiver_date_received,
 							$orderRow->received_by1,
-							$orderRow->received_at_sc,
+							$orderRow->received_at_rma_sc,
 
 							$orderRow->diagnosed_by,
 							$orderRow->level2_personnel_edited,
@@ -1825,7 +1825,7 @@ use App\StoresFrontEnd;
 						'DIAGNOSED COMMENTS'
 					);
 					    
-					}else if(in_array(CRUDBooster::myPrivilegeName(), ['RMA', 'RMA Technician', 'RMA Specialist'])){
+					}else if(in_array(CRUDBooster::myPrivilegeName(), ['RMA Inbound', 'Tech Lead', 'RMA Technician', 'RMA Specialist'])){
 						$to_diagnose = ReturnsStatus::where('id','5')->value('id');
 						$orderData = DB::table('returns_header_distribution')
 						->leftjoin('warranty_statuses', 'returns_header_distribution.returns_status_1','=', 'warranty_statuses.id')
@@ -1835,7 +1835,7 @@ use App\StoresFrontEnd;
 						->leftjoin('cms_users as printed', 'returns_header_distribution.level3_personnel','=', 'printed.id')																	
 						->leftjoin('cms_users as transacted', 'returns_header_distribution.level4_personnel','=', 'transacted.id')
 						->leftjoin('cms_users as received', 'returns_header_distribution.level6_personnel','=', 'received.id')
-						->leftjoin('cms_users as received1', 'returns_header_distribution.received_by_sc','=', 'received1.id')
+						->leftjoin('cms_users as received1', 'returns_header_distribution.received_by_rma_sc','=', 'received1.id')
 						->leftjoin('cms_users as turnover', 'returns_header_distribution.rma_receiver_id','=', 'turnover.id')
 						->leftjoin('cms_users as specialist', 'returns_header_distribution.rma_specialist_id','=', 'specialist.id')
 						->leftjoin('cms_users as closed', 'returns_header_distribution.level5_personnel','=', 'closed.id')	
@@ -2052,7 +2052,7 @@ use App\StoresFrontEnd;
 							$orderRow->turnover_by,
 							$orderRow->rma_receiver_date_received,
 							$orderRow->received_by1,
-							$orderRow->received_at_sc,
+							$orderRow->received_at_rma_sc,
 
 							$orderRow->diagnosed_by,
 							$orderRow->level2_personnel_edited,
@@ -2443,7 +2443,7 @@ use App\StoresFrontEnd;
 						->leftjoin('cms_users as printed', 'returns_header_distribution.level3_personnel','=', 'printed.id')																	
 						->leftjoin('cms_users as transacted', 'returns_header_distribution.level4_personnel','=', 'transacted.id')
 						->leftjoin('cms_users as received', 'returns_header_distribution.level6_personnel','=', 'received.id')
-						->leftjoin('cms_users as received1', 'returns_header_distribution.received_by_sc','=', 'received1.id')
+						->leftjoin('cms_users as received1', 'returns_header_distribution.received_by_rma_sc','=', 'received1.id')
 						->leftjoin('cms_users as turnover', 'returns_header_distribution.rma_receiver_id','=', 'turnover.id')
 						->leftjoin('cms_users as specialist', 'returns_header_distribution.rma_specialist_id','=', 'specialist.id')
 						->leftjoin('cms_users as closed', 'returns_header_distribution.level5_personnel','=', 'closed.id')	
@@ -2661,7 +2661,7 @@ use App\StoresFrontEnd;
 							$orderRow->turnover_by,
 							$orderRow->rma_receiver_date_received,
 							$orderRow->received_by1,
-							$orderRow->received_at_sc,
+							$orderRow->received_at_rma_sc,
 
 							$orderRow->diagnosed_by,
 							$orderRow->level2_personnel_edited,
@@ -2751,7 +2751,7 @@ use App\StoresFrontEnd;
 						->leftjoin('cms_users as printed', 'returns_header_distribution.level3_personnel','=', 'printed.id')																	
 						->leftjoin('cms_users as transacted', 'returns_header_distribution.level4_personnel','=', 'transacted.id')
 						->leftjoin('cms_users as received', 'returns_header_distribution.level6_personnel','=', 'received.id')
-						->leftjoin('cms_users as received1', 'returns_header_distribution.received_by_sc','=', 'received1.id')
+						->leftjoin('cms_users as received1', 'returns_header_distribution.received_by_rma_sc','=', 'received1.id')
 						->leftjoin('cms_users as turnover', 'returns_header_distribution.rma_receiver_id','=', 'turnover.id')
 						->leftjoin('cms_users as specialist', 'returns_header_distribution.rma_specialist_id','=', 'specialist.id')
 						->leftjoin('cms_users as closed', 'returns_header_distribution.level5_personnel','=', 'closed.id')	
@@ -2967,7 +2967,7 @@ use App\StoresFrontEnd;
 							$orderRow->turnover_by,
 							$orderRow->rma_receiver_date_received,
 							$orderRow->received_by1,
-							$orderRow->received_at_sc,
+							$orderRow->received_at_rma_sc,
 
 							$orderRow->diagnosed_by,
 							$orderRow->level2_personnel_edited,
@@ -3063,7 +3063,7 @@ use App\StoresFrontEnd;
 						->leftjoin('cms_users as printed', 'returns_header_distribution.level3_personnel','=', 'printed.id')																	
 						->leftjoin('cms_users as transacted', 'returns_header_distribution.level4_personnel','=', 'transacted.id')
 						->leftjoin('cms_users as received', 'returns_header_distribution.level6_personnel','=', 'received.id')
-						->leftjoin('cms_users as received1', 'returns_header_distribution.received_by_sc','=', 'received1.id')
+						->leftjoin('cms_users as received1', 'returns_header_distribution.received_by_rma_sc','=', 'received1.id')
 						->leftjoin('cms_users as turnover', 'returns_header_distribution.rma_receiver_id','=', 'turnover.id')
 						->leftjoin('cms_users as specialist', 'returns_header_distribution.rma_specialist_id','=', 'specialist.id')
 						->leftjoin('cms_users as closed', 'returns_header_distribution.level5_personnel','=', 'closed.id')	
@@ -3283,7 +3283,7 @@ use App\StoresFrontEnd;
 							$orderRow->turnover_by,
 							$orderRow->rma_receiver_date_received,
 							$orderRow->received_by1,
-							$orderRow->received_at_sc,
+							$orderRow->received_at_rma_sc,
 
 							$orderRow->diagnosed_by,
 							$orderRow->level2_personnel_edited,
@@ -3372,7 +3372,7 @@ use App\StoresFrontEnd;
 						->leftjoin('cms_users as printed', 'returns_header_distribution.level3_personnel','=', 'printed.id')																	
 						->leftjoin('cms_users as transacted', 'returns_header_distribution.level4_personnel','=', 'transacted.id')
 						->leftjoin('cms_users as received', 'returns_header_distribution.level6_personnel','=', 'received.id')
-						->leftjoin('cms_users as received1', 'returns_header_distribution.received_by_sc','=', 'received1.id')
+						->leftjoin('cms_users as received1', 'returns_header_distribution.received_by_rma_sc','=', 'received1.id')
 						->leftjoin('cms_users as turnover', 'returns_header_distribution.rma_receiver_id','=', 'turnover.id')
 						->leftjoin('cms_users as specialist', 'returns_header_distribution.rma_specialist_id','=', 'specialist.id')
 						->leftjoin('cms_users as closed', 'returns_header_distribution.level5_personnel','=', 'closed.id')	
@@ -3589,7 +3589,7 @@ use App\StoresFrontEnd;
 							$orderRow->turnover_by,
 							$orderRow->rma_receiver_date_received,
 							$orderRow->received_by1,
-							$orderRow->received_at_sc,
+							$orderRow->received_at_rma_sc,
 
 							$orderRow->diagnosed_by,
 							$orderRow->level2_personnel_edited,
@@ -3678,7 +3678,7 @@ use App\StoresFrontEnd;
 						->leftjoin('cms_users as printed', 'returns_header_distribution.level3_personnel','=', 'printed.id')																	
 						->leftjoin('cms_users as transacted', 'returns_header_distribution.level4_personnel','=', 'transacted.id')
 						->leftjoin('cms_users as received', 'returns_header_distribution.level6_personnel','=', 'received.id')
-						->leftjoin('cms_users as received1', 'returns_header_distribution.received_by_sc','=', 'received1.id')
+						->leftjoin('cms_users as received1', 'returns_header_distribution.received_by_rma_sc','=', 'received1.id')
 						->leftjoin('cms_users as turnover', 'returns_header_distribution.rma_receiver_id','=', 'turnover.id')
 						->leftjoin('cms_users as specialist', 'returns_header_distribution.rma_specialist_id','=', 'specialist.id')
 						->leftjoin('cms_users as closed', 'returns_header_distribution.level5_personnel','=', 'closed.id')	
@@ -3897,7 +3897,7 @@ use App\StoresFrontEnd;
 							$orderRow->turnover_by,
 							$orderRow->rma_receiver_date_received,
 							$orderRow->received_by1,
-							$orderRow->received_at_sc,
+							$orderRow->received_at_rma_sc,
 
 							$orderRow->diagnosed_by,
 							$orderRow->level2_personnel_edited,

@@ -1000,7 +1000,6 @@ class AdminToReceiveDistriController extends \crocodicstudio\crudbooster\control
 
 							if(CRUDBooster::myPrivilegeName() == "RMA Inbound" || CRUDBooster::myPrivilegeName() == "Super Administrator"){
 
-								$to_diagnose = ReturnsStatus::where('id','5')->value('id');
 								// TO TURNOVER STATUS
 								$to_turnover = ReturnsStatus::where('id','37')->value('id');
 				
@@ -1012,7 +1011,8 @@ class AdminToReceiveDistriController extends \crocodicstudio\crudbooster\control
 						// To Diagnose
 						else if($ReturnRequest->returns_status_1 == 37){
 
-							if(CRUDBooster::myPrivilegeName() == "RMA" || CRUDBooster::myPrivilegeName() == "Super Administrator"){
+							if(CRUDBooster::myPrivilegeName() == "RMA Inbound" || CRUDBooster::myPrivilegeName() == "Super Administrator"){
+								$to_diagnose = ReturnsStatus::where('id','5')->value('id');
 
 								$postdata['returns_status_1'] = 					$to_diagnose;
 								$postdata['received_by_sc'] = 					CRUDBooster::myId();

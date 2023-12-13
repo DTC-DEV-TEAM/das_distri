@@ -103,7 +103,7 @@ use App\StoresFrontEnd;
 				$this->col[] = ["label"=>"Mode Of Payment","name"=>"mode_of_payment"];
 				$this->col[] = ["label"=>"Diagnose","name"=>"diagnose","visible"=>false];
 				$this->col[] = ["label"=>"Level3 Personnel","name"=>"level3_personnel","visible"=>false];
-			}elseif(CRUDBooster::myPrivilegeName() == "RMA"){ 
+			}elseif(in_array(CRUDBooster::myPrivilegeName(), ['RMA Inbound', 'Tech Lead', 'RMA Technician', 'RMA Specialist'])){ 
 				$this->col[] = ["label"=>"Status","name"=>"returns_status_1","join"=>"warranty_statuses,warranty_status"];
 				$this->col[] = ["label"=>"Created Date","name"=>"created_at"];
 				//$this->col[] = ["label"=>"Return Schedule","name"=>"return_schedule"];
@@ -583,7 +583,7 @@ use App\StoresFrontEnd;
 
 				$query->whereNotNull('received_by')->where('returns_status_1','!=',$print_pf)->where('transaction_type','!=', 2)->whereIn('returns_header.stores_id', $storeList)->orderBy('history_status', 'desc'); 
 				
-			}elseif(CRUDBooster::myPrivilegeName() == "RMA"){ 
+			}elseif(in_array(CRUDBooster::myPrivilegeName(), ['RMA Inbound', 'Tech Lead', 'RMA Technician', 'RMA Specialist'])){ 
 
 				$to_diagnose = ReturnsStatus::where('id','5')->value('id');
 	
@@ -2756,7 +2756,7 @@ use App\StoresFrontEnd;
 								'COMMENTS',
 								'DIAGNOSED COMMENTS'
 							);		
-					}elseif(in_array(CRUDBooster::myPrivilegeName(), ['RMA', 'RMA Technician', 'RMA Specialist'])){ 
+					}elseif(in_array(CRUDBooster::myPrivilegeName(), ['RMA Inbound', 'Tech Lead', 'RMA Technician', 'RMA Specialist'])){ 
 		
 						// $to_diagnose = ReturnsStatus::where('id','5')->value('id');
 			

@@ -296,6 +296,7 @@ Route::group(['middleware' => ['web']], function() {
     //distridiagnosing
     Route::get('/admin/distri_return_diagnosing/ReturnsDiagnosingDISTRIEdit/{id}','AdminDistriReturnDiagnosingController@ReturnsDiagnosingDISTRIEdit');
     Route::get('/admin/distri_return_diagnosing/ReturnsReturnFormPrintDISTRI/{id}','AdminDistriReturnDiagnosingController@ReturnsReturnFormPrintDISTRI');  
+    Route::get('/admin/distri_return_diagnosing/TechLeadDISTRI/{id}','AdminDistriReturnDiagnosingController@ReturnsReturnFormPrintDISTRI');  
     Route::get('/admin/distri_return_diagnosing/FormRejectUpdateStatusDISTRI','AdminDistriReturnDiagnosingController@FormRejectUpdateStatusDISTRI'); 
     Route::get('/admin/distri_return_diagnosing/FormRepairUpdateStatusDISTRI','AdminDistriReturnDiagnosingController@FormRepairUpdateStatusDISTRI');  
     Route::get('/admin/distri_return_diagnosing/GetExtractDiagnosingReturnsDISTRI','AdminDistriReturnDiagnosingController@GetExtractDiagnosingReturnsDISTRI')->name('GetExtractDiagnosingReturnsDISTRI');
@@ -355,4 +356,3 @@ Route::group(['middleware' => ['web']], function() {
     Route::get('/admin/to_receive_retail/ReturnsDiagnosingRTLEdit/custom_reference_number/{ref_number}/{module_mainpath}','AdminRetailReturnDiagnosingController@returnReferenceNumber')->name('fwc_custom_reference_number');
     
 });
-

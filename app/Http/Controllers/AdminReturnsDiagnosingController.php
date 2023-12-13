@@ -208,6 +208,7 @@ use PHPExcel_Style_Fill;
 
 			if(CRUDBooster::myPrivilegeName() == "Tech Lead") {
 				$this->addaction[] = ['title'=>'Edit','url'=>CRUDBooster::mainpath('TechLeadECOMM/[id]'),'icon'=>'fa fa-pencil', "showIf"=>"[returns_status_1] == $to_assign_inc"];
+				$this->addaction[] = ['title'=>'Edit','url'=>CRUDBooster::mainpath('ReturnsDiagnosingEdit/[id]'),'icon'=>'fa fa-pencil', "showIf"=>"[returns_status_1] == $to_diagnose"];
 			}else {
 				$this->addaction[] = ['title'=>'Edit','url'=>CRUDBooster::mainpath('ReturnsDiagnosingEdit/[id]'),'icon'=>'fa fa-pencil', "showIf"=>"[returns_status_1] == $to_diagnose"];
 				$this->addaction[] = ['title'=>'Edit','url'=>CRUDBooster::mainpath('ReturnsDiagnosingEdit/[id]'),'icon'=>'fa fa-pencil', "showIf"=>"[returns_status_1] == $to_for_action"];
@@ -642,7 +643,7 @@ use PHPExcel_Style_Fill;
 					return redirect()->action('AdminReturnsDiagnosingController@ReturnsReturnFormPrint',['id'=>$ReturnRequest->id])->send();
 					}
 					else if ($field_1 == 'Test Done') {
-						if(CRUDBooster::myPrivilegeName() == "RMA Technician" || CRUDBooster::myPrivilegeName() == "SuperAdministrator"){
+						if(in_array(CRUDBooster::myPrivilegeName(), ['Tech Lead', 'RMA Technician', 'SuperAdministrator'])){
 					
 							$to_for_action = ReturnsStatus::where('id','38')->value('id');
 			
