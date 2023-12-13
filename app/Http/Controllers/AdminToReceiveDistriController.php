@@ -587,7 +587,6 @@ class AdminToReceiveDistriController extends \crocodicstudio\crudbooster\control
 		*/
 		public function hook_before_edit(&$postdata,$id) {        
 			$ReturnRequest = ReturnsHeaderDISTRI::where('id',$id)->first();
-			
 			if(CRUDBooster::myPrivilegeName() == "Service Center" || (CRUDBooster::myPrivilegeName() == "Super Administrator" && $ReturnRequest->returns_status_1 == 35)){
 
 				$to_receive_sc = ReturnsStatus::where('id','35')->value('id');
@@ -999,7 +998,7 @@ class AdminToReceiveDistriController extends \crocodicstudio\crudbooster\control
 						// To pickup by log
 						if($ReturnRequest->returns_status_1 == 34){
 
-							if(CRUDBooster::myPrivilegeName() == "RMA" || CRUDBooster::myPrivilegeName() == "Super Administrator"){
+							if(CRUDBooster::myPrivilegeName() == "RMA Inbound" || CRUDBooster::myPrivilegeName() == "Super Administrator"){
 
 								$to_diagnose = ReturnsStatus::where('id','5')->value('id');
 								// TO TURNOVER STATUS
