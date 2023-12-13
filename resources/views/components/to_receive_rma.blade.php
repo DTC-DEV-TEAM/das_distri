@@ -333,9 +333,9 @@
 <script>
 
     $(document).ready(function() {
-            $('.js-example-basic-single').select2(
-            { width: '75%'}
-            );
+        $('.js-example-basic-single').select2({ 
+            width: '75%'
+        });
     });
 
     function toTurnOver(id, table_name, module_mainpath){

@@ -62,6 +62,8 @@ use App\StoresFrontEnd;
 				$this->col[] = ["label"=>"Created Date","name"=>"created_at"];
 				$this->col[] = ["label"=>"Pickup Schedule","name"=>"return_schedule"];
 				$this->col[] = ["label"=>"Return Reference#","name"=>"return_reference_no"];
+				$this->col[] = ["label"=>"INC#","name"=>"inc_number"];
+				$this->col[] = ["label"=>"RMA#","name"=>"rma_number"];
 				$this->col[] = ["label"=>"Order#","name"=>"order_no"];
 				//$this->col[] = ["label"=>"SOR#","name"=>"sor_number"];
 				$this->col[] = ["label"=>"Customer Location","name"=>"customer_location"];
@@ -802,9 +804,11 @@ use App\StoresFrontEnd;
 				}elseif($column_value == $to_for_action){
 					$column_value = '<span class="label label-warning">'.$to_for_action.'</span>';
 			
-				}
-				elseif($column_value == $to_assign_inc){
+				}elseif($column_value == $to_assign_inc){ 
 					$column_value = '<span class="label label-warning">'.$to_assign_inc.'</span>';
+			
+				}elseif($column_value == $to_pickup_by_log){
+					$column_value = '<span class="label label-warning">'.$to_pickup_by_log.'</span>';
 			
 				}
 			}

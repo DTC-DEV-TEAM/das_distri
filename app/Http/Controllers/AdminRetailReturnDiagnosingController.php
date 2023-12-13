@@ -78,6 +78,7 @@ use PHPExcel_Style_Fill;
 				$this->col[] = ["label"=>"Created Date","name"=>"created_at"];
 				$this->col[] = ["label"=>"Pickup Schedule","name"=>"return_schedule"];
 				$this->col[] = ["label"=>"Return Reference#","name"=>"return_reference_no"];
+				$this->col[] = ["label"=>"INC#","name"=>"inc_number"];
 				$this->col[] = ["label"=>"Order#","name"=>"order_no"];
 				//$this->col[] = ["label"=>"Customer Location","name"=>"customer_location"];
 				$this->col[] = ["label"=>"Customer Location","name"=>"customer_location"];
@@ -222,12 +223,11 @@ use PHPExcel_Style_Fill;
 				if(CRUDBooster::myPrivilegeName() == "Tech Lead") {
 					$this->addaction[] = ['title'=>'Edit','url'=>CRUDBooster::mainpath('TechLeadRTL/[id]'),'icon'=>'fa fa-pencil', "showIf"=>"[returns_status_1] == $to_assign_inc"];
 					$this->addaction[] = ['title'=>'Edit','url'=>CRUDBooster::mainpath('ReturnsDiagnosingRTLEdit/[id]'),'icon'=>'fa fa-pencil', "showIf"=>"[returns_status_1] == $to_diagnose "];
-				}else if(CRUDBooster::myPrivilegeName() == "Super Administrator"){
-					$this->addaction[] = ['title'=>'Edit','url'=>CRUDBooster::mainpath('ReturnsDiagnosingRTLEdit/[id]'),'icon'=>'fa fa-pencil'];
 				}
 				else {
 					$this->addaction[] = ['title'=>'Edit','url'=>CRUDBooster::mainpath('ReturnsDiagnosingRTLEdit/[id]'),'icon'=>'fa fa-pencil', "showIf"=>"[returns_status_1] == $to_diagnose"];
 					$this->addaction[] = ['title'=>'Edit','url'=>CRUDBooster::mainpath('ReturnsDiagnosingRTLEdit/[id]'),'icon'=>'fa fa-pencil', "showIf"=>"[returns_status_1] == $to_for_action"];
+					$this->addaction[] = ['title'=>'Edit','url'=>CRUDBooster::mainpath('TechLeadRTL/[id]'),'icon'=>'fa fa-pencil', "showIf"=>"[returns_status_1] == $to_assign_inc"];
 					$this->addaction[] = ['title'=>'Print','url'=>CRUDBooster::mainpath('ReturnsReturnFormPrintRTL/[id]'),'icon'=>'fa fa-print', "showIf"=>"[returns_status_1] == $to_print_return_form"];
 				}
 	        
@@ -477,26 +477,30 @@ use PHPExcel_Style_Fill;
 			$to_assign_inc = ReturnsStatus::where('id','39')->value('warranty_status');
 			$to_print_return_form = ReturnsStatus::where('id','13')->value('warranty_status');
 			$requested = 				ReturnsStatus::where('id','1')->value('warranty_status');
-			if($column_value == $to_schedule){
-				$column_value = '<span class="label label-warning">'.$to_schedule.'</span>';
-		
-			}elseif($column_value == $pending){
-				$column_value = '<span class="label label-warning">'.$pending.'</span>';
-		
-			}elseif($column_value == $requested){
-				$column_value = '<span class="label label-warning">'.$requested.'</span>';
-		
-			}elseif($column_value == $to_diagnose){
-				$column_value = '<span class="label label-warning">'.$to_diagnose.'</span>';
-		
-			}elseif($column_value == $to_for_action){
-				$column_value = '<span class="label label-warning">'.$to_for_action.'</span>';
-		
-			}elseif($column_value == $to_assign_inc){
-				$column_value = '<span class="label label-warning">'.$to_assign_inc.'</span>';
-			}elseif($column_value == $to_print_return_form){
-				$column_value = '<span class="label label-warning">'.$to_print_return_form.'</span>';
-		
+
+			if($column_index == 1){
+
+				if($column_value == $to_schedule){
+					$column_value = '<span class="label label-warning">'.$to_schedule.'</span>';
+			
+				}elseif($column_value == $pending){
+					$column_value = '<span class="label label-warning">'.$pending.'</span>';
+			
+				}elseif($column_value == $requested){
+					$column_value = '<span class="label label-warning">'.$requested.'</span>';
+			
+				}elseif($column_value == $to_diagnose){
+					$column_value = '<span class="label label-warning">'.$to_diagnose.'</span>';
+			
+				}elseif($column_value == $to_for_action){
+					$column_value = '<span class="label label-warning">'.$to_for_action.'</span>';
+			
+				}elseif($column_value == $to_assign_inc){
+					$column_value = '<span class="label label-warning">'.$to_assign_inc.'</span>';
+				}elseif($column_value == $to_print_return_form){
+					$column_value = '<span class="label label-warning">'.$to_print_return_form.'</span>';
+			
+				}
 			}
 		
 	    }
@@ -1007,15 +1011,15 @@ use PHPExcel_Style_Fill;
 							'rma_specialist_id' => CRUDBooster::myId(),
 							'rma_specialist_date_received' => $date,
 							'returns_status' => $return_status,
-							// 'returns_status_1' => $return_status_1,
+							'returns_status_1' => $return_status_1,
 							'diagnose' => $return_input['diagnose'],
 							'case_status' => $return_input['case_status'],
 							'rma_number' => $formatted_counter,
 						]);
 
-					// DB::connection('mysql_front_end')
-					// ->statement('insert into returns_tracking_status (return_reference_no, returns_status, 	created_at) values (?, ?, ?)', 
-					// $frontend_to_insert);
+					DB::connection('mysql_front_end')
+					->statement('insert into returns_tracking_status (return_reference_no, returns_status, 	created_at) values (?, ?, ?)', 
+					$frontend_to_insert);
 
 					DB::commit();
 
