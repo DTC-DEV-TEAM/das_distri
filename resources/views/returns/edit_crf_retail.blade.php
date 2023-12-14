@@ -2,6 +2,10 @@
 @extends('crudbooster::admin_template')
 
 @section('content')
+
+@include('plugins.plugins')
+<link rel="stylesheet" href="{{ asset('css/sweet_alert_size.css') }}">
+
 @if(g('return_url'))
 	<p class="noprint"><a title='Return' href='{{g("return_url")}}'><i class='fa fa-chevron-circle-left '></i> &nbsp; {{trans("crudbooster.form_back_to_list",['module'=>CRUDBooster::getCurrentModule()->name])}}</a></p>       
 @else
@@ -291,7 +295,8 @@
                 </div>
                 <div class='panel-footer'>
                     <a href="{{ CRUDBooster::mainpath() }}" class="btn btn-default">{{ trans('message.form.cancel') }}</a>
-                    <button class="btn btn-primary pull-right" type="submit" id="btnSubmit"> <i class="fa fa-save" ></i> {{ trans('message.form.save') }}</button>
+                    <button class="btn btn-primary pull-right hide" type="submit" id="btnSubmit"> <i class="fa fa-save" ></i> {{ trans('message.form.save') }}</button>
+                    <button class="btn btn-primary pull-right f-btn" type="button"><i class="fa fa-save" ></i> {{ trans('message.form.save') }}</button>
                 </div>
 
         </form>
@@ -300,6 +305,7 @@
 
 @push('bottom')
 <script type="text/javascript">
+
 function AvoidSpace(event) {
     var k = event ? event.which : window.event.keyCode;
     if (k == 32) return false;
@@ -344,6 +350,27 @@ $('#mode_of_refund').change(function(){
         $('#bank_account_name').val("");
     }
 });
+
+$(".f-btn").on('click', function(){
+
+    const btnText = $(this).text();
+
+    Swal.fire({
+        title: `Are you sure you want to <span style="color: #3085D6">${btnText}</span> this transaction?`,
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#3085d6',
+        cancelButtonColor: '#d33',
+        confirmButtonText: 'Yes',
+        reverseButtons: true,
+        returnFocus: false,
+        allowOutsideClick: true,
+    }).then((result) => {
+        if (result.isConfirmed) {
+            $('#btnSubmit').click();
+        }
+    });
+})
 
 
 $(document).ready(function(){
