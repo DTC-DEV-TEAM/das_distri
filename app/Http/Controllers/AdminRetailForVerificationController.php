@@ -896,7 +896,11 @@ use App\TransactionTypeList;
 			
 			$data['via'] =  DB::table('via')->where('status', 'ACTIVE')->get();
 
-			$this->cbView("returns.edit_tagging_retail", $data);
+			if (CRUDBooster::myPrivilegeName() == 'Super Administrator'){
+				$this->cbView("components.to_verify", $data);
+			}else{
+				$this->cbView("returns.edit_tagging_retail", $data);
+			}
 		}
 
 		public function GetExtractReturnsTaggingRTL() {

@@ -1,5 +1,10 @@
 <!-- First, extends to the CRUDBooster Layout -->
 @extends('crudbooster::admin_template')
+
+@include('plugins.plugins')
+<link rel="stylesheet" href="{{ asset('css/sweet_alert_size.css') }}">
+
+
 @push('head')
 <style type="text/css">   
 .pic-container {
@@ -292,7 +297,8 @@
                 </div>
             <div class='panel-footer'>
                 <a href="{{ CRUDBooster::mainpath() }}" class="btn btn-default">{{ trans('message.form.cancel') }}</a>
-                <button class="btn btn-primary pull-right" type="submit" id="btnSubmit"> <i class="fa fa-save" ></i> {{ trans('message.form.save') }}</button>
+                <button class="btn btn-primary pull-right hide" type="submit" id="btnSubmit"> <i class="fa fa-save" ></i> {{ trans('message.form.save') }}</button>
+                <button class="btn btn-primary pull-right f-btn" type="button"><i class="fa fa-save" ></i> {{ trans('message.form.save') }}</button>
             </div>
 
         </form>
@@ -302,13 +308,34 @@
 @push('bottom')
 <script type="text/javascript">
 
-function preventBack() {
-    window.history.forward();
-}
- window.onunload = function() {
-    null;
-};
-setTimeout("preventBack()", 0);
+    function preventBack() {
+        window.history.forward();
+    }
+    window.onunload = function() {
+        null;
+    };
+    setTimeout("preventBack()", 0);
+
+    $(".f-btn").on('click', function(){
+
+        const btnText = $(this).text();
+
+        Swal.fire({
+            title: `Are you sure you want to <span style="color: #3085D6">${btnText}</span> this transaction?`,
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#3085d6',
+            cancelButtonColor: '#d33',
+            confirmButtonText: 'Yes',
+            reverseButtons: true,
+            returnFocus: false,
+            allowOutsideClick: true,
+        }).then((result) => {
+            if (result.isConfirmed) {
+                $('#btnSubmit').click();
+            }
+        });
+    })
 
 //$( "#datepicker" ).datepicker( { minDate: '1', dateFormat: 'yy-mm-dd' } );
 
@@ -341,9 +368,9 @@ setTimeout("preventBack()", 0);
     
     
     $(document).ready(function(){
-  $("myform").submit(function(){
-        $('#btnSubmit').attr('disabled', true);
-  });
+        $("myform").submit(function(){
+            $('#btnSubmit').attr('disabled', true);
+        });
 });
 
 </script>
