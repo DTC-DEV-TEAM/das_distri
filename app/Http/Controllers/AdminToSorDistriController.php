@@ -819,123 +819,246 @@ use PHPExcel_Style_Fill;
     						}
 						}
 						
-			
-						$orderItems[] = array(
-							//is_null($orderRow->approved_at) ? "" : Carbon::parse($orderRow->approved_at)->toDateString(),	//'APPROVED DATE',
-							//is_null($orderRow->approved_at) ? "" : Carbon::parse($orderRow->approved_at)->toTimeString(), //'APPROVED TIME',
-							$orderRow->warranty_status, 		
-							$orderRow->diagnose, 	
-							$orderRow->created_at,				
-							$orderRow->return_reference_no,					
-							$orderRow->purchase_location,				
-							$orderRow->customer_last_name,		
-							$orderRow->customer_first_name,	
-							$orderRow->address,		            
-							$orderRow->email_address,      
-							$orderRow->contact_no,    
-							$orderRow->order_no,		
-							$orderRow->purchase_date,			
-							$orderRow->mode_of_payment,		
-							//$orderRow->bank_name,                  
-							//$orderRow->bank_account_no,                   
-							//$orderRow->bank_account_name,		
-							$orderRow->items_included,                      
-							$orderRow->items_included_others, 
-							$orderRow->verified_items_included,                      
-							$orderRow->verified_items_included_others, 
-							$orderRow->customer_location,  
-							$orderRow->deliver_to,                 
-				 			$orderRow->return_schedule,                      
-							$orderRow->refunded_date,  
-							$orderRow->date_adjusted,
-							$orderRow->stock_adj_ref_no,
-							$orderRow->sor_number,      
-				 			$orderRow->digits_code,               
-				 			$orderRow->upc_code,                 
-				 			$orderRow->item_description,            
-				 			$orderRow->cost,          
-							$orderRow->brand,
-							$serial_no->serial_number,
-							$orderRow->problem_details,
-				 			$orderRow->problem_details_other,                
-							$orderRow->quantity,
-							$orderRow->warranty_status,
-							$orderRow->ship_back_status,
-							$orderRow->claimed_status,
-							$orderRow->credit_memo_number,
-							$verified,
-							$verified_date,
-							$scheduled_by,
-							$scheduled_date,
-							$orderRow->diagnosed_by,
-							$orderRow->level2_personnel_edited,
-							$printed_by,
-							$printed_date,
-							$transacted_by,							
-							$transacted_date,
-							$closed_by,
-							$closed_date,
-							$orderRow->comments,
-							$orderRow->diagnose_comments
-						);
+						if (CRUDBooster::myPrivilegeName() == "Service Center") {
+							$orderItems[] = array(
+								//is_null($orderRow->approved_at) ? "" : Carbon::parse($orderRow->approved_at)->toDateString(),	//'APPROVED DATE',
+								//is_null($orderRow->approved_at) ? "" : Carbon::parse($orderRow->approved_at)->toTimeString(), //'APPROVED TIME',
+								$orderRow->warranty_status, 		
+								$orderRow->diagnose, 	
+								$orderRow->created_at,				
+								$orderRow->return_reference_no,					
+								$orderRow->purchase_location,				
+								$orderRow->customer_last_name,		
+								$orderRow->customer_first_name,	
+								$orderRow->address,		            
+								$orderRow->email_address,      
+								$orderRow->contact_no,    
+								$orderRow->order_no,		
+								$orderRow->purchase_date,			
+								$orderRow->mode_of_payment,		
+								//$orderRow->bank_name,                  
+								//$orderRow->bank_account_no,                   
+								//$orderRow->bank_account_name,		
+								$orderRow->items_included,                      
+								$orderRow->items_included_others, 
+								$orderRow->verified_items_included,                      
+								$orderRow->verified_items_included_others, 
+								$orderRow->customer_location,  
+								$orderRow->deliver_to,                 
+								 $orderRow->return_schedule,                      
+								$orderRow->refunded_date,  
+								$orderRow->date_adjusted,
+								$orderRow->stock_adj_ref_no,
+								$orderRow->sor_number,      
+								 $orderRow->digits_code,               
+								 $orderRow->upc_code,                 
+								 $orderRow->item_description,            
+								 $orderRow->cost,          
+								$orderRow->brand,
+								$serial_no->serial_number,
+								$orderRow->problem_details,
+								 $orderRow->problem_details_other,                
+								$orderRow->quantity,
+								$orderRow->warranty_status,
+								$orderRow->ship_back_status,
+								$orderRow->claimed_status,
+								$orderRow->credit_memo_number,
+								$verified,
+								$verified_date,
+								$scheduled_by,
+								$scheduled_date,
+								$orderRow->diagnosed_by,
+								$orderRow->level2_personnel_edited,
+								$printed_by,
+								$printed_date,
+								$transacted_by,							
+								$transacted_date,
+								$closed_by,
+								$closed_date,
+								$orderRow->comments,
+								$orderRow->diagnose_comments
+							);
+
+							$headings = array(
+								'RETURN STATUS',
+								'DIAGNOSE',
+								'CREATED DATE',
+								'RETURN REFERENCE#',
+								'PURCHASE LOCATION',
+								'CUSTOMER LAST NAME',
+								'CUSTOMER FIRST NAME',
+								'ADDRESS',
+								'EMAIL ADDRESS',
+								'CONTACT#',
+								'ORDER#',
+								'PURCHASE DATE',
+								'ORIGINAL MODE OF PAYMENT',
+								//'BANK NAME',    //yellow
+								//'BANK ACCOUNT#',      //red
+								//'BANK ACCOUNT NAME',         //red
+								'ITEMS INCLUDED',         //red
+								'ITEMS INCLUDED OTHERS',//green
+								'VERIFIED ITEMS INCLUDED',         //red
+								'VERIFIED ITEMS INCLUDED OTHERS',//green
+								'CUSTOMER LOCATION',               //green
+								'DELIVER TO',               //green
+								'PICKUP SCHEDULE',               //green
+								'REFUNDED DATE',               //green
+								'DATE ADJUSTED',               //green
+								'STOCK ADJUSTED REF#',               //green
+								'SOR#',               //green
+								'DIGITS CODE',                 //green
+								'UPC CODE',      //blue
+								'ITEM DESCRIPTION',               //blue
+								'COST',                 //bue
+								'BRAND',              //blue  //additional code 20200121
+								'SERIAL#',                //bue   //additional code 20200121
+								'PROBLEM DETAILS',       //additional code 20200207
+								'PROBLEM DETAILS OTHERS',       //additional code 20200207
+								'QUANTITY',           //blue  //additional code 20200205
+								'WARRANTY STATUS',
+								'SHIP BACK STATUS',           //blue  //additional code 20200205
+								'CLAIMED STATUS',           //blue  //additional code 20200205
+								'CREDIT MEMO#',           //blue  //additional code 20200205
+								'VERIFIED BY',           //blue  //additional code 20200205
+								'VERIFIED DATE',           //blue  //additional code 20200205
+								'SCHEDULED BY',           //blue  //additional code 20200205
+								'SCHEDULED DATE',           //blue  //additional code 20200205
+								'DIAGNOSED BY',           //blue  //additional code 20200205
+								'DIAGNOSED DATE',           //blue  //additional code 20200205
+								'PRINTED BY',           //blue  //additional code 20200205
+								'PRINTED DATE',           //blue  //additional code 20200205
+								'SOR BY',           //blue  //additional code 20200205
+								'SOR DATE',           //blue  //additional code 20200205
+								'CLOSED BY',           //blue  //additional code 20200205
+								'CLOSED DATE',           //blue  //additional code 20200205
+								'COMMENTS',
+								'DIAGNOSED COMMENTS'
+							);
+						}else {
+							$orderItems[] = array(
+								//is_null($orderRow->approved_at) ? "" : Carbon::parse($orderRow->approved_at)->toDateString(),	//'APPROVED DATE',
+								//is_null($orderRow->approved_at) ? "" : Carbon::parse($orderRow->approved_at)->toTimeString(), //'APPROVED TIME',
+								$orderRow->warranty_status, 		
+								$orderRow->diagnose, 	
+								$orderRow->created_at,				
+								$orderRow->return_reference_no,					
+								$orderRow->inc_number,			
+								$orderRow->rma_number,	
+								$orderRow->purchase_location,				
+								$orderRow->customer_last_name,		
+								$orderRow->customer_first_name,	
+								$orderRow->address,		            
+								$orderRow->email_address,      
+								$orderRow->contact_no,    
+								$orderRow->order_no,		
+								$orderRow->purchase_date,			
+								$orderRow->mode_of_payment,		
+								//$orderRow->bank_name,                  
+								//$orderRow->bank_account_no,                   
+								//$orderRow->bank_account_name,		
+								$orderRow->items_included,                      
+								$orderRow->items_included_others, 
+								$orderRow->verified_items_included,                      
+								$orderRow->verified_items_included_others, 
+								$orderRow->customer_location,  
+								$orderRow->deliver_to,                 
+								 $orderRow->return_schedule,                      
+								$orderRow->refunded_date,  
+								$orderRow->date_adjusted,
+								$orderRow->stock_adj_ref_no,
+								$orderRow->sor_number,      
+								 $orderRow->digits_code,               
+								 $orderRow->upc_code,                 
+								 $orderRow->item_description,            
+								 $orderRow->cost,          
+								$orderRow->brand,
+								$serial_no->serial_number,
+								$orderRow->problem_details,
+								 $orderRow->problem_details_other,                
+								$orderRow->quantity,
+								$orderRow->warranty_status,
+								$orderRow->ship_back_status,
+								$orderRow->claimed_status,
+								$orderRow->credit_memo_number,
+								$verified,
+								$verified_date,
+								$scheduled_by,
+								$scheduled_date,
+								$orderRow->diagnosed_by,
+								$orderRow->level2_personnel_edited,
+								$printed_by,
+								$printed_date,
+								$transacted_by,							
+								$transacted_date,
+								$closed_by,
+								$closed_date,
+								$orderRow->comments,
+								$orderRow->diagnose_comments
+							);
+
+							$headings = array(
+								'RETURN STATUS',
+								'DIAGNOSE',
+								'CREATED DATE',
+								'RETURN REFERENCE#',
+								'INC#',
+								'RMA#',
+								'PURCHASE LOCATION',
+								'CUSTOMER LAST NAME',
+								'CUSTOMER FIRST NAME',
+								'ADDRESS',
+								'EMAIL ADDRESS',
+								'CONTACT#',
+								'ORDER#',
+								'PURCHASE DATE',
+								'ORIGINAL MODE OF PAYMENT',
+								//'BANK NAME',    //yellow
+								//'BANK ACCOUNT#',      //red
+								//'BANK ACCOUNT NAME',         //red
+								'ITEMS INCLUDED',         //red
+								'ITEMS INCLUDED OTHERS',//green
+								'VERIFIED ITEMS INCLUDED',         //red
+								'VERIFIED ITEMS INCLUDED OTHERS',//green
+								'CUSTOMER LOCATION',               //green
+								'DELIVER TO',               //green
+								'PICKUP SCHEDULE',               //green
+								'REFUNDED DATE',               //green
+								'DATE ADJUSTED',               //green
+								'STOCK ADJUSTED REF#',               //green
+								'SOR#',               //green
+								'DIGITS CODE',                 //green
+								'UPC CODE',      //blue
+								'ITEM DESCRIPTION',               //blue
+								'COST',                 //bue
+								'BRAND',              //blue  //additional code 20200121
+								'SERIAL#',                //bue   //additional code 20200121
+								'PROBLEM DETAILS',       //additional code 20200207
+								'PROBLEM DETAILS OTHERS',       //additional code 20200207
+								'QUANTITY',           //blue  //additional code 20200205
+								'WARRANTY STATUS',
+								'SHIP BACK STATUS',           //blue  //additional code 20200205
+								'CLAIMED STATUS',           //blue  //additional code 20200205
+								'CREDIT MEMO#',           //blue  //additional code 20200205
+								'VERIFIED BY',           //blue  //additional code 20200205
+								'VERIFIED DATE',           //blue  //additional code 20200205
+								'SCHEDULED BY',           //blue  //additional code 20200205
+								'SCHEDULED DATE',           //blue  //additional code 20200205
+								'DIAGNOSED BY',           //blue  //additional code 20200205
+								'DIAGNOSED DATE',           //blue  //additional code 20200205
+								'PRINTED BY',           //blue  //additional code 20200205
+								'PRINTED DATE',           //blue  //additional code 20200205
+								'SOR BY',           //blue  //additional code 20200205
+								'SOR DATE',           //blue  //additional code 20200205
+								'CLOSED BY',           //blue  //additional code 20200205
+								'CLOSED DATE',           //blue  //additional code 20200205
+								'COMMENTS',
+								'DIAGNOSED COMMENTS'
+							);
+						}
 					}
 
-					$headings = array(
-						'RETURN STATUS',
-						'DIAGNOSE',
-						'CREATED DATE',
-						'RETURN REFERENCE#',
-						'PURCHASE LOCATION',
-						'CUSTOMER LAST NAME',
-						'CUSTOMER FIRST NAME',
-						'ADDRESS',
-						'EMAIL ADDRESS',
-						'CONTACT#',
-						'ORDER#',
-						'PURCHASE DATE',
-						'ORIGINAL MODE OF PAYMENT',
-						//'BANK NAME',    //yellow
-						//'BANK ACCOUNT#',      //red
-						//'BANK ACCOUNT NAME',         //red
-						'ITEMS INCLUDED',         //red
-						'ITEMS INCLUDED OTHERS',//green
-						'VERIFIED ITEMS INCLUDED',         //red
-						'VERIFIED ITEMS INCLUDED OTHERS',//green
-						'CUSTOMER LOCATION',               //green
-						'DELIVER TO',               //green
-						'PICKUP SCHEDULE',               //green
-						'REFUNDED DATE',               //green
-						'DATE ADJUSTED',               //green
-						'STOCK ADJUSTED REF#',               //green
-						'SOR#',               //green
-						'DIGITS CODE',                 //green
-						'UPC CODE',      //blue
-						'ITEM DESCRIPTION',               //blue
-						'COST',                 //bue
-						'BRAND',              //blue  //additional code 20200121
-                        'SERIAL#',                //bue   //additional code 20200121
-						'PROBLEM DETAILS',       //additional code 20200207
-						'PROBLEM DETAILS OTHERS',       //additional code 20200207
-						'QUANTITY',           //blue  //additional code 20200205
-						'WARRANTY STATUS',
-						'SHIP BACK STATUS',           //blue  //additional code 20200205
-						'CLAIMED STATUS',           //blue  //additional code 20200205
-						'CREDIT MEMO#',           //blue  //additional code 20200205
-						'VERIFIED BY',           //blue  //additional code 20200205
-						'VERIFIED DATE',           //blue  //additional code 20200205
-						'SCHEDULED BY',           //blue  //additional code 20200205
-						'SCHEDULED DATE',           //blue  //additional code 20200205
-						'DIAGNOSED BY',           //blue  //additional code 20200205
-						'DIAGNOSED DATE',           //blue  //additional code 20200205
-						'PRINTED BY',           //blue  //additional code 20200205
-						'PRINTED DATE',           //blue  //additional code 20200205
-						'SOR BY',           //blue  //additional code 20200205
-						'SOR DATE',           //blue  //additional code 20200205
-						'CLOSED BY',           //blue  //additional code 20200205
-						'CLOSED DATE',           //blue  //additional code 20200205
-						'COMMENTS',
-						'DIAGNOSED COMMENTS'
-					);
+			
 
 					$sheet->fromArray($orderItems, null, 'A1', false, false);
 					$sheet->prependRow(1, $headings);

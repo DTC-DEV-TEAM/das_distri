@@ -1306,8 +1306,17 @@ use PHPExcel_Style_Fill;
 					    'AK' => '0.00',
 					));
 
-					$to_diagnose = ReturnsStatus::where('id','5')->value('id');
-					$to_print_return_form = ReturnsStatus::where('id','13')->value('id');
+						
+					if(CRUDBooster::myPrivilegeName() == "Tech Lead"){
+						$to_assign_inc = ReturnsStatus::where('id','39')->value('id');
+						$to_diagnose = ReturnsStatus::where('id','5')->value('id');
+					}
+					else if(CRUDBooster::myPrivilegeName() == "RMA Technician") {
+						$to_diagnose = ReturnsStatus::where('id','5')->value('id');
+					}else {
+						$to_for_action = ReturnsStatus::where('id','38')->value('id');
+						$to_print_return_form = ReturnsStatus::where('id','13')->value('id');
+					}
 
 						$orderData = DB::table('returns_header_distribution')
 						->leftjoin('warranty_statuses', 'returns_header_distribution.returns_status_1','=', 'warranty_statuses.id')
@@ -1317,6 +1326,9 @@ use PHPExcel_Style_Fill;
 						->leftjoin('cms_users as printed', 'returns_header_distribution.level3_personnel','=', 'printed.id')																	
 						->leftjoin('cms_users as transacted', 'returns_header_distribution.level4_personnel','=', 'transacted.id')
 						->leftjoin('cms_users as received', 'returns_header_distribution.level6_personnel','=', 'received.id')
+						->leftjoin('cms_users as received1', 'returns_header_distribution.received_by_rma_sc','=', 'received1.id')
+						->leftjoin('cms_users as turnover', 'returns_header_distribution.rma_receiver_id','=', 'turnover.id')
+						->leftjoin('cms_users as specialist', 'returns_header_distribution.rma_specialist_id','=', 'specialist.id')
 						->leftjoin('cms_users as closed', 'returns_header_distribution.level5_personnel','=', 'closed.id')	
 						->leftJoin('returns_body_item_distribution', 'returns_header_distribution.id', '=', 'returns_body_item_distribution.returns_header_id')
 						->select( 	'returns_header_distribution.*', 
@@ -1328,9 +1340,14 @@ use PHPExcel_Style_Fill;
 									'printed.name as printed_by',	
 									'transacted.name as transacted_by',	
 									'received.name as received_by',
+									'received1.name as received_by1',
+									'turnover.name as turnover_by',
+									'specialist.name as specialist_by',
 									'closed.name as closed_by',
 									'warranty_statuses.*'
-									)->whereNotNull('returns_body_item_distribution.category')->where('transaction_type', 0)->where('returns_status_1', $to_diagnose)
+									)->whereNotNull('returns_body_item_distribution.category')->where('transaction_type', 0)->where('returns_status_1', $to_diagnose)->where('level2_personnel', CRUDBooster::myId())
+									->orwhereNotNull('returns_body_item_distribution.category')->where('transaction_type', 0)->where('returns_status_1', $to_assign_inc)
+									->orwhereNotNull('returns_body_item_distribution.category')->where('transaction_type', 0)->where('returns_status_1', $to_for_action)
 									->orwhereNotNull('returns_body_item_distribution.category')->where('transaction_type', 0)->where('returns_status_1', $to_print_return_form);
 
 										if(\Request::get('filter_column')) {
@@ -1485,6 +1502,7 @@ use PHPExcel_Style_Fill;
 							$orderRow->diagnose, 	
 							$orderRow->created_at,				
 							$orderRow->return_reference_no,					
+							$orderRow->inc_number,			
 							$orderRow->purchase_location,				
 							$orderRow->customer_last_name,		
 							$orderRow->customer_first_name,	
@@ -1525,8 +1543,14 @@ use PHPExcel_Style_Fill;
 							$verified_date,
 							$scheduled_by,
 							$scheduled_date,
+							$orderRow->turnover_by,
+							$orderRow->rma_receiver_date_received,
+							$orderRow->received_by1,
+							$orderRow->received_at_rma_sc,
 							$orderRow->diagnosed_by,
 							$orderRow->level2_personnel_edited,
+							$orderRow->specialist_by,
+							$orderRow->rma_specialist_date_received,
 							$printed_by,
 							$printed_date,
 							$transacted_by,							
@@ -1543,6 +1567,7 @@ use PHPExcel_Style_Fill;
 						'DIAGNOSE',
 						'CREATED DATE',
 						'RETURN REFERENCE#',
+						'INC#',
 						'PURCHASE LOCATION',
 						'CUSTOMER LAST NAME',
 						'CUSTOMER FIRST NAME',
@@ -1583,8 +1608,14 @@ use PHPExcel_Style_Fill;
 						'VERIFIED DATE',           //blue  //additional code 20200205
 						'SCHEDULED BY',           //blue  //additional code 20200205
 						'SCHEDULED DATE',           //blue  //additional code 20200205
+						'RECEIVED BY',
+						'RECEIVED DATE',
+						'TURNOVER BY',
+						'TURNOVER DATE',
 						'DIAGNOSED BY',           //blue  //additional code 20200205
 						'DIAGNOSED DATE',           //blue  //additional code 20200205
+						'PROCESSED BY',           //blue  //additional code 20200205
+						'PROCESSED DATE',  
 						'PRINTED BY',           //blue  //additional code 20200205
 						'PRINTED DATE',           //blue  //additional code 20200205
 						'SOR BY',           //blue  //additional code 20200205

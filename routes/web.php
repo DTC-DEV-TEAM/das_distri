@@ -296,7 +296,7 @@ Route::group(['middleware' => ['web']], function() {
     //distridiagnosing
     Route::get('/admin/distri_return_diagnosing/ReturnsDiagnosingDISTRIEdit/{id}','AdminDistriReturnDiagnosingController@ReturnsDiagnosingDISTRIEdit');
     Route::get('/admin/distri_return_diagnosing/ReturnsReturnFormPrintDISTRI/{id}','AdminDistriReturnDiagnosingController@ReturnsReturnFormPrintDISTRI');  
-    Route::get('/admin/distri_return_diagnosing/TechLeadDISTRI/{id}','AdminDistriReturnDiagnosingController@ReturnsReturnFormPrintDISTRI');  
+    Route::get('/admin/distri_return_diagnosing/TechLeadDISTRI/{id}','AdminDistriReturnDiagnosingController@TechLeadDISTRI');  
     Route::get('/admin/distri_return_diagnosing/FormRejectUpdateStatusDISTRI','AdminDistriReturnDiagnosingController@FormRejectUpdateStatusDISTRI'); 
     Route::get('/admin/distri_return_diagnosing/FormRepairUpdateStatusDISTRI','AdminDistriReturnDiagnosingController@FormRepairUpdateStatusDISTRI');  
     Route::get('/admin/distri_return_diagnosing/GetExtractDiagnosingReturnsDISTRI','AdminDistriReturnDiagnosingController@GetExtractDiagnosingReturnsDISTRI')->name('GetExtractDiagnosingReturnsDISTRI');
@@ -316,7 +316,7 @@ Route::group(['middleware' => ['web']], function() {
 
     //toSORDISTRI
     Route::get('/admin/to_sor_distri/ReturnsSOREditDISTRI/{id}','AdminToSorDistriController@ReturnsSOREditDISTRI');
-    Route::get('/admin/to_sor_distri/GetExtractSORReturnsDISTRI','AdminToSorDistriController@GetExtractSORReturnsRTL')->name('GetExtractSORReturnsDISTRI');
+    Route::get('/admin/to_sor_distri/GetExtractSORReturnsDISTRI','AdminToSorDistriController@GetExtractSORReturnsDISTRI')->name('GetExtractSORReturnsDISTRI');
     Route::get('/admin/to_sor_distri/ViewSORDISTRI/{id}','AdminToSorDistriController@ViewSORDISTRI');
     //toreceiveDISTRI
     Route::get('/admin/to_receive_distri/ReturnsToReceiveEditDISTRI/{id}','AdminToReceiveDistriController@ReturnsToReceiveEditDISTRI');
