@@ -11,28 +11,28 @@ class CaseStatusSeeder extends Seeder
      */
     public function run()
     {
-        DB::table('case_status')->updateOrInsert(['name' => 'Open'],
+        DB::table('case_status')->updateOrInsert(['case_status_name' => 'Open'],
             [
                 'case_status_name' => 'Open',
                 'created_by' => 776,
                 'created_at' => date('Y-m-d H:i:s')
             ]
         );    
-        DB::table('case_status')->updateOrInsert(['name' => 'Pending Customer'],
+        DB::table('case_status')->updateOrInsert(['case_status_name' => 'Pending Customer'],
             [
                 'case_status_name' => 'Pending Customer',
                 'created_by' => 776,
                 'created_at' => date('Y-m-d H:i:s')
             ]
         );    
-        DB::table('case_status')->updateOrInsert(['name' => 'Pending Supplier'],
+        DB::table('case_status')->updateOrInsert(['case_status_name' => 'Pending Supplier'],
             [
                 'case_status_name' => 'Pending Supplier',
                 'created_by' => 776,
                 'created_at' => date('Y-m-d H:i:s')
             ]
         );    
-        DB::table('case_status')->updateOrInsert(['name' => 'Closed'],
+        DB::table('case_status')->updateOrInsert(['case_status_name' => 'Closed'],
             [
                 'case_status_name' => 'Closed',
                 'created_by' => 776,
