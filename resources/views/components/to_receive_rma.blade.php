@@ -12,6 +12,20 @@
 	<p class="noprint"><a title='Main Module' href='{{CRUDBooster::mainpath()}}'><i class='fa fa-chevron-circle-left '></i> &nbsp; {{trans("crudbooster.form_back_to_list",['module'=>CRUDBooster::getCurrentModule()->name])}}</a></p>       
 @endif
 
+<div class="sk-chase-position" style="display: none;">
+    <div class="sk-chase">
+        <div class="sk-chase-dot"></div>
+        <div class="sk-chase-dot"></div>
+        <div class="sk-chase-dot"></div>
+        <div class="sk-chase-dot"></div>
+        <div class="sk-chase-dot"></div>
+        <div class="sk-chase-dot"></div>
+    </div>
+    <div class="sk-chase-text">
+        <p>Please wait, system is on process...</p>
+    </div>
+</div>
+
 <div class='panel panel-default'>
     <div class='panel-heading'>Details Form</div>
     <form method='post' id="myform" action='{{CRUDBooster::mainpath('edit-save/'.$row->id)}}'>
@@ -350,6 +364,8 @@
             },
             success: function(res){
                 if(res.success){
+                    $('.sk-chase-position').hide();
+
                     Swal.fire({
                     title: "INC Number",
                     icon: 'success',
@@ -371,6 +387,7 @@
                 }
             },
             error: function(err){
+                $('.sk-chase-position').hide();
                 console.log(err);
             }
         });
@@ -406,6 +423,7 @@
             }).then((result) => {
                 if (result.isConfirmed) {
                     toTurnOver(id, table_name, module_mainpath);
+                    $('.sk-chase-position').show();
                 }
             });
         })

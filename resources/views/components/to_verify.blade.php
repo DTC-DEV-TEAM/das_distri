@@ -1,7 +1,12 @@
 <!-- First, extends to the CRUDBooster Layout -->
 @extends('crudbooster::admin_template')
 @push('head')
-<style type="text/css">   
+
+@include('plugins.plugins')
+<link rel="stylesheet" href="{{ asset('css/sweet_alert_size.css') }}">
+
+<style type="text/css">  
+
     .pic-container {
         width: 1350px;
         margin: 0 auto;
@@ -9,9 +14,7 @@
     }
 
     .pic-row {
-        /* As wide as it needs to be */
-        width: 1350px;
-    
+        width: 1350px;    
         overflow: auto;
     }
 
@@ -20,77 +23,18 @@
         display: block;
     }
 
-    .custom_normal_table{
-        width: 100%;
-        border-collapse: collapse;
-    }
-
-    .custom_normal_table th, .custom_normal_table td {
-        text-align: left;
-        width: 300px;
-    }
-
-    .custom_normal_table td{
-        padding: 8px;
-    }
-
-    .custom_normal_table tr td:nth-child(odd){
-        font-weight: bold;
-        color: #4d4b4b !important;
-    }
-
-
-    .custom_table {
-        width: 100%;
-        border-collapse: collapse;
-        background-color: #f9f9f9;
-        border-radius: 5px !important;
-    }
-
-    .custom_table th, .custom_table td {
-        border: 1px solid #ddd;
-        text-align: left;
-        width: 300px;
-    }
-
-    .custom_table tr td:nth-child(odd){
-        font-weight: bold;
-        color: #4d4b4b !important;
-    }
-
-    .custom_table td{
-        padding: 8px;
-    }
-
-    /* Use a media query to apply styles for smaller screens */
-    @media only screen and (max-width: 600px) {
-        /* Set the table row (tr) to be displayed as a block */
-        .custom_table tr, .custom_normal_table tr {
-            display: block;
-        }
-
-        /* Hide table headers on smaller screens */
-        .custom_table th, .custom_normal_table th{
-            display: none;
-        }
-
-        /* Style table data (td) for smaller screens */
-        .custom_table td, .custom_normal_table td{
-            display: block;
-            text-align: left;
-            width: 100%;
-        }
-    }
-
 </style>
+
 @endpush
 @section('content')
+
 @if(g('return_url'))
 	<p class="noprint"><a title='Return' href='{{g("return_url")}}'><i class='fa fa-chevron-circle-left '></i> &nbsp; {{trans("crudbooster.form_back_to_list",['module'=>CRUDBooster::getCurrentModule()->name])}}</a></p>       
 @else
 	<p class="noprint"><a title='Main Module' href='{{CRUDBooster::mainpath()}}'><i class='fa fa-chevron-circle-left '></i> &nbsp; {{trans("crudbooster.form_back_to_list",['module'=>CRUDBooster::getCurrentModule()->name])}}</a></p>       
 @endif
-  <!-- Your html goes here -->
+
+<!-- Your html goes here -->
 <div class='panel panel-default'>
     <div class='panel-heading'>Details Form</div>
         <form method='post' id="myform" action='{{CRUDBooster::mainpath('edit-save/'.$row->id)}}'>
@@ -98,15 +42,13 @@
             <input type="hidden"  name="remarks" id="remarks">
                 <div id="requestform" class='panel-body'>
                     <div> 
-
                         <table class="custom_normal_table">
                             <thead></thead>
                             <tbody>
                                 <tr>
                                     <td>{{ trans('message.form-label.customer_location') }}</td>
-                                    <td>
-                                        <select class="js-example-basic-single" name="customer_location" id="customer_location" required style="width:100%">
-                                            <option value="">-- Select Customer Location Name --</option>
+                                    <td >
+                                        <select class=" form-control" name="customer_location" id="customer_location" required>
                                             @foreach($store_list as $datas)    
                                                 <option selected value="{{$datas->store_name}}">{{$datas->store_name}}</option>
                                             @endforeach
@@ -119,12 +61,12 @@
                                 <tr>
                                     <td>Service Center Location:</td>
                                     <td>
-                                        <select class="js-example-basic-single" name="deliver_to" id="deliver_to" required>
-                                            <option value="">-- Select Service Center Location --</option>
+                                        <select class="form-control" name="deliver_to" id="deliver_to" required>
+                                            <option value="" disabled>-- Select Service Center Location --</option>
                                             @foreach($SCLocation as $datas)    
                                                 <option  value="{{$datas->sc_location_name}}">{{$datas->sc_location_name}}</option>
                                             @endforeach
-                                    </select>
+                                        </select>
                                     </td>
                                     <td></td>
                                     <td></td>
@@ -585,7 +527,10 @@ $('.via_class').change(function(){
 
 
 $(document).ready(function() {
-    $('.js-example-basic-single').select2();
+    $('.js-example-basic-single').select2({
+        dropdownAutoWidth: true,
+        width: '100%'
+    });
 });
 
 //$('#locations').hide();
@@ -595,7 +540,7 @@ $(document).ready(function() {
 function preventBack() {
     window.history.forward();
 }
- window.onunload = function() {
+window.onunload = function() {
     null;
 };
 setTimeout("preventBack()", 0);
@@ -612,7 +557,6 @@ $(document).ready(function() {
 });
 
 
-$('.js-example-basic-multiple').select2();
 $(".js-example-basic-multiple").select2({
      theme: "classic"
 });
@@ -777,13 +721,13 @@ function branchChange(){
 
 $("#cancel").on('click',function() {
     var strconfirm = confirm("Are you sure you want to Cancel this return request?");
-        if (strconfirm == true) {
-                $("#remarks").val("CANCEL");
-                return true;
-        }else{
-                return false;
-                window.stop();
-        }
+    if (strconfirm == true) {
+            $("#remarks").val("CANCEL");
+            return true;
+    }else{
+            return false;
+            window.stop();
+    }
 });
 
 //cut
@@ -812,12 +756,28 @@ $("#btnSubmit").on('click',function() {
                 if($("#negative_positive_invoice").val().includes(" ")){
                     signal = 0;
                     alert_message = 1;
-                    alert("Incorrect Negative/Positive Invoice format! e.g. INV#1001");
+                    Swal.fire({
+                        title: "Incorrect Negative/Positive Invoice format! e.g. INV#1001",
+                        icon: 'warning',
+                        showCancelButton: false,
+                        confirmButtonColor: '#3085d6',
+                        confirmButtonText: 'Ok',
+                        returnFocus: false,
+                        allowOutsideClick: true
+                    });
                     return false;
                 }else if(text_length <= 4){
                         signal = 0;
                         alert_message = 1;
-                        alert("Incorrect Negative/Positive Invoice format! e.g. INV#1001");
+                        Swal.fire({
+                            title: "Incorrect Negative/Positive Invoice format! e.g. INV#1001",
+                            icon: 'warning',
+                            showCancelButton: false,
+                            confirmButtonColor: '#3085d6',
+                            confirmButtonText: 'Ok',
+                            returnFocus: false,
+                            allowOutsideClick: true
+                        })
                         return false;
                 }else{
                     signal =    1;
@@ -826,7 +786,15 @@ $("#btnSubmit").on('click',function() {
             }else{
                 signal = 0;
                 alert_message = 1;
-                alert("Incorrect Negative/Positive Invoice format! e.g. INV#1001");
+                Swal.fire({
+                    title: "Incorrect Negative/Positive Invoice format! e.g. INV#1001",
+                    icon: 'warning',
+                    showCancelButton: false,
+                    confirmButtonColor: '#3085d6',
+                    confirmButtonText: 'Ok',
+                    returnFocus: false,
+                    allowOutsideClick: true
+                })
                 return false;
             }
             
@@ -837,12 +805,28 @@ $("#btnSubmit").on('click',function() {
                 if($("#pos_replacement_ref").val().includes(" ")){
                     signal = 0;
                     alert_message = 1;
-                    alert("Incorrect POS Replacement Ref# format! e.g. REP#1001");
+                    Swal.fire({
+                        title: "Incorrect POS Replacement Ref# format! e.g. REP#1001",
+                        icon: 'warning',
+                        showCancelButton: false,
+                        confirmButtonColor: '#3085d6',
+                        confirmButtonText: 'Ok',
+                        returnFocus: false,
+                        allowOutsideClick: true
+                    });
                     return false;
                 }else if(text_length <= 4){
                         signal = 0;
                         alert_message = 1;
-                        alert("Incorrect POS Replacement Ref# format! e.g. REP#1001");
+                        Swal.fire({
+                            title: "Incorrect POS Replacement Ref# format! e.g. REP#1001",
+                            icon: 'warning',
+                            showCancelButton: false,
+                            confirmButtonColor: '#3085d6',
+                            confirmButtonText: 'Ok',
+                            returnFocus: false,
+                            allowOutsideClick: true
+                        })
                         return false;
                 }else{
                     signal =    1;
@@ -851,14 +835,34 @@ $("#btnSubmit").on('click',function() {
             }else{
                 signal = 0;
                 alert_message = 1;
-                alert("Incorrect POS Replacement Ref# format! e.g. REP#1001");
+                Swal.fire({
+                    title: "Incorrect POS Replacement Ref# format! e.g. REP#1001",
+                    icon: 'warning',
+                    showCancelButton: false,
+                    confirmButtonColor: '#3085d6',
+                    confirmButtonText: 'Ok',
+                    returnFocus: false,
+                    allowOutsideClick: true
+                })
                 return false;
             }
 
         }
         
         if(rowCount <= 1){
-            alert("Please put an item!"); 
+            Swal.fire({
+                title: "Please put an item!",
+                icon: 'warning',
+                showCancelButton: false,
+                confirmButtonColor: '#3085d6',
+                confirmButtonText: 'Ok',
+                returnFocus: false,
+                allowOutsideClick: true
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    $('#search').focus();
+                }
+            })
             return false;
         }else{
             $("form").submit(function(){
@@ -867,7 +871,15 @@ $("#btnSubmit").on('click',function() {
         }
         
         if(itemCost == '' || itemCost == null || itemCost < 0 ){
-            alert("Please put item cost!");
+            Swal.fire({
+                title: "Please put item cost!",
+                icon: 'warning',
+                showCancelButton: false,
+                confirmButtonColor: '#3085d6',
+                confirmButtonText: 'Ok',
+                returnFocus: false,
+                allowOutsideClick: true
+            })
             return false;
         }else{
             $("form").submit(function(){
@@ -963,14 +975,29 @@ $(document).ready(function(){
                                     }
                                 }
                         }else{
-                            alert("Please fill out the problem details!");
+                            Swal.fire({
+                                title: "Please fill out the problem details!",
+                                icon: 'warning',
+                                showCancelButton: false,
+                                confirmButtonColor: '#3085d6',
+                                confirmButtonText: 'Ok',
+                                returnFocus: false,
+                                allowOutsideClick: true
+                            })
                             $("#search").val("");
                         }
 
                     }else{
                         $("#search").val("");
-                        alert("Only 1 item allowed!");
-                        
+                        Swal.fire({
+                            title: "Only 1 item allowed!",
+                            icon: 'warning',
+                            showCancelButton: false,
+                            confirmButtonColor: '#3085d6',
+                            confirmButtonText: 'Ok',
+                            returnFocus: false,
+                            allowOutsideClick: true
+                        })                        
                     }
 
                 }
@@ -1121,7 +1148,15 @@ $(document).ready(function(){
                         //var subTotalQuantity = calculateTotalQuantity();
                         //$("#totalQuantity").val(subTotalQuantity);
                     }else{
-                        alert("You can not add this item!");
+                        Swal.fire({
+                            title: "You can't add this item!",
+                            icon: 'warning',
+                            showCancelButton: false,
+                            confirmButtonColor: '#3085d6',
+                            confirmButtonText: 'Ok',
+                            returnFocus: false,
+                            allowOutsideClick: true
+                        })
                     }
                 }
                 $(this).val('');

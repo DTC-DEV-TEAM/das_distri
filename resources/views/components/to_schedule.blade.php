@@ -40,13 +40,36 @@
             <input type="hidden" value="{{csrf_token()}}" name="_token" id="token">
                 <div id="requestform" class='panel-body'>
                     <div> 
-                            <div class="row"> 
-                                <label class="control-label col-md-2" style="margin-top:7px;">{{ trans('message.form-label.pickup_schedule') }}</label>
-                                <div class="col-md-4">
+                        <table class="custom_sm_normal_table">
+                            <thead></thead>
+                            <tbody>
+                                <tr>
+                                    <td>
+                                        {{ trans('message.form-label.pickup_schedule') }}
+                                    </td>
+                                    <td>
                                         <input type='input'  name='return_schedule' id="datepicker" onkeydown="return false" required  autocomplete="off"  class='form-control' placeholder="yyyy-mm-dd" />                        
-                                </div>
-                            </div>
-                            <hr/>
+                                    </td>
+                                    <td></td>
+                                    <td></td>
+                                </tr>
+                            </tbody>
+                        </table>
+                        
+                        <hr/>
+                        
+                        <table class="custom_sm_normal_table">
+                            <thead></thead>
+                            <tbody>
+                                <tr>
+                                    <td>Pullout From:</td>
+                                    <td>{{$store_deliver_to->store_name}}</td>
+                                    <td>Deliver To:</td>
+                                    <td>{{$row->deliver_to}}</td>
+                                </tr>
+                            </tbody>
+                        </table>
+
                             <div class="row">                           
                                 <label class="control-label col-md-2">Pullout From:</label>
                                 <div class="col-md-4">

@@ -11,7 +11,22 @@
 @else
 	<p class="noprint"><a title='Main Module' href='{{CRUDBooster::mainpath()}}'><i class='fa fa-chevron-circle-left '></i> &nbsp; {{trans("crudbooster.form_back_to_list",['module'=>CRUDBooster::getCurrentModule()->name])}}</a></p>       
 @endif
-  <!-- Your html goes here -->
+
+<div class="sk-chase-position" style="display: none;">
+    <div class="sk-chase">
+        <div class="sk-chase-dot"></div>
+        <div class="sk-chase-dot"></div>
+        <div class="sk-chase-dot"></div>
+        <div class="sk-chase-dot"></div>
+        <div class="sk-chase-dot"></div>
+        <div class="sk-chase-dot"></div>
+    </div>
+    <div class="sk-chase-text">
+        <p>Please wait, system is on process...</p>
+    </div>
+</div>
+
+<!-- Your html goes here -->
 <div class='panel panel-default'>
     <div class='panel-heading'>Details Form</div>
         <form method='post' id="myform" action='{{CRUDBooster::mainpath('edit-save/'.$row->id)}}'>
@@ -702,6 +717,8 @@
             }).then((result) => {
                 if (result.isConfirmed) {
 
+                    $('.sk-chase-position').show();
+
                     $("#diagnose").val(diagnose);
 
                     $.ajax({
@@ -728,6 +745,7 @@
                                     allowOutsideClick: false,
                                 }).then((result) => {
                                     if (result.isConfirmed) {
+                                        $('.sk-chase-position').hide();
                                         let inc_reference_number = "{{ route('fwc_custom_reference_number', ['#ref_num','#mainpath']) }}";
                                         inc_reference_number = inc_reference_number.replace('#ref_num', res.success);
                                         inc_reference_number = inc_reference_number.replace('#mainpath', moduleMainpath);
@@ -738,7 +756,8 @@
                             }
                         },
                         error: function(err){
-
+                            $('.sk-chase-position').hide();
+                            console.log();
                         }
                     });
                 }

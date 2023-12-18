@@ -542,7 +542,7 @@ use PHPExcel_Style_Fill;
 			$ReturnRequest = ReturnsHeaderRTL::where('id',$id)->first();
 			$to_assign_inc = ReturnsStatus::where('id','39')->value('id');
 			
-			if($ReturnRequest->returns_status_1 == $to_assign_inc) {
+			if($ReturnRequest->returns_status_1 == $to_assign_inc || CRUDBooster::myPrivilegeName() == 'Super Administrator') {
 				$returns_fields = Input::all();
 				$to_diagnose = ReturnsStatus::where('id','5')->value('id');
 			

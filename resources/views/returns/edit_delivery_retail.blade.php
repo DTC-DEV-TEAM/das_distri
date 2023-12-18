@@ -244,7 +244,7 @@
                             <!--<div class="table-responsive">
                                 <div class="pic-container">
                                     <div class="pic-row"> -->
-                                        <table  class='table table-striped table-bordered'>
+                                        <table  class='table table-striped table-bordered table-font'>
                                             <thead>
                                                 <tr>
                                                     <th width="10%" class="text-center">{{ trans('message.table.digits_code') }}</th>
