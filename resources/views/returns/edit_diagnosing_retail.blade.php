@@ -460,7 +460,7 @@
                             <button class="btn btn-danger pull-right" type="submit" id="btnSubmitRefund" style="margin-right:10px; width:100px;" disabled> <i class="fa fa-circle-o" ></i> {{ trans('message.form.refund') }}</button>
                             <button class="btn btn-success pull-right" type="submit" id="btnSubmitReject" style="margin-right:10px; width:100px;" disabled> <i class="fa fa-circle-o" ></i> {{ trans('message.form.reject') }}</button>
                             <button class="btn btn-success pull-right"  type="submit" id="btnSubmitRepair" style="margin-right:10px; width:100px;" disabled> <i class="fa fa-circle-o" ></i> {{ trans('message.form.repair') }}</button>
-                            <button class="btn btn-success pull-right"  type="submit" id="btnSubmitReplace" style="margin-right:10px; width:100px;"> <i class="fa fa-circle-o" ></i> {{ trans('message.form.replace') }}</button>
+                            <button class="btn btn-success pull-right btn-sbmt" type="submit" style="margin-right:10px; width:100px;"> <i class="fa fa-circle-o" ></i> {{ trans('message.form.replace') }}</button>
                         @else
                             <button class="bottom-btn btn btn-danger  pull-right btn-sbmt disabled" type="submit" style="margin-right:10px; width:100px;"> <i class="fa fa-circle-o" ></i> {{ trans('message.form.refund') }}</button>
                             <button class="bottom-btn btn btn-success pull-right btn-sbmt disabled" type="submit" style="margin-right:10px; width:100px;" > <i class="fa fa-circle-o" ></i> {{ trans('message.form.reject') }}</button>
@@ -535,19 +535,23 @@
             $('#btnSSR').addClass('disabled');
         }
 
-        $('#case_status').on('change', function(){
-            const value = $(this).val();
-            if (value === 'Closed') {
-                $('.btn-sbmt').removeClass('disabled');
-                $('#btnSSR').removeClass('disabled');
-            }else if (value === 'Pending Supplier') {
-                $('.btn-sbmt').addClass('disabled', true);
-                $('#btnSSR').removeClass('disabled', false);
-            }else {
-                $('.btn-sbmt').addClass('disabled', true);
-                $('#btnSSR').addClass('disabled', true);
-            }
-        });
+        if('{{ $row->transaction_type_id == 1 }}'){
+            $('.btn-sbmt').removeClass('disabled');
+        }else{
+            $('#case_status').on('change', function(){
+                const value = $(this).val();
+                if (value === 'Closed') {
+                    $('.btn-sbmt').removeClass('disabled');
+                    $('#btnSSR').removeClass('disabled');
+                }else if (value === 'Pending Supplier') {
+                    $('.btn-sbmt').addClass('disabled', true);
+                    $('#btnSSR').removeClass('disabled', false);
+                }else {
+                    $('.btn-sbmt').addClass('disabled', true);
+                    $('#btnSSR').addClass('disabled', true);
+                }
+            });
+        }
     });
 
     var verified_others_field = <?php echo json_encode($other_verified_items_included); ?>;
