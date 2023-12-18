@@ -586,7 +586,11 @@
 
         event.preventDefault();
 
-        let validated = validationNpiPos();
+        if("{{ CrudBooster::myPrivilegeName() != 'Store Ops' }}"){
+            let validated = validationNpiPos();
+        }else{
+            validated = true;
+        }
 
         if(validated){
             $("#closing").val("Close");
