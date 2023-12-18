@@ -13,7 +13,7 @@ class AddTechLeadColumnAndDateToReturnsHeader extends Migration
      */
     public function up()
     {
-        Schema::table('returns_header_distribution', function (Blueprint $table) {
+        Schema::table('returns_header', function (Blueprint $table) {
             $table->integer('assigned_by_tech_lead_id')->unsigned()->nullable()->after('rma_specialist_date_received');
             $table->timestamp('assigned_date_by_tech_lead')->nullable()->after('assigned_by_tech_lead_id');
         });
@@ -26,7 +26,7 @@ class AddTechLeadColumnAndDateToReturnsHeader extends Migration
      */
     public function down()
     {
-        Schema::table('returns_header_distribution', function (Blueprint $table) {
+        Schema::table('returns_header', function (Blueprint $table) {
             $table->dropColumn('assigned_by_tech_lead_id');
             $table->dropColumn('assigned_date_by_tech_lead');
         });
