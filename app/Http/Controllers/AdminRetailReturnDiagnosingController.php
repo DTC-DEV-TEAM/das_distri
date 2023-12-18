@@ -615,7 +615,6 @@ use PHPExcel_Style_Fill;
 						$postdata['rma_specialist_date_received']=			date('Y-m-d H:i:s');
 						// $postdata['level2_personnel'] = 					CRUDBooster::myId();
 						// $postdata['level2_personnel_edited']=				date('Y-m-d H:i:s');
-	
 						return redirect()->action('AdminRetailReturnDiagnosingController@ReturnsReturnFormPrintRTL',['id'=>$ReturnRequest->id])->send();
 					}
 					else if ($field_1 == 'Test Done') {
@@ -1012,7 +1011,7 @@ use PHPExcel_Style_Fill;
 							'rma_specialist_date_received' => $date,
 							'returns_status' => $return_status,
 							'returns_status_1' => $return_status_1,
-							'diagnose' => $return_input['diagnose'],
+							'diagnose' => strtoupper($return_input['diagnose']),
 							'case_status' => $return_input['case_status'],
 							'rma_number' => $formatted_counter,
 						]);
@@ -1034,9 +1033,19 @@ use PHPExcel_Style_Fill;
 			return response()->json(['success' => $formatted_counter]);
 		}
 
-		public function returnReferenceNumber($ref_number, $module_mainpath){
+		public function returnReferenceNumber($id, $diagnose, $ref_number, $module_mainpath){
 			
-			CRUDBooster::redirect(CRUDBooster::adminPath()."/{$module_mainpath}", "Request submitted successfully RMA #: $ref_number", 'success');
+			if(($diagnose == 'Repair' || $diagnose == 'Reject') && ($module_mainpath == 'retail_return_diagnosing')){
+				return redirect()->action('AdminRetailReturnDiagnosingController@ReturnsReturnFormPrintRTL',['id'=>$id])->send();
+			}else if(($diagnose == 'Repair' || $diagnose == 'Reject') && ($module_mainpath == 'returns_diagnosing')){
+				return redirect()->action('AdminReturnsDiagnosingController@ReturnsReturnFormPrint',['id'=>$id])->send();
+			}else if(($diagnose == 'Repair' || $diagnose == 'Reject') && ($module_mainpath == 'distri_return_diagnosing')){
+				return redirect()->action('AdminDistriReturnDiagnosingController@ReturnsReturnFormPrintDISTRI',['id'=>$id])->send();
+			}else {
+				CRUDBooster::redirect(CRUDBooster::adminPath()."/{$module_mainpath}", "The return request has been diagnosed as $diagnose successfully! RMA #: $ref_number", 'success');
+			}
+
+			// CRUDBooster::redirect(CRUDBooster::adminPath()."/{$module_mainpath}", "Request submitted successfully RMA #: $ref_number", 'success');
 		}
 
 		public function ReturnsDiagnosingRTLEdit($id)

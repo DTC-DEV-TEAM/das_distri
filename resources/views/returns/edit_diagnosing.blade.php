@@ -844,7 +844,9 @@
                                 }).then((result) => {
                                     if (result.isConfirmed) {
                                         $('.sk-chase-position').hide();
-                                        let inc_reference_number = "{{ route('fwc_custom_reference_number', ['#ref_num','#mainpath']) }}";
+                                        let inc_reference_number = "{{ route('fwc_custom_reference_number', ['#id','#diagnose','#ref_num','#mainpath']) }}";
+                                        inc_reference_number = inc_reference_number.replace('#id', id);
+                                        inc_reference_number = inc_reference_number.replace('#diagnose', diagnose);
                                         inc_reference_number = inc_reference_number.replace('#ref_num', res.success);
                                         inc_reference_number = inc_reference_number.replace('#mainpath', moduleMainpath);
                                         // console.log(inc_reference_number);

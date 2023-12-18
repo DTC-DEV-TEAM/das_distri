@@ -1155,7 +1155,7 @@ use PHPExcel_Style_Fill;
 		}
 
 		public function FormRepairUpdateStatusDISTRI(){
-			dd('heyy');
+
 			$data = Input::all();		
 			$request_id = $data['return_id']; 
 			//$comments_variable = $data['comments']; 			
@@ -1217,9 +1217,7 @@ use PHPExcel_Style_Fill;
 
     			if($return_request->returns_status_1 != $to_ship_back){
     				DB::beginTransaction();
-    	
-    	
-    
+    	    
     				try {
 
 						ReturnsHeaderDISTRI::where('id',$request_id)
