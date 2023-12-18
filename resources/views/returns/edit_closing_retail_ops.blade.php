@@ -571,7 +571,7 @@
             confirmButtonColor: '#3085d6',
             cancelButtonColor: '#d33',
             confirmButtonText: 'Yes',
-            html: wrapper,
+            // html: wrapper,
             reverseButtons: true,
             returnFocus: false,
             allowOutsideClick: true,
