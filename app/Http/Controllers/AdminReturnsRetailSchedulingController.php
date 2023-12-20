@@ -568,7 +568,11 @@ use App\StoresFrontEnd;
 
             $data['store_deliver_to'] = Stores::where('branch_id',  $data['row']->branch_dropoff )->first();
             
-			$this->cbView("returns.edit_scheduling_retail", $data);
+			if (CrudBooster::myPrivilegeName() == 'Super Administrator'){
+				$this->cbView("components.to_schedule", $data);
+			}else{
+				$this->cbView("returns.edit_scheduling_retail", $data);
+			}
 		}
 
 

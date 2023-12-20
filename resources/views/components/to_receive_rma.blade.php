@@ -6,6 +6,12 @@
 @include('plugins.plugins')
 <link rel="stylesheet" href="{{ asset('css/sweet_alert_size.css') }}">
 
+<style>
+    .table tbody tr td, .table thead tr th, .table{
+        border: 1px solid #ddd;
+    }
+</style>
+
 @if(g('return_url'))
 	<p class="noprint"><a title='Return' href='{{g("return_url")}}'><i class='fa fa-chevron-circle-left '></i> &nbsp; {{trans("crudbooster.form_back_to_list",['module'=>CRUDBooster::getCurrentModule()->name])}}</a></p>       
 @else
@@ -36,14 +42,10 @@
             <div>
                 @if ($row->returns_status_1 == 39 )
                 <div class="row">
-                  
-                </div>
-                <div class="row">
                     <div class="col-md-6">
                             
                     </div>
-
-                    <label class="control-label col-md-2">Technicians</label>
+                    <label class="control-label col-md-1" style="margin-top: 5px;">Technicians</label>
                     <div class="col-md-4">
                         <select class="js-example-basic-single" name="technician" id="technician" required>
                             <option value="" selected disabled>Select Technician</option>
@@ -55,143 +57,102 @@
                 </div>
                 <br>
                 @endif   
-                <div class="row">
-                    <label class="control-label col-md-2">{{ trans('message.form-label.return_reference_no') }}</label>
-                    <div class="col-md-4">
-                        <p>{{$row->return_reference_no}}</p>
-                    </div>
 
-                    <label class="control-label col-md-2">{{ trans('message.form-label.created_at') }}</label>
-                    <div class="col-md-4">
-                        <p>{{$row->created_at}}</p>
-                    </div>
-                </div>
-                <div class="row">                           
-                    <label class="control-label col-md-2">{{ trans('message.form-label.purchase_location') }}</label>
-                    <div class="col-md-4">
-                        <p>{{$row->purchase_location}}</p>
-                    </div>
-
-                    <label class="control-label col-md-2">{{ trans('message.form-label.store') }}</label>
-                    <div class="col-md-4">
-                        <p>{{$row->store}}</p>
-                    </div>
-                </div>
-                <div class="row">                           
-                    <label class="control-label col-md-2">{{ trans('message.form-label.mode_of_return') }}</label>
-                    <div class="col-md-4">
-                        <p>{{$row->mode_of_return}}</p>
-                    </div>
-
-
-                    @if ($row->branch != null || $row->branch != "")
-                        <label class="control-label col-md-2">{{ trans('message.form-label.branch') }}</label>
-                        <div class="col-md-4">
-                            <p>{{$row->branch}}</p>
-                        </div>    
-                    @endif    
-                </div>
-                <div class="row">   
-                    @if ($row->store_dropoff != null || $row->store_dropoff != "")
-                        <label class="control-label col-md-2">{{ trans('message.form-label.store_dropoff') }}</label>
-                        <div class="col-md-4">
-                            <p>{{$row->store_dropoff}}</p>
-                        </div>
-                    @endif
-                    
-                    @if ($row->branch_dropoff != null || $row->branch_dropoff != "")
-                            <label class="control-label col-md-2">{{ trans('message.form-label.branch_dropoff') }}</label>
-                            <div class="col-md-4">
-                                <p>{{$row->branch_dropoff}}</p>
-                            </div>    
-                    @endif  
-                </div>  
-                <div class="row">                           
-                    <label class="control-label col-md-2">{{ trans('message.form-label.customer_last_name') }}</label>
-                    <div class="col-md-4">
-                        <p>{{$row->customer_last_name}}</p>
-                    </div>
-
-                    <label class="control-label col-md-2">{{ trans('message.form-label.customer_first_name') }}</label>
-                    <div class="col-md-4">
-                        <p>{{$row->customer_first_name}}</p>
-                    </div>
-                </div>  
-                <div class="row">                           
-                    <label class="control-label col-md-2">{{ trans('message.form-label.address') }}</label>
-                    <div class="col-md-4">
-                        <p>{{$row->address}}</p>
-                    </div>
-
-                    <label class="control-label col-md-2">{{ trans('message.form-label.email_address') }}</label>
-                    <div class="col-md-4">
-                        <p>{{$row->email_address}}</p>
-                    </div>
-                </div>
-                <div class="row">                           
-                    <label class="control-label col-md-2">{{ trans('message.form-label.contact_no') }}</label>
-                    <div class="col-md-4">
-                        <p>{{$row->contact_no}}</p>
-                    </div>
-
-                    <label class="control-label col-md-2">{{ trans('message.form-label.order_no') }}</label>
-                    <div class="col-md-4">
-                        <p>{{$row->order_no}}</p>
-                    </div>
-                </div>
-                <div class="row">                           
-                    <label class="control-label col-md-2">{{ trans('message.form-label.purchase_date') }}</label>
-                    <div class="col-md-4">
-                        <p>{{$row->purchase_date}}</p>
-                    </div>
-                    
-                    <label class="control-label col-md-2">{{ trans('message.form-label.items_included') }}</label>
-                    <div class="col-md-4">    
-                        @if($row->mode_of_return =="STORE DROP-OFF")
-                            @if($row->transaction_type == 3)
-                                @if($row->items_included_others  != null)
-                                    <p>{{$row->items_included}}, {{$row->items_included_others}}</p>
-                                @else
-                                    <p>{{$row->items_included}}</p>
-                                @endif
-                                @else
-                                @if($row->verified_items_included_others  != null)
-                                        <p>{{$row->verified_items_included}}, {{$row->verified_items_included_others}}</p>
+                <table class="custom_table">
+                    <tbody>
+                        <tr>
+                            <td>{{ trans('message.form-label.return_reference_no') }}</td>
+                            <td>{{$row->return_reference_no}}</td>
+                            <td>{{ trans('message.form-label.created_at') }}</td>
+                            <td>{{$row->created_at}}</td>
+                        </tr>
+                        <tr>
+                            <td>{{ trans('message.form-label.purchase_location') }}</td>
+                            <td>{{$row->purchase_location}}</td>
+                            <td>{{ trans('message.form-label.store') }}</td>
+                            <td>{{$row->store}}</td>
+                        </tr>
+                        <tr>
+                            <td>{{ trans('message.form-label.mode_of_return') }}</td>
+                            <td>{{$row->mode_of_return}}</td>
+                            @if ($row->branch != null || $row->branch != "")
+                            <td>{{ trans('message.form-label.branch') }}</td>
+                            <td>{{$row->branch}}</td>
+                            @endif
+                        </tr>
+                        <tr>
+                            @if ($row->store_dropoff != null || $row->store_dropoff != "")
+                            <td>{{ trans('message.form-label.store_dropoff') }}</td>
+                            <td>{{$row->store_dropoff}}</td>
+                            @endif
+                            @if ($row->branch_dropoff != null || $row->branch_dropoff != "")
+                            <td>{{ trans('message.form-label.branch_dropoff') }}</td>
+                            <td>{{$row->branch_dropoff}}</td>
+                            @endif
+                        </tr>
+                        <tr>
+                            <td>{{ trans('message.form-label.customer_last_name') }}</td>
+                            <td>{{$row->customer_last_name}}</td>
+                            <td>{{ trans('message.form-label.customer_first_name') }}</td>
+                            <td>{{$row->customer_first_name}}</td>
+                        </tr>
+                        <tr>
+                            <td>{{ trans('message.form-label.address') }}</td>
+                            <td>{{$row->address}}</td>
+                            <td>{{ trans('message.form-label.email_address') }}</td>
+                            <td>{{$row->email_address}}</td>
+                        </tr>
+                        <tr>
+                            <td>{{ trans('message.form-label.contact_no') }}</td>
+                            <td>{{$row->contact_no}}</td>
+                            <td>{{ trans('message.form-label.order_no') }}</td>
+                            <td>{{$row->order_no}}</td>
+                        </tr>
+                        <tr>
+                            <td>{{ trans('message.form-label.purchase_date') }}</td>
+                            <td>{{$row->purchase_date}}</td>
+                            <td>{{ trans('message.form-label.items_included') }}</td>
+                            @if($row->mode_of_return =="STORE DROP-OFF")
+                                @if($row->transaction_type == 3)
+                                    @if($row->items_included_others  != null)
+                                        <td>{{$row->items_included}}, {{$row->items_included_others}}</ptd>
                                     @else
-                                        <p>{{$row->verified_items_included}}</p>
+                                        <td>{{$row->items_included}}</td>
+                                    @endif
+                                    @else
+                                    @if($row->verified_items_included_others  != null)
+                                            <td>{{$row->verified_items_included}}, {{$row->verified_items_included_others}}</td>
+                                        @else
+                                            <td>{{$row->verified_items_included}}</td>
+                                    @endif
                                 @endif
-                            @endif
-                            @else   
-                            @if($row->items_included_others  != null)
-                                    <p>{{$row->items_included}}, {{$row->items_included_others}}</p>
-                                @else
-                                    <p>{{$row->items_included}}</p>
-                            @endif
-                        @endif      
-                    </div>
-                </div>
+                                @else   
+                                @if($row->items_included_others  != null)
+                                        <td>{{$row->items_included}}, {{$row->items_included_others}}</td>
+                                    @else
+                                        <td>{{$row->items_included}}</td>
+                                @endif
+                            @endif 
+                        </tr>
+                    </tbody>
+                </table>
             </div>
-
-            <hr>
-
+            <br>
             <div>
-                <div class="row">                           
-                    <label class="control-label col-md-2">{{ trans('message.form-label.tagged_by') }}</label>
-                    <div class="col-md-4">
-                        <p>{{$row->tagged_by}}</p>
-                    </div>
-                    <label class="control-label col-md-2">{{ trans('message.form-label.tagged_at') }}</label>
-                    <div class="col-md-4">
-                        <p>{{$row->level1_personnel_edited}}</p>
-                    </div>
-                </div>
-    
-                <div class="row"> 
-                    <label class="control-label col-md-2">{{ trans('message.form-label.customer_location') }}</label>
-                    <div class="col-md-4">
-                        <p>{{$row->customer_location}}</p>
-                    </div>
-                </div> 
+                <table class="custom_normal_table">
+                    <tbody>
+                        <tr>
+                            <td>{{ trans('message.form-label.tagged_by') }}</td>
+                            <td>{{$row->tagged_by}}</td>
+                            <td>{{ trans('message.form-label.tagged_at') }}</td>
+                            <td>{{$row->level1_personnel_edited}}</td>
+                        </tr>
+                        <tr>
+                            <td>{{ trans('message.form-label.customer_location') }}</td>
+                            <td>{{$row->customer_location}}</td>
+                        </tr>
+                    </tbody>
+                </table>
             </div>
 
             <hr>
@@ -200,91 +161,84 @@
                 {{-- Eccoms --}}
                 @if(Request::segment(2) == 'to_receive_ecomm')
                     @if($row->transaction_type == 3)
-                        <div class="row">                           
-                            <label class="control-label col-md-2">{{ trans('message.form-label.scheduled_by') }}</label>
-                            <div class="col-md-4">
-                                <p>{{$row->scheduled_by}}</p>
-                            </div>
-
-                            <label class="control-label col-md-2">{{ trans('message.form-label.dropoff_schedule') }}</label>
-                            <div class="col-md-4">
-                                    <p>{{$row->return_schedule}}</p>
-                            </div>
-                        </div>
+                        <table class="custom_normal_table">
+                            <tbody>
+                                <tr>
+                                    <td>{{ trans('message.form-label.scheduled_by') }}</td>
+                                    <td>{{$row->scheduled_by}}</td>
+                                    <td>{{ trans('message.form-label.dropoff_schedule') }}</td>
+                                    <td>{{$row->return_schedule}}</td>
+                                </tr>
+                            </tbody>
+                        </table>
                         @else
                 
                         @if($row->mode_of_return == "STORE DROP-OFF")
-                            <div class="row">                           
-                                <label class="control-label col-md-2">{{ trans('message.form-label.scheduled_by') }}</label>
-                                <div class="col-md-4">
-                                    <p>{{$row->scheduled_by}}</p>
-                                </div>
 
-                                @if($row->mode_of_return == "STORE DROP-OFF")
-                                    <label class="control-label col-md-2" style="margin-top:7px;">{{ trans('message.form-label.dropoff_schedule') }}</label>
-                                    @else
-                                    <label class="control-label col-md-2" style="margin-top:7px;">{{ trans('message.form-label.return_schedule') }}</label>
-                                @endif
-                                <div class="col-md-4">
-                                    <p>{{$row->return_schedule}}</p>
-                                </div>
-                            </div>
+                            <table class="custom_normal_table">
+                                <tbody>
+                                    <tr>
+                                        <td>{{ trans('message.form-label.scheduled_by') }}</td>
+                                        <td>{{$row->scheduled_by}}</td>
+                                        @if($row->mode_of_return == "STORE DROP-OFF")
+                                            <td>{{ trans('message.form-label.dropoff_schedule') }}</td>
+                                            @else
+                                            <td>{{ trans('message.form-label.return_schedule') }}</td>
+                                        @endif
+                                        <td>{{$row->return_schedule}}</td>
+                                    </tr>
+                                </tbody>
+                            </table>
 
-                            <div class="row">                           
-                                <label class="control-label col-md-2">{{ trans('message.form-label.scheduled_by') }}</label>
-                                <div class="col-md-4">
-                                    <p>{{$row->scheduled_by_logistics}}</p>
-                                </div>
-                                
-                                <label class="control-label col-md-2">{{ trans('message.form-label.pickup_schedule') }}</label>
-                                <div class="col-md-4">
-                                    <p>{{$row->pickup_schedule}}</p>
-                                </div>
-                            </div>
+                            <table class="custom_normal_table">
+                                <tr>
+                                    <td>{{ trans('message.form-label.scheduled_by') }}</td>
+                                    <td>{{$row->scheduled_by_logistics}}</td>
+                                    <td>{{ trans('message.form-label.pickup_schedule') }}</td>
+                                    <td>{{$row->pickup_schedule}}</td>
+                                </tr>
+                            </table>
                         @endif                                     
                     @endif 
                 @endif
 
                 @if(Request::segment(2) == 'to_receive_retail')
-                    <div class="row">                           
-                        <label class="control-label col-md-2">{{ trans('message.form-label.scheduled_by') }}</label>
-                        <div class="col-md-4">
-                            <p>{{$row->tagged_by}}</p>
-                        </div>
-
-                        <label class="control-label col-md-2">{{ trans('message.form-label.dropoff_schedule') }}</label>
-                        <div class="col-md-4">
-                                <p>{{$row->return_schedule}}</p>
-                        </div>
-                    </div>  
+                    <table class="custom_normal_table">
+                        <tbody>
+                            <tr>
+                                <td>{{ trans('message.form-label.scheduled_by') }}</td>
+                                <td>{{$row->tagged_by}}</td>
+                                <td>{{ trans('message.form-label.dropoff_schedule') }}</td>
+                                <td>{{$row->return_schedule}}</td>
+                            </tr>
+                        </tbody>
+                    </table>
                 @endif
 
                 @if(Request::segment(2) == 'to_receive_distri')
-                    <div class="row">                           
-                        <label class="control-label col-md-2">{{ trans('message.form-label.scheduled_by') }}</label>
-                        <div class="col-md-4">
-                            <p>{{$row->closed_by}}</p>
-                        </div>
-                    <label class="control-label col-md-2">{{ trans('message.form-label.dropoff_schedule') }}</label>
-                    <div class="col-md-4">
-                            <p>{{$row->return_schedule}}</p>
-                    </div>
-                    </div>                                             
-                    <div class="row">                           
-                        <label class="control-label col-md-2">{{ trans('message.form-label.scheduled_by') }}</label>
-                        <div class="col-md-4">
-                            <p>{{$row->scheduled_by_logistics}}</p>
-                        </div>
-                        
-                        <label class="control-label col-md-2">{{ trans('message.form-label.pickup_schedule') }}</label>
-                        <div class="col-md-4">
-                            <p>{{$row->pickup_schedule}}</p>
-                        </div>
-                    </div>
+                    <table class="custom_normal_table">
+                        <tbody>
+                            <tr>
+                                <td>{{ trans('message.form-label.scheduled_by') }}</td>
+                                <td>{{$row->closed_by}}</td>
+                                <td>{{ trans('message.form-label.dropoff_schedule') }}</td>
+                                <td>{{$row->return_schedule}}</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                    <table class="custom_normal_table">
+                        <tbody>
+                            <tr>
+                                <td>{{ trans('message.form-label.scheduled_by') }}</td>
+                                <td>{{$row->scheduled_by_logistics}}</td>
+                                <td>{{ trans('message.form-label.pickup_schedule') }}</td>
+                                <td>{{$row->pickup_schedule}}</td>
+                            </tr>
+                        </tbody>
+                    </table>
                 @endif
 
                 <br>
-
                 <table class='table table-striped table-bordered'>
                     <thead>
                         <tr>
@@ -335,6 +289,8 @@
 
             @if ($row->returns_status_1 == 39)
             <button class="btn btn-primary pull-right f-btn" type="button" id="btnSubmit"> <i class="fa fa-save" ></i>  Assign</button>
+            @elseif ($row->returns_status_1 == 40)
+            <button class="btn btn-primary pull-right f-btn" type="button" id="btnSubmit"> <i class="fa fa-save" ></i>  Ongoing Testing</button>
             @elseif ($row->returns_status_1 == 37)
             <button class="btn btn-primary pull-right f-btn" type="button" id="btnSubmit"> <i class="fa fa-save" ></i> {{trans('message.form.turnover')}}</button>
             @else
@@ -429,10 +385,45 @@
         })
     }else{
         $('.f-btn').on('click', function(){
+
+            const digitItems = ({!! json_encode($resultlist) !!});
+            const clickedText = $(this).text();
+
+            const referenceNumber = '{{$row->return_reference_no}}';
+            // const digitsCode = 
+
+            const wrapper = $('<div>');
+            const table = $('<table id="swal_table">');
+            const thead = $('<thead>');
+            const tbody = $('<tbody>');
+            const tr = $('<tr>');
+            const title = $('<p class="text-center text-bold" style="font-size: 20px;">').text(`REFERENCE #: ${referenceNumber}`);
+            const footerDescription = $('<p class="text-center text-bold" style="color: #EC5766;">').text(`Please make sure to print a barcode`);
+
+            // Use th (table header) for the headers
+            tr.append($('<th>').text('Digits Code'), $('<th>').text('Item Description'));
+
+            thead.append(tr);
+
+            // Digit Item
+            digitItems.forEach((item, index) => {
+
+                let dataRow = $('<tr style="color: #2C78C1; font-weight: 600;">').append($('<td>').text(item.digits_code), $('<td>').text(item.item_description));
+                tbody.append(dataRow);
+    
+                table.append(thead, tbody);
+    
+            });
+
+
+            wrapper.append(title, table, footerDescription);
+
+
+
             const id = $('#transaction_id').val();
     
             Swal.fire({
-                title: "Are you sure?",
+                title: `Are you sure you?`,
                 icon: 'warning',
                 showCancelButton: true,
                 confirmButtonColor: '#3085d6',
@@ -440,7 +431,9 @@
                 confirmButtonText: 'Yes',
                 reverseButtons: true,
                 returnFocus: false,
+                html: wrapper,
                 allowOutsideClick: false,
+                width: '550',
             }).then((result) => {
                 if (result.isConfirmed) {
                     $('#btnSubmit').click();

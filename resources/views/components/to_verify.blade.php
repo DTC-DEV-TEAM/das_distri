@@ -23,6 +23,10 @@
         display: block;
     }
 
+    .table tbody tr td, .table thead tr th, .table{
+        border: 1px solid #ddd;
+    }
+
 </style>
 
 @endpush

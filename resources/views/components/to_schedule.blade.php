@@ -6,27 +6,61 @@
 
 
 @push('head')
+
 <style type="text/css">   
+
 .pic-container {
-  width: 1350px;
-  margin: 0 auto;
-  white-space: nowrap;
+    width: 1350px;
+    margin: 0 auto;
+    white-space: nowrap;
 }
 
 .pic-row {
-  /* As wide as it needs to be */
-  width: 1350px;
-  
-  overflow: auto;
+    /* As wide as it needs to be */
+    width: 1350px;
+    overflow: auto;
 }
 
 .pic-row a {
-  clear: left;
-  display: block;
+    clear: left;
+    display: block;
+}
+
+.transaction_details_content{
+    display: flex;
+    padding: 10px;
+}
+
+.transaction_details_flex{
+    display: flex;
+    align-items: center;
+}
+
+.transaction_details_flex label{
+    width: 250px;
+    margin-bottom: 0;
+}
+
+@media only screen and (max-width: 340px) {
+    .transaction_details_flex{
+        display: block;
+    }
+    .transaction_details_flex label{
+        width: 100%;
+    }
+    .transaction_details_content{
+        display: block;
+    }
+}
+
+.table tbody tr td, .table thead tr th, .table{
+    border: 1px solid #ddd;
 }
 
 </style>
+
 @endpush
+
 @section('content')
 @if(g('return_url'))
 	<p class="noprint"><a title='Return' href='{{g("return_url")}}'><i class='fa fa-chevron-circle-left '></i> &nbsp; {{trans("crudbooster.form_back_to_list",['module'=>CRUDBooster::getCurrentModule()->name])}}</a></p>       
@@ -39,26 +73,16 @@
         <form method='post' id="myform" action='{{CRUDBooster::mainpath('edit-save/'.$row->id)}}'>
             <input type="hidden" value="{{csrf_token()}}" name="_token" id="token">
                 <div id="requestform" class='panel-body'>
-                    <div> 
-                        <table class="custom_sm_normal_table">
-                            <thead></thead>
-                            <tbody>
-                                <tr>
-                                    <td>
-                                        {{ trans('message.form-label.pickup_schedule') }}
-                                    </td>
-                                    <td>
-                                        <input type='input'  name='return_schedule' id="datepicker" onkeydown="return false" required  autocomplete="off"  class='form-control' placeholder="yyyy-mm-dd" />                        
-                                    </td>
-                                    <td></td>
-                                    <td></td>
-                                </tr>
-                            </tbody>
-                        </table>
+                    <div>
                         
-                        <hr/>
-                        
-                        <table class="custom_sm_normal_table">
+                        <div class="transaction_details_content">
+                            <div class="transaction_details_flex">
+                                <label class="control-label" for="">{{ trans('message.form-label.pickup_schedule') }}</label>
+                                <input type='input'  name='return_schedule' id="datepicker" onkeydown="return false" required  autocomplete="off"  class='form-control' placeholder="yyyy-mm-dd" />                        
+                            </div>
+                        </div>
+                        <br>
+                        <table class="custom_table">
                             <thead></thead>
                             <tbody>
                                 <tr>
@@ -67,266 +91,149 @@
                                     <td>Deliver To:</td>
                                     <td>{{$row->deliver_to}}</td>
                                 </tr>
+                                <tr>
+                                    <td>{{ trans('message.form-label.return_reference_no') }}</td>
+                                    <td>{{$row->return_reference_no}}</td>
+                                    @if ($row->store_dropoff != null || $row->store_dropoff != "")
+                                    <td>{{ trans('message.form-label.store_dropoff') }}</td>
+                                    <td>{{$row->store_dropoff}}</td>
+                                    @endif
+                                </tr>
+                                <tr>
+                                    <td>{{ trans('message.form-label.purchase_location') }}</td>
+                                    <td>{{$row->purchase_location}}</td>
+                                    @if ($row->branch_dropoff != null || $row->branch_dropoff != "")
+                                    <td>{{ trans('message.form-label.branch_dropoff') }}</td>
+                                    <td>{{$row->branch_dropoff}}</td>
+                                    @endif
+                                </tr>
+                                <tr>
+                                    <td>{{ trans('message.form-label.customer_location') }}</td>
+                                    <td>{{$row->customer_location}}</td>
+                                    <td>{{ trans('message.form-label.mode_of_return') }}</td>
+                                    <td>{{$row->mode_of_return}}</td>
+                                </tr>
+                                <tr>
+                                    <td>{{ trans('message.form-label.customer_last_name') }}</td>
+                                    <td>{{$row->customer_last_name}}</td>
+                                    <td>{{ trans('message.form-label.customer_first_name') }}</td>
+                                    <td>{{$row->customer_first_name}}</td>
+                                </tr>
+                                <tr>
+                                    <td>{{ trans('message.form-label.contact_no') }}</td>
+                                    <td>{{$row->contact_no}}</td>
+                                    <td>{{ trans('message.form-label.email_address') }}</td>
+                                    <td>{{$row->email_address}}</td>
+                                </tr>
+                                <tr>
+                                    <td>{{ trans('message.form-label.address') }}</td>
+                                    <td>{{$row->address}}</td>
+                                    <td>{{ trans('message.form-label.order_no') }}</td>
+                                    <td>{{$row->order_no}}</td>
+                                </tr>
+                                <tr>
+                                    <td>{{ trans('message.form-label.purchase_date') }}</td>
+                                    <td>{{$row->purchase_date}}</td>
+                                    <td>{{ trans('message.form-label.mode_of_payment') }}</td>
+                                    <td>{{$row->mode_of_payment}}</td>
+                                </tr>
                             </tbody>
                         </table>
 
-                            <div class="row">                           
-                                <label class="control-label col-md-2">Pullout From:</label>
-                                <div class="col-md-4">
-                                   <p>{{$store_deliver_to->store_name}}</p>
-                                </div>
-                             
-                                <label class="control-label col-md-2">Deliver To:</label>
-                                        <div class="col-md-4">
-                                            <p>{{$row->deliver_to}}</p>
-                                </div>
-                             
-                            </div>
-                            <br>
-                            <!-- 1r -->
-                            <div class="row">                           
-                                <label class="control-label col-md-2">{{ trans('message.form-label.return_reference_no') }}</label>
-                                <div class="col-md-4">
-                                    <p>{{$row->return_reference_no}}</p>
-                                </div>
-                                @if ($row->store_dropoff != null || $row->store_dropoff != "")
-                                        <label class="control-label col-md-2">{{ trans('message.form-label.store_dropoff') }}</label>
-                                        <div class="col-md-4">
-                                            <p>{{$row->store_dropoff}}</p>
-                                        </div>
+                        <br>
+
+                        <table class="custom_normal_table">
+                            <tr>
+                                <td>{{ trans('message.form-label.items_included') }}</td>
+                                @if($row->items_included_others  != null)
+                                        <td>{{$row->items_included}}, {{$row->items_included_others}}</td>
+                                    @else
+                                        <td>{{$row->items_included}}</td>
                                 @endif
-                            </div>
-                            
-                            <!-- 2r -->
-                            <div class="row">                           
-                                <label class="control-label col-md-2">{{ trans('message.form-label.purchase_location') }}</label>
-                                <div class="col-md-4">
-                                    <p>{{$row->purchase_location}}</p>
-                                </div>
-                                
-                                @if ($row->branch_dropoff != null || $row->branch_dropoff != "")
-                                                <label class="control-label col-md-2">{{ trans('message.form-label.branch_dropoff') }}</label>
-                                                <div class="col-md-4">
-                                                    <p>{{$row->branch_dropoff}}</p>
-                                                </div>    
-                                @endif  
-    
-    <!--
-                                <label class="control-label col-md-2">{{ trans('message.form-label.store') }}</label>
-                                <div class="col-md-4">
-                                    <p>{{$row->store}}</p>
-                                </div> -->
-                            </div>
-                            <!-- 2r -->
-                            <div class="row">           
-                            
-                                <label class="control-label col-md-2">{{ trans('message.form-label.customer_location') }}</label>
-                                <div class="col-md-4">
-                                    <p>{{$row->customer_location}}</p>
-                                </div>
-                                
-                                <label class="control-label col-md-2">{{ trans('message.form-label.mode_of_return') }}</label>
-                                <div class="col-md-4">
-                                    <p>{{$row->mode_of_return}}</p>
-                                </div>
-    
-                            <!--
-                                @if ($row->branch != null || $row->branch != "")
-                                    <label class="control-label col-md-2">{{ trans('message.form-label.branch') }}</label>
-                                    <div class="col-md-4">
-                                        <p>{{$row->branch}}</p>
-                                    </div>    
-                                 @endif     -->
-                            </div>      
-                            
-                            <div class="row">   
-                            <!--
-                                        @if ($row->store_dropoff != null || $row->store_dropoff != "")
-                                            <label class="control-label col-md-2">{{ trans('message.form-label.store_dropoff') }}</label>
-                                            <div class="col-md-4">
-                                                <p>{{$row->store_dropoff}}</p>
-                                            </div>
-                                        @endif -->
-                                        
-           
-                            </div>                            
-                            <!-- 3r -->
-                            <div class="row">                           
-                                <label class="control-label col-md-2">{{ trans('message.form-label.customer_last_name') }}</label>
-                                <div class="col-md-4">
-                                    <p>{{$row->customer_last_name}}</p>
-                                </div>
-    
-                                <label class="control-label col-md-2">{{ trans('message.form-label.customer_first_name') }}</label>
-                                <div class="col-md-4">
-                                    <p>{{$row->customer_first_name}}</p>
-                                </div>
-                            </div>
-                            <!-- 4r -->
-                            <div class="row">                           
-                                <label class="control-label col-md-2">{{ trans('message.form-label.address') }}</label>
-                                <div class="col-md-4">
-                                    <p>{{$row->address}}</p>
-                                </div>
-    
-                                <label class="control-label col-md-2">{{ trans('message.form-label.email_address') }}</label>
-                                <div class="col-md-4">
-                                    <p>{{$row->email_address}}</p>
-                                </div>
-                            </div>
-                            <!-- 5r -->
-                            <div class="row">                           
-                                <label class="control-label col-md-2">{{ trans('message.form-label.contact_no') }}</label>
-                                <div class="col-md-4">
-                                    <p>{{$row->contact_no}}</p>
-                                </div>
-    
-                                <label class="control-label col-md-2">{{ trans('message.form-label.order_no') }}</label>
-                                <div class="col-md-4">
-                                    <p>{{$row->order_no}}</p>
-                                </div>
-                            </div>
-                            <!-- 6r -->
-                            <div class="row">                           
-                                <label class="control-label col-md-2">{{ trans('message.form-label.purchase_date') }}</label>
-                                <div class="col-md-4">
-                                    <p>{{$row->purchase_date}}</p>
-                                </div>
-    
-                                <label class="control-label col-md-2">{{ trans('message.form-label.mode_of_payment') }}</label>
-                                <div class="col-md-4">
-                                    <p>{{$row->mode_of_payment}}</p>
-                                </div>
-                            </div>                           
-                            <!-- 7r -->
-                            <!--
-                            <div class="row">                           
-                                <label class="control-label col-md-2">{{ trans('message.form-label.bank_name') }}</label>
-                                <div class="col-md-4">
-                                    <p>{{$row->bank_name}}</p>
-                                </div>
-    
-                                <label class="control-label col-md-2">{{ trans('message.form-label.bank_account_no') }}</label>
-                                <div class="col-md-4">
-                                    <p>{{$row->bank_account_no}}</p>
-                                </div>
-                            </div> -->
-                            <!-- 8r -->
-                            <!--
-                            <div class="row">                           
-                                <label class="control-label col-md-2">{{ trans('message.form-label.bank_account_name') }}</label>
-                                <div class="col-md-4">
-                                    <p>{{$row->bank_account_name}}</p>
-                                </div>
-                            -->
-                            <div class="row"> 
-                                <label class="control-label col-md-2">{{ trans('message.form-label.items_included') }}</label>
-                                <div class="col-md-4">
-
-                                    @if($row->items_included_others  != null)
-                                            <p>{{$row->items_included}}, {{$row->items_included_others}}</p>
-                                        @else
-                                            <p>{{$row->items_included}}</p>
-                                    @endif
-                                   
-                                </div>
-
-                      
-                            </div>
-                            
-                            <div class="row">                           
-                                
+                                <td></td>
+                                <td></td>
+                            </tr>
+                            <tr>
+                                <td>{{ trans('message.form-label.verified_items_included') }}</td>
+                                @if($row->verified_items_included_others  != null)
+                                        <td>{{$row->verified_items_included}}, {{$row->verified_items_included_others}}</td>
+                                    @else
+                                        <td>{{$row->verified_items_included}}</td>
+                                @endif                            
+                            </tr>
+                        </table>
                         
-    
-                                <label class="control-label col-md-2">{{ trans('message.form-label.verified_items_included') }}</label>
-                                <div class="col-md-4">
+                        <hr>
 
-                                    @if($row->verified_items_included_others  != null)
-                                            <p>{{$row->verified_items_included}}, {{$row->verified_items_included_others}}</p>
-                                        @else
-                                            <p>{{$row->verified_items_included}}</p>
-                                    @endif
-                                   
-                                </div>   
-                            </div> 
-
-                            @if($row->level7_personnel == null)
-                                        <div class="row"> 
-                                            <label class="control-label col-md-2">{{ trans('message.form-label.created_by') }}</label>
-                                            <div class="col-md-4">
-                                                <p>{{$row->created_by}}</p>
-                                            </div>
-            
-                                            <label class="control-label col-md-2">{{ trans('message.form-label.created_at') }}</label>
-                                            <div class="col-md-4">
-                                                <p>{{$row->created_at}}</p>
-                                            </div>
-                                        </div>
-                            @endif
+                        @if($row->level7_personnel == null)
+                            <table class="custom_normal_table">
+                                <tr>
+                                    <td>{{ trans('message.form-label.created_by') }}</td>
+                                    <td>{{$row->created_by}}</td>
+                                    <td>{{ trans('message.form-label.created_at') }}</td>
+                                    <td>{{$row->created_at}}</td>
+                                </tr>
+                            </table>
+                        @endif
                             
-                                    <?php   
-                                            $dt = new DateTime($row->level7_personnel_edited);
-                                    
-                                            $date_return = $dt->format('Y-m-d'); 
-                                    ?>
-                            <br>
-                            <!--TABLE-->
-                            <!--<div class="table-responsive">
-                                <div class="pic-container">
-                                    <div class="pic-row"> -->
-                                        <table  class='table table-striped table-bordered table-font'>
-                                            <thead>
-                                                <tr>
-                                                    <th width="10%" class="text-center">{{ trans('message.table.digits_code') }}</th>
-                                                    <th width="10%" class="text-center">{{ trans('message.table.upc_code') }}</th>
-                                                    <th width="30%" class="text-center">{{ trans('message.table.item_description') }}</th>
-                                                    <th width="10%" class="text-center">{{ trans('message.table.cost') }}</th>
-                                                    <th width="10%" class="text-center">{{ trans('message.table.brand') }}</th>
-                                                    <th width="10%" class="text-center">{{ trans('message.table.serial_no') }}</th>
-                                                    <th width="15%" class="text-center">{{ trans('message.table.problem_details') }}</th>
-                                                    <th width="5%" class="text-center">{{ trans('message.table.quantity') }}</th>
-                                                </tr>
-                                            </thead>
-                                            <tbody>
-                                                @foreach($resultlist as $rowresult)
-                                                <tr>
-                                                    <td style="text-align:center" height="10">{{$rowresult->digits_code}}</td>
-                                                    <td style="text-align:center" height="10">{{$rowresult->upc_code}}</td>
-                                                    <td style="text-align:center" height="10">{{$rowresult->item_description}}</td>
-                                                    <td style="text-align:center" height="10">{{$rowresult->cost}}</td>
-                                                    <td style="text-align:center" height="10">{{$rowresult->brand}}</td>
-                                                    <td style="text-align:center" height="10">{{$rowresult->serial_number}}</td>
-                                                    <td style="text-align:center" height="10">{{$rowresult->problem_details}}
-                                                        @if($rowresult->problem_details_other != null)
-                                                            <br>
-                                                            {{$rowresult->problem_details_other}}
-                                                        @endif
-                                                    </td>
-                                                    <td style="text-align:center" height="10">{{$rowresult->quantity}}</td>
-                                                </tr>
-                                            @endforeach                 
-                                            </tbody>
-                                        </table> 
-                                    <!--</div>
-                                </div>
-                            </div>-->         
-              
-                            <div class="row">                           
-                                <label class="control-label col-md-2">{{ trans('message.table.comments1') }}</label>
-                                <div class="col-md-10">
-                                    <p>{{$row->comments}}</p>
-                                </div>
-                            </div>                
+                        <?php   
+                            $dt = new DateTime($row->level7_personnel_edited);
+                            $date_return = $dt->format('Y-m-d'); 
+                        ?>
+                        <br>
+
+                        <table  class='table table-striped table-bordered table-font'>
+                            <thead>
+                                <tr>
+                                    <th width="10%" class="text-center">{{ trans('message.table.digits_code') }}</th>
+                                    <th width="10%" class="text-center">{{ trans('message.table.upc_code') }}</th>
+                                    <th width="30%" class="text-center">{{ trans('message.table.item_description') }}</th>
+                                    <th width="10%" class="text-center">{{ trans('message.table.cost') }}</th>
+                                    <th width="10%" class="text-center">{{ trans('message.table.brand') }}</th>
+                                    <th width="10%" class="text-center">{{ trans('message.table.serial_no') }}</th>
+                                    <th width="15%" class="text-center">{{ trans('message.table.problem_details') }}</th>
+                                    <th width="5%" class="text-center">{{ trans('message.table.quantity') }}</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach($resultlist as $rowresult)
+                                <tr>
+                                    <td style="text-align:center" height="10">{{$rowresult->digits_code}}</td>
+                                    <td style="text-align:center" height="10">{{$rowresult->upc_code}}</td>
+                                    <td style="text-align:center" height="10">{{$rowresult->item_description}}</td>
+                                    <td style="text-align:center" height="10">{{$rowresult->cost}}</td>
+                                    <td style="text-align:center" height="10">{{$rowresult->brand}}</td>
+                                    <td style="text-align:center" height="10">{{$rowresult->serial_number}}</td>
+                                    <td style="text-align:center" height="10">{{$rowresult->problem_details}}
+                                        @if($rowresult->problem_details_other != null)
+                                            <br>
+                                            {{$rowresult->problem_details_other}}
+                                        @endif
+                                    </td>
+                                    <td style="text-align:center" height="10">{{$rowresult->quantity}}</td>
+                                </tr>
+                            @endforeach                 
+                            </tbody>
+                        </table>  
+                        
+                        <table class="custom_normal_table">
+                            <tr>
+                                <td>{{ trans('message.table.comments1') }}</td>
+                                <td>{{$row->comments}}</td>
+                                <td></td>
+                                <td></td>
+                            </tr>
+                        </table>
                     </div>
                 </div>
+                
+                <button class="btn btn-primary pull-right hide" type="submit" id="btnSubmit"> <i class="fa fa-save" ></i> {{ trans('message.form.save') }}</button>
+            </form>
             <div class='panel-footer'>
                 <a href="{{ CRUDBooster::mainpath() }}" class="btn btn-default">{{ trans('message.form.cancel') }}</a>
-                <button class="btn btn-primary pull-right hide" type="submit" id="btnSubmit"> <i class="fa fa-save" ></i> {{ trans('message.form.save') }}</button>
                 <button class="btn btn-primary pull-right f-btn" type="button"><i class="fa fa-save" ></i> {{ trans('message.form.save') }}</button>
             </div>
-
-        </form>
-</div>
+        </div>
 @endsection
 
 @push('bottom')

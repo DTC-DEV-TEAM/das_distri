@@ -53,6 +53,7 @@
     border: 1px solid #ddd;
     text-align: left;
     width: 300px;
+    font-size: 14px;
 }
 
 .custom_table tr td:nth-child(odd){
@@ -180,4 +181,31 @@
     } 100%, 0% {
         transform: scale(1.0); 
     } 
+}
+
+/* Swal Table */
+
+#swal_table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 20px;
+}
+
+#swal_table th,
+#swal_table td {
+    border: 1px solid #ddd;
+    padding: 8px;
+    text-align: center;
+}
+
+@media (max-width: 767px) {
+    #swal_table {
+        overflow-x: auto;
+        white-space: nowrap;
+    }
+
+    #swal_table th,
+    #swal_table td {
+        white-space: nowrap;
+    }
 }
