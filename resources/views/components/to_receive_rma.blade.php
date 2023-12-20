@@ -386,13 +386,15 @@
     }else{
         $('.f-btn').on('click', function(){
 
+            const moduleMainpath = "{{ Request::segment(2) }}";
+
             const digitItems = ({!! json_encode($resultlist) !!});
             const clickedText = $(this).text();
 
             const referenceNumber = '{{$row->return_reference_no}}';
             // const digitsCode = 
 
-            const wrapper = $('<div>');
+            let wrapper = $('<div>');
             const table = $('<table id="swal_table">');
             const thead = $('<thead>');
             const tbody = $('<tbody>');
@@ -415,8 +417,11 @@
     
             });
 
-
-            wrapper.append(title, table, footerDescription);
+            if (moduleMainpath == 'to_receive_retail'){
+                wrapper.append(title, table, footerDescription);
+            }else{
+                wrapper = '';
+            }
 
 
 
