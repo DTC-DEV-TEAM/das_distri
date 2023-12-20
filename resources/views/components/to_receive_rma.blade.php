@@ -417,7 +417,7 @@
     
             });
 
-            if (moduleMainpath == 'to_receive_retail'){
+            if (moduleMainpath == 'to_receive_retail' || moduleMainpath == 'to_receive_distri' || moduleMainpath == 'to_receive_ecomm'){
                 wrapper.append(title, table, footerDescription);
             }else{
                 wrapper = '';
