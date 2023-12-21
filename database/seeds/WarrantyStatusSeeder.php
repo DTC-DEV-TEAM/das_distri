@@ -20,7 +20,7 @@ class WarrantyStatusSeeder extends Seeder
             ]
         );
 
-        DB::table('warranty_statuses')->updateOrInsert(['warranty_status' => 'FOR ACTION'],
+        DB::table('warranty_statuses')->updateOrInsert(['warranty_status' => 'FOR WARRANTY CLAIM'],
             [
                 'warranty_status' => 'FOR WARRANTY CLAIM',
                 'created_by' => 3,

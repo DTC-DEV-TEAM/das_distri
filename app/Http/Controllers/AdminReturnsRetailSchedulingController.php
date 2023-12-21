@@ -568,11 +568,12 @@ use App\StoresFrontEnd;
 
             $data['store_deliver_to'] = Stores::where('branch_id',  $data['row']->branch_dropoff )->first();
             
-			if (CrudBooster::myPrivilegeName() == 'Super Administrator'){
-				$this->cbView("components.to_schedule", $data);
-			}else{
-				$this->cbView("returns.edit_scheduling_retail", $data);
-			}
+			// if (CrudBooster::myPrivilegeName() == 'Super Administrator'){
+			// 	$this->cbView("components.to_schedule", $data);
+			// }else{
+			// 	$this->cbView("returns.edit_scheduling_retail", $data);
+			// }
+			$this->cbView("components.to_schedule", $data);
 		}
 
 
@@ -604,7 +605,12 @@ use App\StoresFrontEnd;
 
             $data['store_deliver_to'] = Stores::where('branch_id',  $data['row']->branch_dropoff )->first();
             
-			$this->cbView("returns.edit_delivery_retail", $data);
+			// if(CrudBooster::myPrivilegeName() == 'Super Administrator'){
+			// 	$this->cbView("components.return_delivery", $data);
+			// }else{
+			// 	$this->cbView("returns.edit_delivery_retail", $data);
+			// }
+			$this->cbView("components.return_delivery", $data);
 		}
 
 		public function ReturnsPulloutPrint($id)

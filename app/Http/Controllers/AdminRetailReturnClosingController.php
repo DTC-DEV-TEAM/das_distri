@@ -801,7 +801,8 @@ use Illuminate\Support\Facades\Validator;
 			if(CRUDBooster::myPrivilegeName() == "SDM"){
 				$this->cbView("returns.edit_closing_retail_sdm", $data);
 			}else{
-				$this->cbView("returns.edit_closing_retail_ops", $data);
+				// $this->cbView("returns.edit_closing_retail_ops", $data);
+				$this->cbView("components.closing_retail", $data);
 			}
 		}
 

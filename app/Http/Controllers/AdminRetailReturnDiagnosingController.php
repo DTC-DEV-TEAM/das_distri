@@ -1128,7 +1128,12 @@ use PHPExcel_Style_Fill;
 
 			$data['store_list'] = Stores::where('channels_id',$channels->id)->get();
 			
-			$this->cbView("returns.edit_diagnosing_retail", $data);
+			// if (CrudBooster::myPrivilegeName() == 'Super Administrator'){
+			// 	$this->cbView("components.edit_diagnosing", $data);
+			// }else{
+			// 	$this->cbView("returns.edit_diagnosing_retail", $data);
+			// }
+			$this->cbView("components.edit_diagnosing", $data);
 		}
 
 

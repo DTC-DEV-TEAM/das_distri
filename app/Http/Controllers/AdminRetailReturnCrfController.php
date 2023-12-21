@@ -735,7 +735,12 @@ use PHPExcel_Style_Fill;
 
 			$data['store_list'] = Stores::where('channels_id',$channels->id)->get();
 			
-			$this->cbView("returns.edit_closing_retail", $data);
+			// if(CrudBooster::myPrivilegeName() == 'Super Administrator'){
+			// 	$this->cbView("components.to_crf", $data);
+			// }else{
+			// 	$this->cbView("returns.edit_closing_retail", $data);
+			// }
+			$this->cbView("components.to_crf", $data);
 		}
 
 
