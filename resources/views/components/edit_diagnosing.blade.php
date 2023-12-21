@@ -92,6 +92,9 @@
                                 </td>
                                 <td>
                                 </td>
+                                @else
+                                <td></td>
+                                <td></td>
                                 @endif
                             </tr>
                         </tbody>
