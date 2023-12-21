@@ -532,6 +532,7 @@ use App\StoresFrontEnd;
 			$to_turnover = 				ReturnsStatus::where('id','37')->value('warranty_status');
 			$to_for_action = 			ReturnsStatus::where('id','38')->value('warranty_status');
 			$to_assign_inc = 			ReturnsStatus::where('id','39')->value('warranty_status');
+			$to_ongoing_testing = 		ReturnsStatus::where('id','40')->value('warranty_status');
 
 			if($column_index == 1){
 				if($column_value == $to_schedule){
@@ -617,7 +618,10 @@ use App\StoresFrontEnd;
 			
 				}elseif($column_value == $to_assign_inc){
 					$column_value = '<span class="label label-warning">'.$to_assign_inc.'</span>';
-			
+
+				}elseif($column_value == $to_ongoing_testing){
+					$column_value = '<span class="label label-warning">'.$to_ongoing_testing.'</span>';
+					
 				}
 			}
 	    }

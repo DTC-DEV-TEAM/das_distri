@@ -70,6 +70,14 @@
                                     </select>
                                 @endif
                             </div>
+                            <div class="row">                           
+                                @if (CRUDBooster::myPrivilegeName() == 'Tech Lead')
+                                <label class="control-label col-md-2">Technician Assigned:</label>
+                                <div class="col-md-4">
+                                    <p>{{$row->technician_assigned}}</p>
+                                </div>
+                                @endif
+                            </div>
                             
                             <hr/>
                             <!-- 1r -->

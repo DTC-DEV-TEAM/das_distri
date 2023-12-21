@@ -471,14 +471,14 @@ class AdminToReceiveDistriController extends \crocodicstudio\crudbooster\control
 				$sub_query->orWhere('returns_status_1', $to_turnover)->orderBy('id', 'asc');  
 			});
 		}
-		if(CRUDBooster::myPrivilegeName() == "Service Center"){
-			$query->where(function($sub_query){
+		// if(CRUDBooster::myPrivilegeName() == "Service Center"){
+		// 	$query->where(function($sub_query){
 
-				$to_receive_sc = ReturnsStatus::where('id','35')->value('id');
+		// 		$to_receive_sc = ReturnsStatus::where('id','35')->value('id');
 
-				$sub_query->where('returns_status_1', $to_receive_sc)->whereIn('returns_header_distribution.sc_location_id', $user_store_id)->orderBy('id', 'asc');
-			});
-		}
+		// 		$sub_query->where('returns_status_1', $to_receive_sc)->whereIn('returns_header_distribution.sc_location_id', $user_store_id)->orderBy('id', 'asc');
+		// 	});
+		// }
 		else{
 			$query->where(function($sub_query){
 

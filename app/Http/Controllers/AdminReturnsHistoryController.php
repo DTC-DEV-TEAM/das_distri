@@ -685,6 +685,7 @@ use App\StoresFrontEnd;
 			$to_receive_sc = 			ReturnsStatus::where('id','35')->value('warranty_status');
 			$to_turnover = 				ReturnsStatus::where('id','37')->value('warranty_status');
 			$to_for_action = 			ReturnsStatus::where('id','38')->value('warranty_status');
+			$to_ongoing_testing = 		ReturnsStatus::where('id','40')->value('warranty_status');
 
 			$to_create_crf = 			ReturnsStatus::where('id','25')->value('warranty_status');
 
@@ -801,6 +802,9 @@ use App\StoresFrontEnd;
 				}
 				elseif($column_value == $to_for_action){
 					$column_value = '<span class="label label-warning">'.$to_for_action.'</span>';
+			
+				}elseif($column_value == $to_ongoing_testing){
+					$column_value = '<span class="label label-warning">'.$to_ongoing_testing.'</span>';
 			
 				}
 			}

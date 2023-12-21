@@ -720,6 +720,7 @@ use App\StoresFrontEnd;
 			$to_rma_received = 			ReturnsStatus::where('id','37')->value('warranty_status');
 			$to_for_action = 			ReturnsStatus::where('id','38')->value('warranty_status');
 			$to_assign_inc = 			ReturnsStatus::where('id','39')->value('warranty_status');
+			$to_ongoing_testing = 		ReturnsStatus::where('id','40')->value('warranty_status');
 
 
 			if($column_index == 1){
@@ -809,6 +810,9 @@ use App\StoresFrontEnd;
 			
 				}elseif($column_value == $to_pickup_by_log){
 					$column_value = '<span class="label label-warning">'.$to_pickup_by_log.'</span>';
+			
+				}elseif($column_value == $to_ongoing_testing){
+					$column_value = '<span class="label label-warning">'.$to_ongoing_testing.'</span>';
 			
 				}
 			}
