@@ -67,7 +67,7 @@
                                 @if (($row->transaction_type_id != 1 || CRUDBooster::myPrivilegeName() != 'RMA Specialist') && CRUDBooster::myPrivilegeName() != 'Service Center'  )
                                 <td>
                                     <div style="display: inline-block; margin-right: 15px;">Case Status:</div>
-                                    <div style="display: inline-block; font-weight: 400;">
+                                    <div style="display: inline-block; font-weight: 400; width: 100%;">
                                         <select class="js-example-basic-single" id="case_status" name="case_status">
                                             @foreach ($case_status as $case_status_name)
                                                 <option value="{{ $case_status_name }}" @if ($case_status_name == $row->case_status) selected @endif>
@@ -83,6 +83,8 @@
                             </tr>
                         </tbody>
                     </table>
+
+                    <hr>
 
                     <table class="custom_normal_table">
                         <tbody>
@@ -405,7 +407,7 @@
 <script type="text/javascript">
 
     $('.js-example-basic-single').select2({
-        width: '200'
+        width: '100%'
     });
     $(".js-example-basic-multiple").select2({
         theme: "classic"
