@@ -19,9 +19,9 @@ class CreateViewLastComments extends Migration
 
         DB::statement("
             CREATE VIEW retail_last_comments AS
-            select `dtc_digits_das`.`chats`.`returns_header_retail_id` AS `returns_header_retail_id`,
-            max(`dtc_digits_das`.`chats`.`id`) AS `chats_id` from `dtc_digits_das`.`chats` 
-            group by `dtc_digits_das`.`chats`.`returns_header_retail_id`
+            select chats.`returns_header_retail_id` AS `returns_header_retail_id`,
+            max(chats.`id`) AS `chats_id` from chats 
+            group by chats.`returns_header_retail_id`
         ");
     
 
