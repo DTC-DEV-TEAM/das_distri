@@ -36,5 +36,12 @@ class WarrantyStatusSeeder extends Seeder
                 'created_at' => date('Y-m-d H:i:s')
             ]
         );
+        DB::table('warranty_statuses')->updateOrInsert(['warranty_status' => 'ONGOING TESTING'],
+            [
+                'warranty_status' => 'ONGOING TESTING',
+                'created_by' => 3,
+                'created_at' => date('Y-m-d H:i:s')
+            ]
+        );
     }
 }
