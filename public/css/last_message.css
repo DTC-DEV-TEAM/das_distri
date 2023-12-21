@@ -1,6 +1,6 @@
 .sender_name{
     font-weight: bold;
-    font-size: 13px;
+    font-size: 14px;
     color: #2E3138;
     max-width: 150px;
 
@@ -16,7 +16,7 @@
     color: #44a5da;
     font-weight: bold;
     max-width: 150px;
-
+    font-size: 12px;
 }
 
 .text-msg, .no-message{
