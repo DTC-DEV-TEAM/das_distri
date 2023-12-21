@@ -1084,6 +1084,7 @@ use PHPExcel_Style_Fill;
 			//->leftjoin('stores', 'pullout_headers.pull_out_from', '=', 'stores.id')	
 			leftjoin('cms_users as scheduled', 'returns_header.level2_personnel','=', 'scheduled.id')			
 			// ->leftjoin('cms_users as tagged', 'returns_header.level1_personnel','=', 'tagged.id')
+			->leftjoin('cms_users as technician_assigned', 'returns_header.level3_personnel','=', 'technician_assigned.id')				
 			->leftjoin('cms_users as diagnosed', 'returns_header.level3_personnel','=', 'diagnosed.id')				
 			->leftjoin('cms_users as printed', 'returns_header.level4_personnel','=', 'printed.id')																	
 			->leftjoin('cms_users as transacted', 'returns_header.level5_personnel','=', 'transacted.id')
@@ -1098,6 +1099,7 @@ use PHPExcel_Style_Fill;
 			// 'tagged.name as tagged_by',	
 			'received_item.name as received_item_by',	
 			'turnover_by.name as turnover_by',
+			'technician_assigned.name as technician_assigned',
 			'diagnosed.name as diagnosed_by',
 			'printed.name as printed_by',	
 			'transacted.name as transacted_by',	

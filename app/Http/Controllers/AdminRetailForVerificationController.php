@@ -12,6 +12,7 @@ use App\ProblemDetails;
 use App\Stores;
 use App\StoresFrontEnd;
 use App\Channel;
+use App\Chat;
 use App\ModeOfPayment;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Input;
@@ -895,6 +896,8 @@ use App\TransactionTypeList;
 			$data['transaction_type'] = TransactionTypeList::where('transaction_for', 2)->orderBy('transaction_type_name','desc')->get();
 			
 			$data['via'] =  DB::table('via')->where('status', 'ACTIVE')->get();
+
+			$data['comments_data'] = (new ChatController)->getComments($id);
 
 			// if (CRUDBooster::myPrivilegeName() == 'Super Administrator'){
 			// 	$this->cbView("components.to_verify", $data);

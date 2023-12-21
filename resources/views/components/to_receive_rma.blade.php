@@ -34,6 +34,19 @@
 
 <div class='panel panel-default'>
     <div class='panel-heading'>Details Form</div>
+    <div class="message-pos">
+        <div class="message-circ">
+            <i class="fa fa-envelope" style="color: #fff; font-size: 20px;"></i>
+        </div>
+        <div class="chat-container">
+            <div class="chat-content" style="display: none;">
+                <div class="hide-chat">
+                    <i class="fa fa-close" style="color: #fff;"></i>
+                </div>
+                @include('components.chat-app', $comments_data)
+            </div>
+        </div>
+    </div>
     <form method='post' id="myform" action='{{CRUDBooster::mainpath('edit-save/'.$row->id)}}'>
         <input type="hidden" value="{{csrf_token()}}" name="_token" id="token">
         <input type="hidden"  name="diagnose" id="diagnose">
@@ -301,6 +314,29 @@
 </div>
 
 <script>
+
+    function chatBox(){
+        $('.hide-chat').on('click', function(){
+            $(this).hide();
+            $('.chat-content').hide();
+        })
+
+        $('.message-circ').on('click', function(){
+            const scrollBody = $('.scroll-body');
+
+            $('.hide-chat').show();
+            $('.chat-content').show();
+
+            scrollBody.ready(function() {
+                scrollBody.animate({scrollTop: scrollBody.prop('scrollHeight')}, 1000)
+                reloadInfo();
+            });
+            
+            $('.type-message').focus();
+        })
+    }
+
+    chatBox();
 
     $(document).ready(function() {
         $('.js-example-basic-single').select2({ 

@@ -864,6 +864,7 @@ use PHPExcel_Style_Fill;
 				leftjoin('cms_users as created', 'returns_header_distribution.created_by','=', 'created.id')
 				->leftjoin('cms_users as scheduled', 'returns_header_distribution.level1_personnel','=', 'scheduled.id')			
 				->leftjoin('cms_users as diagnosed', 'returns_header_distribution.level2_personnel','=', 'diagnosed.id')				
+				->leftjoin('cms_users as technician_assigned', 'returns_header_distribution.level2_personnel','=', 'technician_assigned.id')				
 				->leftjoin('cms_users as printed', 'returns_header_distribution.level3_personnel','=', 'printed.id')																	
 				->leftjoin('cms_users as transacted', 'returns_header_distribution.level4_personnel','=', 'transacted.id')
 				->leftjoin('cms_users as received', 'returns_header_distribution.level6_personnel','=', 'received.id')
@@ -874,6 +875,7 @@ use PHPExcel_Style_Fill;
 				->select(
 				'returns_header_distribution.*','scheduled.name as scheduled_by',
 				'diagnosed.name as diagnosed_by','printed.name as printed_by',	
+				'technician_assigned.name as technician_assigned',	
 				'transacted.name as transacted_by',	'received.name as received_by',
 				'turnover_by.name as turnover_by',
 				'closed.name as closed_by','created.name as created_by',

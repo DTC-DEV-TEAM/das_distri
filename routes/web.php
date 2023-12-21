@@ -354,5 +354,6 @@ Route::group(['middleware' => ['web']], function() {
     // For Warranty Claim
     Route::post('/admin/to_receive_retail/ReturnsDiagnosingRTLEdit/for_warranty_claim','AdminRetailReturnDiagnosingController@forWarrantyClaim')->name('for_warranty_claim');
     Route::get('/admin/to_receive_retail/ReturnsDiagnosingRTLEdit/custom_reference_number/{id}/{diagnosing}/{ref_number}/{module_mainpath}','AdminRetailReturnDiagnosingController@returnReferenceNumber')->name('fwc_custom_reference_number');
-    
+    // Chatbox
+    Route::post('/admin/chatbox/send-msg','ChatController@addComments')->name('send_msg');
 });

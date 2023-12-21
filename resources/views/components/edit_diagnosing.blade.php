@@ -37,6 +37,19 @@
 <!-- Your html goes here -->
 <div class='panel panel-default'>
     <div class='panel-heading'>Details Form</div>
+    <div class="message-pos">
+        <div class="message-circ">
+            <i class="fa fa-envelope" style="color: #fff; font-size: 20px;"></i>
+        </div>
+        <div class="chat-container">
+            <div class="chat-content" style="display: none;">
+                <div class="hide-chat">
+                    <i class="fa fa-close" style="color: #fff;"></i>
+                </div>
+                @include('components.chat-app', $comments_data)
+            </div>
+        </div>
+    </div>
         <form method='post' id="myform" action='{{CRUDBooster::mainpath('edit-save/'.$row->id)}}'>
             <input type="hidden" value="{{csrf_token()}}" name="_token" id="token">
             <input type="hidden"  name="diagnose" id="diagnose">
@@ -170,15 +183,15 @@
                             </tr>
                             <tr>
                                 <td>{{ trans('message.form-label.verified_items_included') }}</td>
+                                @if ($row->returns_status_1 == '38')
+                                @if($row->verified_items_included_others  != null)
+                                <td>{{$row->verified_items_included}}, {{$row->verified_items_included_others}}</td>
+                                @else
+                                <td>{{$row->verified_items_included}}</td>
+                                @endif
+                                @else
                                 <td>
-                                    @if ($row->returns_status_1 == '38')
-                                    @if($row->verified_items_included_others  != null)
-                                    <td>{{$row->verified_items_included}}, {{$row->verified_items_included_others}}</td>
-                                    @else
-                                        <td>{{$row->verified_items_included}}</td>
-                                    @endif
-                                    @else
-                                    <select class="js-example-basic-multiple" required name="verified_items_included[]" id="verified_items_included" multiple="multiple" style="width:100%;">
+                                <select class="js-example-basic-multiple" required name="verified_items_included[]" id="verified_items_included" multiple="multiple" style="width:100%;">
                                         @foreach($items_included_list as $key=>$list)
                                             @if(strpos($row->verified_items_included, $list->items_description_included) !== false)
                                                     <option selected value="{{$list->items_description_included}}" >{{$list->items_description_included}}</option>
@@ -191,8 +204,8 @@
                                     <br><br>
                                     <?php $other_verified_items_included = $row->verified_items_included_others;?>
                                     <input type='input'  name='verified_items_included_others' id="verified_items_included_others" autocomplete="off" class='form-control' value="{{$row->verified_items_included_others}}"/> 
-                                    @endif
                                 </td>
+                                @endif
                             </tr>
                         </tbody>
                     </table>
@@ -405,6 +418,29 @@
 
 @push('bottom')
 <script type="text/javascript">
+
+    function chatBox(){
+        $('.hide-chat').on('click', function(){
+            $(this).hide();
+            $('.chat-content').hide();
+        })
+
+        $('.message-circ').on('click', function(){
+            const scrollBody = $('.scroll-body');
+
+            $('.hide-chat').show();
+            $('.chat-content').show();
+
+            scrollBody.ready(function() {
+                scrollBody.animate({scrollTop: scrollBody.prop('scrollHeight')}, 1000)
+                reloadInfo();
+            });
+            
+            $('.type-message').focus();
+        })
+    }
+
+    chatBox();
 
     $('.js-example-basic-single').select2({
         width: '100%'
