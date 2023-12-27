@@ -2096,6 +2096,7 @@ use PHPExcel_Style_Fill;
 			
 		
 			// $this->cbView("returns.to_receive_distri_rma", $data);
+			$data['comments_data'] = (new ChatController)->getCommentsDistri($id);
 			$this->cbView("components.distribution.to_receive", $data);
 		}
 	}

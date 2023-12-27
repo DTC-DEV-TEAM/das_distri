@@ -6,9 +6,6 @@
 
 @section('content')
 
-@include('plugins.plugins')
-<link rel="stylesheet" href="{{ asset('css/sweet_alert_size.css') }}">
-
 <style>
     .table tbody tr td, .table thead tr th, .table{
         border: 1px solid #ddd;
@@ -37,19 +34,19 @@
 
 <div class='panel panel-default'>
     <div class='panel-heading'>Details Form</div>
-    <div class="message-pos">
-        <div class="message-circ">
-            <i class="fa fa-envelope" style="color: #fff; font-size: 20px;"></i>
-        </div>
-        <div class="chat-container">
-            <div class="chat-content" style="display: none;">
-                <div class="hide-chat">
-                    <i class="fa fa-close" style="color: #fff;"></i>
+        <div class="message-pos">
+            <div class="message-circ">
+                <i class="fa fa-envelope" style="color: #fff; font-size: 20px;"></i>
+            </div>
+            <div class="chat-container">
+                <div class="chat-content" style="display: none;">
+                    <div class="hide-chat">
+                        <i class="fa fa-close" style="color: #fff;"></i>
+                    </div>
+                    @include('components.distribution.chat-app', $comments_data)
                 </div>
-                @include('components.distribution.chat-app', $comments_data)
             </div>
         </div>
-    </div>
     <form method='post' id="myform" action='{{CRUDBooster::mainpath('edit-save/'.$row->id)}}'>
         <input type="hidden" value="{{csrf_token()}}" name="_token" id="token">
         <input type="hidden"  name="diagnose" id="diagnose">
@@ -255,7 +252,7 @@
                 @endif
 
                 <br>
-                <table class='table table-striped table-bordered'>
+                <table class='table table-striped table-bordered table-font'>
                     <thead>
                         <tr>
                             <th width="10%" class="text-center">{{ trans('message.table.digits_code') }}</th>
