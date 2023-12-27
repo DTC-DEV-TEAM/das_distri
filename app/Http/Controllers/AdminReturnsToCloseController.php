@@ -839,6 +839,8 @@ use App\StoresFrontEnd;
 			$channels = Channel::where('channel_name', 'ONLINE')->first();
 
 			$data['store_list'] = Stores::where('channels_id',$channels->id)->get();
+
+			$data['comments_data'] = (new ChatController)->getCommentsEcomm($id);
 			
 			$this->cbView("returns.edit_closing_reject", $data);
 		}
@@ -2271,7 +2273,8 @@ use App\StoresFrontEnd;
 			if(CRUDBooster::myPrivilegeName() == "SDM"){
 				$this->cbView("returns.edit_closing_retail_sdm", $data);
 			}else{
-				$this->cbView("returns.edit_closing_ops", $data);
+				// $this->cbView("returns.edit_closing_ops", $data);
+				$this->cbView("components.ecomm.replacement_ops", $data);
 			}
 		}
 

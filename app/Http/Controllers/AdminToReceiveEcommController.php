@@ -1700,6 +1700,8 @@ use PHPExcel_Style_Fill;
 
 			$data['store_list'] = Stores::where('channels_id',$channels->id)->get();
 			
+			$data['comments_data'] = (new ChatController)->getCommentsEcomm($id);
+
 			$this->cbView("returns.edit_receiving_sc", $data);
 		}
 		
