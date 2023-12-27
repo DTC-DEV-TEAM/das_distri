@@ -303,7 +303,7 @@
             @if ($row->returns_status_1 == 39)
             <button class="btn btn-primary pull-right f-btn" type="button" id="btnSubmit"> <i class="fa fa-save" ></i>  Assign</button>
             @elseif ($row->returns_status_1 == 40)
-            <button class="btn btn-primary pull-right f-btn" type="button" id="btnSubmit"> <i class="fa fa-save" ></i>  Ongoing Testing</button>
+            <button class="btn btn-primary pull-right f-btn" type="button" id="btnSubmit"> <i class="fa fa-save" ></i>  To Test</button>
             @elseif ($row->returns_status_1 == 37)
             <button class="btn btn-primary pull-right f-btn" type="button" id="btnSubmit"> <i class="fa fa-save" ></i> {{trans('message.form.turnover')}}</button>
             @else
