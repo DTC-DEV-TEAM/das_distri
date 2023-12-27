@@ -348,28 +348,28 @@
 @push('bottom')
 <script type="text/javascript">
 
-    function chatBox(){
-        $('.hide-chat').on('click', function(){
-            $(this).hide();
-            $('.chat-content').hide();
-        })
+function chatBox(){
+    $('.hide-chat').on('click', function(){
+        $(this).hide();
+        $('.chat-content').hide();
+    })
 
-        $('.message-circ').on('click', function(){
-            const scrollBody = $('.scroll-body');
+    $('.message-circ').on('click', function(){
+        const scrollBody = $('.scroll-body');
 
-            $('.hide-chat').show();
-            $('.chat-content').show();
+        $('.hide-chat').show();
+        $('.chat-content').show();
 
-            scrollBody.ready(function() {
-                scrollBody.animate({scrollTop: scrollBody.prop('scrollHeight')}, 1000)
-                reloadInfo();
-            });
-            
-            $('.type-message').focus();
-        })
-    }
+        scrollBody.ready(function() {
+            scrollBody.animate({scrollTop: scrollBody.prop('scrollHeight')}, 1000)
+            reloadInfo();
+        });
+        
+        $('.type-message').focus();
+    })
+}
 
-    chatBox();
+chatBox();
 
 $("#cancel").on('click',function() {
     var strconfirm = confirm("Are you sure you want to Cancel this return request?");

@@ -157,23 +157,26 @@
                     </div>
                 </div>
                 
-                @if ($row->transaction_type == 0 )
-                        <button class="btn btn-primary pull-right hide" type="submit" id="btnSubmit"> <i class="fa fa-save" ></i> {{ trans('message.form.save') }}</button>
-                    @else
-                        <button class="btn btn-primary pull-right hide" type="submit" id="btnSubmit"> <i class="fa fa-circle-o" ></i> {{ trans('message.form.proceed') }}</button>
-                @endif
+                <div class='panel-footer'>
+                    <a href="{{ CRUDBooster::mainpath() }}" class="btn btn-default">{{ trans('message.form.cancel') }}</a>
+                    @if ($row->transaction_type == 0 )
+                            <button class="btn btn-primary pull-right" type="submit" id="btnSubmit"> <i class="fa fa-save" ></i> {{ trans('message.form.save') }}</button>
+                        @else
+                            <button class="btn btn-primary pull-right" type="submit" id="btnSubmit"> <i class="fa fa-circle-o" ></i> {{ trans('message.form.proceed') }}</button>
+                    @endif
+                    {{-- <button class="btn btn-primary pull-right f-btn" type="submit" id="btnSubmit"> <i class="fa {{ $row->transaction_type == 0 ? 'fa-save' : 'fa-circle-o'}}" ></i> {{ $row->transaction_type == 0 ? trans('message.form.save') : trans('message.form.proceed') }}</button> --}}
+                </div>
             </form>
-            <div class='panel-footer'>
-                <a href="{{ CRUDBooster::mainpath() }}" class="btn btn-default">{{ trans('message.form.cancel') }}</a>
-                <button class="btn btn-primary pull-right f-btn" type="submit" id="btnSubmit"> <i class="fa {{ $row->transaction_type == 0 ? 'fa-save' : 'fa-circle-o'}}" ></i> {{ $row->transaction_type == 0 ? trans('message.form.save') : trans('message.form.proceed') }}</button>
-            </div>
 </div>
 @endsection
 
 @push('bottom')
 <script type="text/javascript">
 
+const modeOfReturn = "{{ $row->sor_number == null ||  $row->sor_number == "" }}"
+
 function chatBox(){
+
     $('.hide-chat').on('click', function(){
         $(this).hide();
         $('.chat-content').hide();
@@ -264,11 +267,11 @@ $("#btnSubmit").on('click',function() {
             }
             
         }
-        
-        if(deliver != "WAREHOUSE.RMA.DEP"){
+
+            if(deliver != "WAREHOUSE.RMA.DEP"){
             
-            if($("#pos_crf_number").val().includes("CRF#")){
-                    
+                if($("#pos_crf_number").val().includes("CRF#")){
+                        
                     if($("#pos_crf_number").val().includes(" ")){
                         signal = 0;
                         alert_message = 1;
@@ -279,15 +282,52 @@ $("#btnSubmit").on('click',function() {
                         signal =1;
                         restriction = 0;
                     }
-                    
-            }else{
-                    
+                        
+                }else{
+                        
                     signal = 0;
-                    alert("Incorrect POS CRF# format! e.g. CRF#1001");
-        
+                    // alert("Incorrect POS CRF# format! e.g. CRF#1001");
+                    Swal.fire({
+                        title: "Incorrect POS CRF# format! e.g. CRF#1001",
+                        icon: 'error',
+                        showCancelButton: false,
+                        confirmButtonColor: '#3085d6',
+                        confirmButtonText: 'Ok',
+                        returnFocus: false,
+                        allowOutsideClick: false,
+                    }).then((result) => {
+                        if (result.isConfirmed) {
+                            $('#pos_crf_number').css({border: '2px solid #FE4A49'});
+                            $('#pos_crf_number').focus();
+                        }
+                    })
                     return false;  
                 }  
         }
+        
+        // if(deliver != "WAREHOUSE.RMA.DEP"){
+            
+        //     if($("#pos_crf_number").val().includes("CRF#")){
+                    
+        //             if($("#pos_crf_number").val().includes(" ")){
+        //                 signal = 0;
+        //                 alert_message = 1;
+        //             }else if(text_length <= 4){
+        //                     signal = 0;
+        //                     alert_message = 1;
+        //             }else{
+        //                 signal =1;
+        //                 restriction = 0;
+        //             }
+                    
+        //     }else{
+                    
+        //             signal = 0;
+        //             alert("Incorrect POS CRF# format! e.g. CRF#1001");
+        
+        //             return false;  
+        //         }  
+        // }
 
        if(signal != 0){
             return true;   

@@ -53,6 +53,28 @@ use App\ModeOfPayment;
 			# START COLUMNS DO NOT REMOVE THIS LINE
 			$this->col = [];
 			$this->col[] = ["label"=>"Status","name"=>"returns_status_1","join"=>"warranty_statuses,warranty_status"];
+			$this->col[] = ["label"=>"Last Chat", "name"=>"id", 'callback'=>function($row){
+				$img_url = asset("chat_img/$row->last_image");
+				;
+				$str = '';
+				
+				$str .= "<div class='sender_name'>$row->sender_name</div>";
+				$str .= "<div class='time_ago' datetime='$row->date_send'>$row->date_send</div>";
+				
+				if ($row->last_message) {
+					// Truncate the message if it's longer than 150 characters
+					$truncatedMessage = strlen($row->last_message) > 41 ? substr($row->last_message, 0, 41) . '...' : $row->last_message;
+					$str .= "<div class='text-msg'>$truncatedMessage</div>";
+				}
+				if($row->last_image){
+					$str .= "<div class='last_msg'><img src='$img_url'></div>";
+				}
+				if($row->sender_name){
+					return $str;
+				}else{
+					return '<div class="no-message">No messages available at the moment.</div>';
+				}
+			}];
 			$this->col[] = ["label"=>"Created Date","name"=>"created_at"];
 			$this->col[] = ["label"=>"Pickup Schedule","name"=>"return_schedule"];
 			$this->col[] = ["label"=>"Return Reference#","name"=>"return_reference_no"];
@@ -364,7 +386,8 @@ use App\ModeOfPayment;
 	        |
 	        */
 	        $this->load_js = array();
-	        
+			$this->load_js[] = "https://unpkg.com/timeago.js/dist/timeago.min.js";
+			$this->load_js[] = asset("js/time_ago.js");
 	        
 	        
 	        /*
@@ -388,7 +411,8 @@ use App\ModeOfPayment;
 	        |
 	        */
 	        $this->load_css = array();
-	        
+			$this->load_css[] = asset('css/last_message.css');
+
 	        
 	    }
 
@@ -416,6 +440,17 @@ use App\ModeOfPayment;
 	    */
 	    public function hook_query_index(&$query) {
 	        //Your code here
+
+			// Chatbox
+			$query->leftJoin('ecomm_last_comments', 'ecomm_last_comments.returns_header_id', 'returns_header.id')
+			->leftJoin('chat_ecomms', 'chat_ecomms.id', 'ecomm_last_comments.chats_id')
+			->leftJoin('cms_users as sender', 'sender.id', 'chat_ecomms.created_by')
+			->addSelect('chat_ecomms.message as last_message',
+				'chat_ecomms.file_name as last_image',
+				'sender.name as sender_name',
+				'chat_ecomms.created_at as date_send'
+			);
+
 			$to_create_crf = 			ReturnsStatus::where('id','25')->value('id');
 
 
@@ -587,8 +622,9 @@ use App\ModeOfPayment;
 			
 			$data['payments'] = DB::table(env('DB_DATABASE').'.mode_of_payment')->where('mode_of_payment','!=','LOYALTY POINTS')->where('status','ACTIVE')->orderBy('mode_of_refund','asc')->groupby('mode_of_refund')->get();
 
-			
-			$this->cbView("returns.edit_crf_retail", $data);
+			$data['comments_data'] = (new ChatController)->getCommentsEcomm($id);
+
+			$this->cbView("returns.edit_crf_ecomm", $data);
 		}
 
 
