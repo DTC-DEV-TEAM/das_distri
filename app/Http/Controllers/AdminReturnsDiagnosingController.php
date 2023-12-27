@@ -1056,9 +1056,11 @@ use PHPExcel_Style_Fill;
 
 			$data['store_list'] = Stores::where('channels_id',$channels->id)->get();
 			
+
+			$data['comments_data'] = (new ChatController)->getCommentsEcomm($id);
 			
 			// $this->cbView("returns.to_receive_ecomm_rma", $data);
-			$this->cbView("components.to_receive_rma", $data);
+			$this->cbView("components.ecomm.to_receive_rma", $data);
 
 		}
 
@@ -1123,10 +1125,10 @@ use PHPExcel_Style_Fill;
 
 			$data['store_list'] = Stores::where('channels_id',$channels->id)->get();
 		
+			$data['comments_data'] = (new ChatController)->getCommentsEcomm($id);
 			
-	
-			
-			$this->cbView("returns.edit_diagnosing", $data);
+			// $this->cbView("returns.edit_diagnosing", $data);
+			$this->cbView("components.ecomm.to_diagnose", $data);
 		}
 
 

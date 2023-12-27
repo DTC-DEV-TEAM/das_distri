@@ -1956,9 +1956,10 @@ class AdminToReceiveDistriController extends \crocodicstudio\crudbooster\control
 
 			$data['store_list'] = Stores::where('channels_id',$channels->id)->get();
 			
+			$data['comments_data'] = (new ChatController)->getCommentsDistri($id);
 		
 			// $this->cbView("returns.to_receive_distri_rma", $data);
-			$this->cbView("components.to_receive_rma", $data);
+			$this->cbView("components.distribution.to_receive", $data);
 		}
 		
 	}

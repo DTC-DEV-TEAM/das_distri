@@ -549,8 +549,10 @@
 
         event.preventDefault();
 
-        if("{{ CrudBooster::myPrivilegeName() != 'Store Ops' }}"){
-            let validated = validationNpiPos();
+        let validated = false;
+
+        if("{{ CrudBooster::myPrivilegeName() == 'Super Administrator' }}"){
+            validated = validationNpiPos();
         }else{
             validated = true;
         }

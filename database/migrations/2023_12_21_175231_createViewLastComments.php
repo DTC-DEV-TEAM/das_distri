@@ -15,7 +15,7 @@ class CreateViewLastComments extends Migration
     {
         //
 
-        DB::statement("DROP VIEW IF EXISTS new_items_last_comment;");
+        DB::statement("DROP VIEW IF EXISTS retail_last_comments;");
 
         DB::statement("
             CREATE VIEW retail_last_comments AS
