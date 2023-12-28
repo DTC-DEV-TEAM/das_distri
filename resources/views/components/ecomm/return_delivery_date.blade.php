@@ -108,8 +108,9 @@
 
                             </tr>
                             <tr>
+                                {{-- {{ dd(trans('message.form-label.store_dropoff')) }} --}}
                                 @if ($row->store_dropoff != null || $row->store_dropoff != "")
-                                <td><{{ trans('message.form-label.store_dropoff') }}/td>
+                                <td>{{ trans('message.form-label.store_dropoff') }}</td>
                                 <td>{{$row->store_dropoff}}</td>
                                 @endif
                                 @if ($row->branch_dropoff != null || $row->branch_dropoff != "")
