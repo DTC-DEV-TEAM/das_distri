@@ -624,7 +624,8 @@ use App\ModeOfPayment;
 
 			$data['comments_data'] = (new ChatController)->getCommentsEcomm($id);
 
-			$this->cbView("returns.edit_crf_ecomm", $data);
+			$this->cbView("components.ecomm.to_create_crf", $data);
+			// $this->cbView("returns.edit_crf_ecomm", $data);
 		}
 
 

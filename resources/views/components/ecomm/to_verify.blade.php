@@ -8,27 +8,24 @@
 @push('head')
 <style type="text/css">   
 .pic-container {
-  width: 1350px;
-  margin: 0 auto;
-  white-space: nowrap;
+    width: 1350px;
+    margin: 0 auto;
+    white-space: nowrap;
 }
 
 .select2-selection__choice{
-        font-size:14px !important;
-        color:black !important;
- }
-
+    font-size:14px !important;
+    color:black !important;
+}
 
 .pic-row {
-  /* As wide as it needs to be */
-  width: 1350px;
-  
-  overflow: auto;
+    width: 1350px;
+    overflow: auto;
 }
 
 .pic-row a {
-  clear: left;
-  display: block;
+    clear: left;
+    display: block;
 }
 
 .table tbody tr td, .table thead tr th, .table{
