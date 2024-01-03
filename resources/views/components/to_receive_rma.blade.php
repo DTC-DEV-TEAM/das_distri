@@ -53,11 +53,13 @@
         <input type="hidden" name="transaction_id" id="transaction_id" value="{{ $row->id }}">
         <div id="requestform" class='panel-body'>
             <div>
-                @if ($row->returns_status_1 == 39 )
+                @if ($row->returns_status_1 == 39 || $row->returns_status_1 == 40 )
                 <div class="row">
                     <div class="col-md-6">
-                            
+                        <label class="control-label col-md-4"style="margin-top: 5px;" >Transaction Type:</label>
+                        <div class="col-md-4" style="margin-top: 5px;" >{{$row->transaction_type_name}}</div>
                     </div>
+                    @if ($row->returns_status_1 == 39)
                     <label class="control-label col-md-1" style="margin-top: 5px;">Technicians</label>
                     <div class="col-md-4">
                         <select class="js-example-basic-single" name="technician" id="technician" required>
@@ -67,10 +69,10 @@
                           @endforeach
                         </select>
                     </div>
+                    @endif
                 </div>
                 <br>
                 @endif   
-
                 <table class="custom_table">
                     <tbody>
                         <tr>

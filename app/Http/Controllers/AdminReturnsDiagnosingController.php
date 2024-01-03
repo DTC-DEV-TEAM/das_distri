@@ -1059,6 +1059,7 @@ use PHPExcel_Style_Fill;
 			->leftjoin('cms_users as received', 'returns_header.level6_personnel','=', 'received.id')
 			->leftjoin('cms_users as closed', 'returns_header.level7_personnel','=', 'closed.id')	
 			->leftjoin('cms_users as scheduled_logistics', 'returns_header.level8_personnel','=', 'scheduled_logistics.id')																	
+			->leftjoin('transaction_type', 'returns_header.transaction_type_id', '=', 'transaction_type.id')
 			->select(
 			'returns_header.*',
 			'scheduled.name as scheduled_by',
@@ -1068,7 +1069,8 @@ use PHPExcel_Style_Fill;
 			'transacted.name as transacted_by',	
 			'received.name as received_by',
 			'closed.name as closed_by',
-			'scheduled_logistics.name as scheduled_by_logistics'						
+			'scheduled_logistics.name as scheduled_by_logistics',
+			'transaction_type.transaction_type_name',						
 			)
 			->where('returns_header.id',$id)->first();
 
@@ -1125,6 +1127,7 @@ use PHPExcel_Style_Fill;
 			->leftjoin('cms_users as received_item', 'returns_header.received_by_rma_sc','=', 'received_item.id')
 			->leftjoin('cms_users as turnover_by', 'returns_header.rma_receiver_id','=', 'turnover_by.id')																	
 			->leftjoin('cms_users as scheduled_logistics', 'returns_header.level8_personnel','=', 'scheduled_logistics.id')																	
+			->leftjoin('transaction_type', 'returns_header.transaction_type_id', '=', 'transaction_type.id')
 			->select(
 			'returns_header.*',
 			'scheduled.name as scheduled_by',
@@ -1137,6 +1140,7 @@ use PHPExcel_Style_Fill;
 			'transacted.name as transacted_by',	
 			'received.name as received_by',
 			'closed.name as closed_by',
+			'transaction_type.transaction_type_name',
 			'scheduled_logistics.name as scheduled_by_logistics'						
 			)
 			->where('returns_header.id',$id)->first();

@@ -2351,6 +2351,7 @@ use PHPExcel_Style_Fill;
 			->leftjoin('cms_users as received', 'returns_header_retail.level6_personnel','=', 'received.id')
 			->leftjoin('cms_users as closed', 'returns_header_retail.level7_personnel','=', 'closed.id')	
 			->leftjoin('cms_users as scheduled_logistics', 'returns_header_retail.level8_personnel','=', 'scheduled_logistics.id')																	
+			->leftjoin('transaction_type', 'returns_header_retail.transaction_type_id', '=', 'transaction_type.id')
 			->select(
 			'returns_header_retail.*',
 			'scheduled.name as scheduled_by',
@@ -2360,10 +2361,10 @@ use PHPExcel_Style_Fill;
 			'transacted.name as transacted_by',	
 			'received.name as received_by',
 			'closed.name as closed_by',
-			'scheduled_logistics.name as scheduled_by_logistics'						
+			'scheduled_logistics.name as scheduled_by_logistics',					
+			'transaction_type.transaction_type_name',
 			)
 			->where('returns_header_retail.id',$id)->first();
-
 
 
 			$data['resultlist'] = ReturnsBodyRTL::
