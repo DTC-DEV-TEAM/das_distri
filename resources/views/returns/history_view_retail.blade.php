@@ -158,6 +158,13 @@
                                 </div>
 
                             </div>
+                            <div class="row">                           
+                                <label class="control-label col-md-2">Transaction Type:</label>
+                                <div class="col-md-4">
+                                    <p>{{$row->transaction_type_name}}</p>
+                                </div>
+                             
+                            </div>
                             
                             @if($row->scheduled_by != null || $row->scheduled_by != "")  
                                 <hr/>
