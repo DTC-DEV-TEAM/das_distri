@@ -88,12 +88,19 @@
                                     </select>
                                 @endif
                             </div>
+                            <hr>
                             <div class="row">                           
+                                @if (CRUDBooster::myPrivilegeName() != 'Service Center')
+                                <label class="control-label col-md-2">Transaction Type:</label>
+                                <div class="col-md-4">
+                                    <p>{{$row->transaction_type_name}}</p>
+                                </div>
                                 @if (CRUDBooster::myPrivilegeName() == 'Tech Lead')
                                 <label class="control-label col-md-2">Technician Assigned:</label>
                                 <div class="col-md-4">
                                     <p>{{$row->technician_assigned}}</p>
                                 </div>
+                                @endif
                                 @endif
                             </div>
                             <br>
