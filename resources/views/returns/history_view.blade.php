@@ -168,7 +168,6 @@
 
 
                     <div class="row"> 
-                        <div class="col-md-6"></div>
 
                         <label class="control-label col-md-2">{{ trans('message.form-label.verified_items_included') }}</label>
                         <div class="col-md-4">
@@ -181,7 +180,13 @@
                             
                         </div>
                     </div>
-                    
+                    <div class="row">                           
+                        <label class="control-label col-md-2">Transaction Type:</label>
+                        <div class="col-md-4">
+                            <p>{{$row->transaction_type_name}}</p>
+                        </div>
+                     
+                    </div>
                     <hr/>
 
                     <div class="row">                           

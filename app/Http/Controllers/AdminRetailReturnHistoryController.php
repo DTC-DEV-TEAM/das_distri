@@ -949,7 +949,7 @@ use App\StoresFrontEnd;
 			->leftjoin('cms_users as transacted', 'returns_header_retail.level4_personnel','=', 'transacted.id')
 			->leftjoin('cms_users as received', 'returns_header_retail.level6_personnel','=', 'received.id')
 			->leftjoin('cms_users as closed', 'returns_header_retail.level5_personnel','=', 'closed.id')																		
-			
+			->leftjoin('transaction_type', 'returns_header_retail.transaction_type_id', '=', 'transaction_type.id')
 			->select(
 			'returns_header_retail.*',
 			'scheduled.name as scheduled_by',
@@ -958,11 +958,11 @@ use App\StoresFrontEnd;
 			'printed.name as printed_by',	
 			'transacted.name as transacted_by',	
 			'received.name as received_by',
+			'transaction_type.transaction_type_name',
 			'closed.name as closed_by',
 			'created.name as created_by'						
 			)
 			->where('returns_header_retail.id',$id)->first();
-
             if($data['row']->returns_status_1 == 1){
             			$data['resultlist'] = ReturnsBodyRTL::
             			leftjoin('returns_serial_retail', 'returns_body_item_retail.id', '=', 'returns_serial_retail.returns_body_item_id')					
