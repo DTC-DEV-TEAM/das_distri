@@ -1073,7 +1073,7 @@ use PHPExcel_Style_Fill;
 			'received.name as received_by',
 			'closed.name as closed_by',
 			'scheduled_logistics.name as scheduled_by_logistics',
-			'transaction_type.transaction_type_name'						
+			'transaction_type.transaction_type_name'					
 			)
 			->where('returns_header.id',$id)->first();
 
