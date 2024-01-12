@@ -523,16 +523,6 @@ use App\StoresFrontEnd;
 	    public function actionButtonSelected($id_selected,$button_name) {
 	        //Your code here
 
-			// Chatbox
-			$query->leftJoin('ecomm_last_comments', 'ecomm_last_comments.returns_header_id', 'returns_header.id')
-			->leftJoin('chat_ecomms', 'chat_ecomms.id', 'ecomm_last_comments.chats_id')
-			->leftJoin('cms_users as sender', 'sender.id', 'chat_ecomms.created_by')
-			->addSelect('chat_ecomms.message as last_message',
-				'chat_ecomms.file_name as last_image',
-				'sender.name as sender_name',
-				'chat_ecomms.created_at as date_send'
-			);
-
 			if($button_name == 'void') {
 
 				ReturnsHeader::whereIn('id',$id_selected)->update([

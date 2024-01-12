@@ -56,6 +56,7 @@ use PHPExcel_Style_Fill;
 			# START COLUMNS DO NOT REMOVE THIS LINE
 			$this->col = [];
 			$this->col[] = ["label"=>"Status","name"=>"returns_status_1","join"=>"warranty_statuses,warranty_status"];
+			$this->col[] = ["label"=>"Brand","name"=>"id","join"=>"returns_body_item_distribution,brand","join_id"=>"returns_header_id"];
 			$this->col[] = ["label"=>"Last Chat", "name"=>"id", 'callback'=>function($row){
 				$img_url = asset("chat_img/$row->last_image");
 				;
@@ -412,6 +413,8 @@ use PHPExcel_Style_Fill;
 				'sender.name as sender_name',
 				'chat_distri.created_at as date_send'
 			);
+
+			$query->whereNotNull('returns_body_item_distribution.category');
 
 			if (CRUDBooster::myPrivilegeName() == "Tech Lead") {
 				$query->where(function($sub_query){

@@ -165,12 +165,12 @@
 
                                     @if($data->id == 5)
                                                 <div class="col-md-5">
-                                                    <label class="radio-inline control-label col-md-12" ><input type="radio" class="transactionradio"  required checked  name="transaction_type_id" id="transaction_type_id" value="{{$data->id}}" >{{$data->transaction_type_name}}</label>
+                                                    <label class="radio-inline control-label col-md-12" ><input type="radio" class="transactionradio"  required name="transaction_type_id" id="transaction_type_id" value="{{$data->id}}" >{{$data->transaction_type_name}}</label>
                                                     <br>
                                                 </div>
                                         @else
                                                 <div class="col-md-5">
-                                                    <label class="radio-inline control-label col-md-12"><input type="radio"  class="transactionradio"  required  name="transaction_type_id" id="transaction_type_id" value="{{$data->id}}" >{{$data->transaction_type_name}}</label>
+                                                    <label class="radio-inline control-label col-md-12"><input type="radio"  class="transactionradio"  required name="transaction_type_id" id="transaction_type_id" value="{{$data->id}}" >{{$data->transaction_type_name}}</label>
                                                     <br>
                                                 </div>
                                     @endif
