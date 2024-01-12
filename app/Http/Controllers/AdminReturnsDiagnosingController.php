@@ -217,15 +217,15 @@ use PHPExcel_Style_Fill;
 			$to_ongoing_testing = ReturnsStatus::where('id','40')->value('id');
 
 			if(CRUDBooster::myPrivilegeName() == "Tech Lead") {
-				$this->addaction[] = ['title'=>'Edit','url'=>CRUDBooster::mainpath('TechLeadECOMM/[id]'),'icon'=>'fa fa-pencil', "showIf"=>"[returns_status_1] == $to_assign_inc"];
-				$this->addaction[] = ['title'=>'Edit','url'=>CRUDBooster::mainpath('TechLeadECOMM/[id]'),'icon'=>'fa fa-pencil', "showIf"=>"[returns_status_1] == $to_ongoing_testing"];
-				$this->addaction[] = ['title'=>'Edit','url'=>CRUDBooster::mainpath('ReturnsDiagnosingEdit/[id]'),'icon'=>'fa fa-pencil', "showIf"=>"[returns_status_1] == $to_diagnose"];
+				$this->addaction[] = ['title'=>'Edit','url'=>CRUDBooster::mainpath('TechLeadECOMM/[id]'),'color'=>'none','icon'=>'fa fa-pencil', "showIf"=>"[returns_status_1] == $to_assign_inc"];
+				$this->addaction[] = ['title'=>'Edit','url'=>CRUDBooster::mainpath('TechLeadECOMM/[id]'),'color'=>'none','icon'=>'fa fa-pencil', "showIf"=>"[returns_status_1] == $to_ongoing_testing"];
+				$this->addaction[] = ['title'=>'Edit','url'=>CRUDBooster::mainpath('ReturnsDiagnosingEdit/[id]'),'color'=>'none','icon'=>'fa fa-pencil', "showIf"=>"[returns_status_1] == $to_diagnose"];
 			}else {
-				$this->addaction[] = ['title'=>'Edit','url'=>CRUDBooster::mainpath('TechLeadECOMM/[id]'),'icon'=>'fa fa-pencil', "showIf"=>"[returns_status_1] == $to_ongoing_testing"];
-				$this->addaction[] = ['title'=>'Edit','url'=>CRUDBooster::mainpath('ReturnsDiagnosingEdit/[id]'),'icon'=>'fa fa-pencil', "showIf"=>"[returns_status_1] == $to_diagnose"];
-				$this->addaction[] = ['title'=>'Edit','url'=>CRUDBooster::mainpath('ReturnsDiagnosingEdit/[id]'),'icon'=>'fa fa-pencil', "showIf"=>"[returns_status_1] == $to_for_action"];
-				$this->addaction[] = ['title'=>'Edit','url'=>CRUDBooster::mainpath('ReturnsSORReceivingEdit/[id]'),'icon'=>'fa fa-pencil', "showIf"=>"[returns_status_1] == $to_receive_sor"];
-				$this->addaction[] = ['title'=>'Print','url'=>CRUDBooster::mainpath('ReturnsReturnFormPrint/[id]'),'icon'=>'fa fa-print', "showIf"=>"[returns_status_1] == $to_print_return_form"];
+				$this->addaction[] = ['title'=>'Edit','url'=>CRUDBooster::mainpath('TechLeadECOMM/[id]'),'color'=>'none','icon'=>'fa fa-pencil', "showIf"=>"[returns_status_1] == $to_ongoing_testing"];
+				$this->addaction[] = ['title'=>'Edit','url'=>CRUDBooster::mainpath('ReturnsDiagnosingEdit/[id]'),'color'=>'none','icon'=>'fa fa-pencil', "showIf"=>"[returns_status_1] == $to_diagnose"];
+				$this->addaction[] = ['title'=>'Edit','url'=>CRUDBooster::mainpath('ReturnsDiagnosingEdit/[id]'),'color'=>'none','icon'=>'fa fa-pencil', "showIf"=>"[returns_status_1] == $to_for_action"];
+				$this->addaction[] = ['title'=>'Edit','url'=>CRUDBooster::mainpath('ReturnsSORReceivingEdit/[id]'),'color'=>'none','icon'=>'fa fa-pencil', "showIf"=>"[returns_status_1] == $to_receive_sor"];
+				$this->addaction[] = ['title'=>'Print','url'=>CRUDBooster::mainpath('ReturnsReturnFormPrint/[id]'),'color'=>'none','icon'=>'fa fa-print', "showIf"=>"[returns_status_1] == $to_print_return_form"];
 			}
 			//$this->addaction[] = ['title'=>'Detail','url'=>CRUDBooster::mainpath('ReturnsDiagnosingDetail/[id]'),'icon'=>'fa fa-eye'];
 
