@@ -54,6 +54,7 @@ use App\StoresFrontEnd;
 
 			# START COLUMNS DO NOT REMOVE THIS LINE
 			$this->col = [];
+			$this->col[] = ["label"=>"Brand","name"=>"id","join"=>"returns_body_item,brand","join_id"=>"returns_header_id"];
 			$this->col[] = ["label"=>"Status","name"=>"returns_status_1","join"=>"warranty_statuses,warranty_status"];
 			$this->col[] = ["label"=>"Last Chat", "name"=>"id", 'callback'=>function($row){
 				$img_url = asset("chat_img/$row->last_image");
@@ -77,11 +78,11 @@ use App\StoresFrontEnd;
 					return '<div class="no-message">No messages available at the moment.</div>';
 				}
 			}];
+			$this->col[] = ["label"=>"Return Reference#","name"=>"return_reference_no"];
 
 			if(CRUDBooster::myPrivilegeName() == "Aftersales"){ 
 				$this->col[] = ["label"=>"Created Date","name"=>"created_at"];
 				$this->col[] = ["label"=>"Return Schedule","name"=>"return_schedule"];
-				$this->col[] = ["label"=>"Return Reference#","name"=>"return_reference_no"];
 				$this->col[] = ["label"=>"Order#","name"=>"order_no"];
 				$this->col[] = ["label"=>"Customer Location","name"=>"customer_location"];
 				$this->col[] = ["label"=>"Purchase Location","name"=>"purchase_location"];
@@ -96,7 +97,6 @@ use App\StoresFrontEnd;
 			}elseif(CRUDBooster::myPrivilegeName() == "Logistics"){ 
 				$this->col[] = ["label"=>"Created Date","name"=>"created_at"];
 				$this->col[] = ["label"=>"Return Schedule","name"=>"return_schedule"];
-				$this->col[] = ["label"=>"Return Reference#","name"=>"return_reference_no"];
 				$this->col[] = ["label"=>"Order#","name"=>"order_no"];
 				$this->col[] = ["label"=>"Customer Location","name"=>"customer_location"];
 				$this->col[] = ["label"=>"Purchase Location","name"=>"purchase_location"];
@@ -110,7 +110,6 @@ use App\StoresFrontEnd;
 			}elseif(CRUDBooster::myPrivilegeName() == "Ecomm Ops"){ 
 				$this->col[] = ["label"=>"Created Date","name"=>"created_at"];
 				//$this->col[] = ["label"=>"Pickup Schedule","name"=>"return_schedule"];
-				$this->col[] = ["label"=>"Return Reference#","name"=>"return_reference_no"];
 				$this->col[] = ["label"=>"Order#","name"=>"order_no"];
 				$this->col[] = ["label"=>"Customer Customer","name"=>"customer_location"];
 				$this->col[] = ["label"=>"Purchase Location","name"=>"purchase_location"];
@@ -124,7 +123,6 @@ use App\StoresFrontEnd;
 			}elseif(in_array(CRUDBooster::myPrivilegeName(), ['RMA Inbound', 'Tech Lead', 'RMA Technician', 'RMA Specialist'])){ 
 				$this->col[] = ["label"=>"Created Date","name"=>"created_at"];
 				//$this->col[] = ["label"=>"Return Schedule","name"=>"return_schedule"];
-				$this->col[] = ["label"=>"Return Reference#","name"=>"return_reference_no"];
 				//$this->col[] = ["label"=>"Order#","name"=>"order_no"];
 				$this->col[] = ["label"=>"SOR#","name"=>"sor_number"];
 				$this->col[] = ["label"=>"Customer Location","name"=>"customer_location"];
@@ -144,7 +142,6 @@ use App\StoresFrontEnd;
 			}elseif(CRUDBooster::myPrivilegeName() == "Service Center"){ 
 				$this->col[] = ["label"=>"Created Date","name"=>"created_at"];
 				//$this->col[] = ["label"=>"Return Schedule","name"=>"return_schedule"];
-				$this->col[] = ["label"=>"Return Reference#","name"=>"return_reference_no"];
 				//$this->col[] = ["label"=>"Order#","name"=>"order_no"];
 				//$this->col[] = ["label"=>"SOR#","name"=>"sor_number"];
 				//$this->col[] = ["label"=>"Customer Location","name"=>"customer_location"];
@@ -169,7 +166,6 @@ use App\StoresFrontEnd;
 			}elseif(CRUDBooster::myPrivilegeName() == "Accounting"){ 
 				$this->col[] = ["label"=>"Created Date","name"=>"created_at"];
 				$this->col[] = ["label"=>"Return Schedule","name"=>"return_schedule"];
-				$this->col[] = ["label"=>"Return Reference#","name"=>"return_reference_no"];
 				$this->col[] = ["label"=>"Order#","name"=>"order_no"];
 				$this->col[] = ["label"=>"SOR#","name"=>"sor_number"];
 				$this->col[] = ["label"=>"Customer Location","name"=>"customer_location"];
@@ -190,7 +186,6 @@ use App\StoresFrontEnd;
 				$this->col[] = ["label"=>"Closed Date","name"=>"level5_personnel_edited"];
 
 				$this->col[] = ["label"=>"Return Schedule","name"=>"return_schedule"];
-				$this->col[] = ["label"=>"Return Reference#","name"=>"return_reference_no"];
 				$this->col[] = ["label"=>"Order#","name"=>"order_no"];
 				$this->col[] = ["label"=>"SOR#","name"=>"sor_number"];
 				$this->col[] = ["label"=>"Customer Location","name"=>"customer_location"];
@@ -336,9 +331,9 @@ use App\StoresFrontEnd;
 			}
 			
 			
-			$this->addaction[] = ['title'=>'Detail','url'=>CRUDBooster::mainpath('ReturnsHistoryDetail/[id]'),'icon'=>'fa fa-eye'];
-			$this->addaction[] = ['title'=>'Print','url'=>CRUDBooster::mainpath('ReturnsReturnFormPrint/[id]'),'icon'=>'fa fa-print', "showIf"=>"[diagnose] != 'REFUND' and [level3_personnel] != null"];
-			$this->addaction[] = ['title'=>'Print','url'=>CRUDBooster::mainpath('ReturnsCRFPrint/[id]'),'icon'=>'fa fa-print', "showIf"=>"[diagnose] == 'REFUND' and [level3_personnel] != null"];
+			$this->addaction[] = ['title'=>'Detail','url'=>CRUDBooster::mainpath('ReturnsHistoryDetail/[id]'),'icon'=>'fa fa-eye', 'color'=>'none'];
+			$this->addaction[] = ['title'=>'Print','url'=>CRUDBooster::mainpath('ReturnsReturnFormPrint/[id]'),'icon'=>'fa fa-print', 'color'=>'none', "showIf"=>"[diagnose] != 'REFUND' and [level3_personnel] != null"];
+			$this->addaction[] = ['title'=>'Print','url'=>CRUDBooster::mainpath('ReturnsCRFPrint/[id]'),'icon'=>'fa fa-print', 'color'=>'none', "showIf"=>"[diagnose] == 'REFUND' and [level3_personnel] != null"];
 			/* 
 	        | ---------------------------------------------------------------------- 
 	        | Add More Button Selected
@@ -446,7 +441,6 @@ use App\StoresFrontEnd;
 	        |
 	        */
 	        $this->script_js = NULL;
-
 
             /*
 	        | ---------------------------------------------------------------------- 
@@ -572,6 +566,8 @@ use App\StoresFrontEnd;
 				'sender.name as sender_name',
 				'chat_ecomms.created_at as date_send'
 			);
+
+			$query->whereNotNull('returns_body_item.category');
 			
 			if(CRUDBooster::myPrivilegeName() == "Aftersales" || CRUDBooster::myPrivilegeName() == "Ecomm Ops"){ 
 				$requested = 		ReturnsStatus::where('id','1')->value('id');
@@ -721,7 +717,7 @@ use App\StoresFrontEnd;
 
 			//dd($column_index);
 
-			if($column_index == 5){
+			if($column_index == 6){
 				$row_id = ReturnsHeader::where('return_reference_no', $column_value)->first();
 			
 				if($row_id->diagnose == "REFUND"){
@@ -740,7 +736,7 @@ use App\StoresFrontEnd;
 
 
                       
-			if($column_index == 1){
+			if($column_index == 3){
 			
 				if($column_value == $requested){
 					$column_value = '<span class="label label-warning">'.$requested.'</span>';

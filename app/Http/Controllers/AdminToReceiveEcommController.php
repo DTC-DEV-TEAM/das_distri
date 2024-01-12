@@ -215,22 +215,22 @@ use PHPExcel_Style_Fill;
 				$to_receive_sc = 			ReturnsStatus::where('id','35')->value('id');
     			
 
-                $this->addaction[] = ['title'=>'Edit','url'=>CRUDBooster::mainpath('ReturnsReceivingSC/[id]'),'icon'=>'fa fa-pencil', "showIf"=>"[returns_status_1] == $to_receive or [returns_status_1] == $to_receive_sc"];
-				$this->addaction[] = ['title'=>'Edit','url'=>CRUDBooster::mainpath('ReturnsDiagnosingEditSC/[id]'),'icon'=>'fa fa-pencil', "showIf"=>"[returns_status_1] == $to_diagnose"];
-				$this->addaction[] = ['title'=>'Edit','url'=>CRUDBooster::mainpath('ReturnsSORReceivingEditSC/[id]'),'icon'=>'fa fa-pencil', "showIf"=>"[returns_status_1] == $to_receive_sor"];
-				$this->addaction[] = ['title'=>'Print','url'=>CRUDBooster::mainpath('ReturnsReturnFormPrintSC/[id]'),'icon'=>'fa fa-print', "showIf"=>"[returns_status_1] == $to_print_return_form"];
-				$this->addaction[] = ['title'=>'Print','url'=>CRUDBooster::mainpath('ReturnsSRRPrintSC/[id]'),'icon'=>'fa fa-print', "showIf"=>"[returns_status_1] == $to_print_srr"];
+                $this->addaction[] = ['title'=>'Edit','url'=>CRUDBooster::mainpath('ReturnsReceivingSC/[id]'),'color'=>'none','icon'=>'fa fa-pencil', "showIf"=>"[returns_status_1] == $to_receive or [returns_status_1] == $to_receive_sc"];
+				$this->addaction[] = ['title'=>'Edit','url'=>CRUDBooster::mainpath('ReturnsDiagnosingEditSC/[id]'),'color'=>'none','icon'=>'fa fa-pencil', "showIf"=>"[returns_status_1] == $to_diagnose"];
+				$this->addaction[] = ['title'=>'Edit','url'=>CRUDBooster::mainpath('ReturnsSORReceivingEditSC/[id]'),'color'=>'none','icon'=>'fa fa-pencil', "showIf"=>"[returns_status_1] == $to_receive_sor"];
+				$this->addaction[] = ['title'=>'Print','url'=>CRUDBooster::mainpath('ReturnsReturnFormPrintSC/[id]'),'color'=>'none','icon'=>'fa fa-print', "showIf"=>"[returns_status_1] == $to_print_return_form"];
+				$this->addaction[] = ['title'=>'Print','url'=>CRUDBooster::mainpath('ReturnsSRRPrintSC/[id]'),'color'=>'none','icon'=>'fa fa-print', "showIf"=>"[returns_status_1] == $to_print_srr"];
 			}else{
 
 				$to_receive_rma = ReturnsStatus::where('id','34')->value('id');
 				$to_turnover_rma = ReturnsStatus::where('id','37')->value('id');
 
 				if(CRUDBooster::myPrivilegeId() == 4){
-					$this->addaction[] = ['title'=>'Edit','url'=>CRUDBooster::mainpath('ToReceiveEcomm/[id]'),'icon'=>'fa fa-pencil', "showIf"=>"[returns_status_1] == $to_receive_rma"];
-					$this->addaction[] = ['title'=>'Edit','url'=>CRUDBooster::mainpath('ToReceiveEcomm/[id]'),'icon'=>'fa fa-pencil', "showIf"=>"[returns_status_1] == $to_turnover_rma"];
+					$this->addaction[] = ['title'=>'Edit','url'=>CRUDBooster::mainpath('ToReceiveEcomm/[id]'),'color'=>'none','icon'=>'fa fa-pencil', "showIf"=>"[returns_status_1] == $to_receive_rma"];
+					$this->addaction[] = ['title'=>'Edit','url'=>CRUDBooster::mainpath('ToReceiveEcomm/[id]'),'color'=>'none','icon'=>'fa fa-pencil', "showIf"=>"[returns_status_1] == $to_turnover_rma"];
 				}
 				else{
-					$this->addaction[] = ['title'=>'Edit','url'=>CRUDBooster::mainpath('ToReceiveEcomm/[id]'),'icon'=>'fa fa-pencil'];
+					$this->addaction[] = ['title'=>'Edit','url'=>CRUDBooster::mainpath('ToReceiveEcomm/[id]'),'color'=>'none','icon'=>'fa fa-pencil'];
 				}
 			}
 
@@ -490,7 +490,7 @@ use PHPExcel_Style_Fill;
 			$to_receive_sc = 			ReturnsStatus::where('id','35')->value('warranty_status');
 			$to_turnover = 			ReturnsStatus::where('id','37')->value('warranty_status');
 
-			if($column_index == 1){
+			if($column_index == 2){
 				if($column_value == $requested){
 					$column_value = '<span class="label label-warning">'.$requested.'</span>';
 			

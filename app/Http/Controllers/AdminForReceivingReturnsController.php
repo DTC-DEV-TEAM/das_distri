@@ -232,8 +232,8 @@ use App\StoresFrontEnd;
 			$to_receive = 		ReturnsStatus::where('id','29')->value('id');
 			$to_print_srr  =     ReturnsStatus::where('id','19')->value('id');
 			
-			$this->addaction[] = ['title'=>'Edit','url'=>CRUDBooster::mainpath('ReturnsReceivingEdit/[id]'),'icon'=>'fa fa-pencil', "showIf"=>"[returns_status_1] == $to_receive"];
-            $this->addaction[] = ['title'=>'Print','url'=>CRUDBooster::mainpath('ReturnsSRRPrint/[id]'),'icon'=>'fa fa-print', "showIf"=>"[returns_status_1] == $to_print_srr"];
+			$this->addaction[] = ['title'=>'Edit','url'=>CRUDBooster::mainpath('ReturnsReceivingEdit/[id]'),'color'=>'none','icon'=>'fa fa-pencil', "showIf"=>"[returns_status_1] == $to_receive"];
+            $this->addaction[] = ['title'=>'Print','url'=>CRUDBooster::mainpath('ReturnsSRRPrint/[id]'),'color'=>'none','icon'=>'fa fa-print', "showIf"=>"[returns_status_1] == $to_print_srr"];
 
 	        /* 
 	        | ---------------------------------------------------------------------- 
@@ -450,7 +450,7 @@ use App\StoresFrontEnd;
 			
 			$to_print_srr  =            ReturnsStatus::where('id','19')->value('warranty_status');
 
-			if($column_index == 1){
+			if($column_index == 2){
 				if($column_value == $to_receive){
 					$column_value = '<span class="label label-warning">'.$to_receive.'</span>';
 			

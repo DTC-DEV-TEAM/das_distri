@@ -209,8 +209,8 @@ use PHPExcel_Style_Fill;
 			$to_print_crf = ReturnsStatus::where('id','7')->value('id');
 			$refund_in_process = ReturnsStatus::where('id','8')->value('id');
 
-			$this->addaction[] = ['title'=>'Edit','url'=>CRUDBooster::mainpath('ReturnsClosingEdit/[id]'),'icon'=>'fa fa-pencil', "showIf"=>"[returns_status_1] == $refund_in_process"];
-			$this->addaction[] = ['title'=>'Print','url'=>CRUDBooster::mainpath('ReturnsCRFPrint/[id]'),'icon'=>'fa fa-print', "showIf"=>"[returns_status_1] == $to_print_crf or [returns_status_1] == $refund_in_process"];
+			$this->addaction[] = ['title'=>'Edit','url'=>CRUDBooster::mainpath('ReturnsClosingEdit/[id]'),'color'=>'none','icon'=>'fa fa-pencil', "showIf"=>"[returns_status_1] == $refund_in_process"];
+			$this->addaction[] = ['title'=>'Print','url'=>CRUDBooster::mainpath('ReturnsCRFPrint/[id]'),'color'=>'none','icon'=>'fa fa-print', "showIf"=>"[returns_status_1] == $to_print_crf or [returns_status_1] == $refund_in_process"];
 			
 		
 	        /* 
@@ -410,7 +410,7 @@ use PHPExcel_Style_Fill;
 			$to_diagnose = 				ReturnsStatus::where('id','5')->value('warranty_status');
 			$to_print_crf = 				ReturnsStatus::where('id','7')->value('warranty_status');
 			$refund_in_process = 		ReturnsStatus::where('id','8')->value('warranty_status');
-			if($column_index == 1){
+			if($column_index == 2){
 				if($column_value == $requested){
 					$column_value = '<span class="label label-warning">'.$requested.'</span>';
 			

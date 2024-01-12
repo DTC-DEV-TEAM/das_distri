@@ -55,26 +55,26 @@ use App\StoresFrontEnd;
 			# START COLUMNS DO NOT REMOVE THIS LINE
 			$this->col = [];
 			$this->col[] = ["label"=>"Status","name"=>"returns_status_1","join"=>"warranty_statuses,warranty_status"];
-			// $this->col[] = ["label"=>"Last Chat", "name"=>"id", 'callback'=>function($row){
-			// 	$img_url = asset("chat_img/$row->last_image");
-			// 	;
-			// 	$str = '';
+			$this->col[] = ["label"=>"Last Chat", "name"=>"id", 'callback'=>function($row){
+				$img_url = asset("chat_img/$row->last_image");
+				;
+				$str = '';
 				
-			// 	$str .= "<div class='sender_name'>$row->sender_name</div>";
-			// 	$str .= "<div class='time_ago' datetime='$row->date_send'>$row->date_send</div>";
+				$str .= "<div class='sender_name'>$row->sender_name</div>";
+				$str .= "<div class='time_ago' datetime='$row->date_send'>$row->date_send</div>";
 
-			// 	if($row->last_message){
-			// 		$str .= "<div class='text-msg'>$row->last_message</div>";
-			// 	}
-			// 	if($row->last_image){
-			// 		$str .= "<div class='last_msg'><img src='$img_url'></div>";
-			// 	}
-			// 	if($row->sender_name){
-			// 		return $str;
-			// 	}else{
-			// 		return '<div class="no-message">No messages available at the moment.</div>';
-			// 	}
-			// }];
+				if($row->last_message){
+					$str .= "<div class='text-msg'>$row->last_message</div>";
+				}
+				if($row->last_image){
+					$str .= "<div class='last_msg'><img src='$img_url'></div>";
+				}
+				if($row->sender_name){
+					return $str;
+				}else{
+					return '<div class="no-message">No messages available at the moment.</div>';
+				}
+			}];
 			$this->col[] = ["label"=>"Created Date","name"=>"created_at"];
 			//$this->col[] = ["label"=>"Pickup Schedule","name"=>"return_schedule"];
 			$this->col[] = ["label"=>"Return Reference#","name"=>"return_reference_no"];
@@ -256,7 +256,7 @@ use App\StoresFrontEnd;
 	        | 
 	        */
 	        $this->addaction = array();
-	        			$this->addaction[] = ['title'=>'RF','url'=>CRUDBooster::mainpath('ReturnsReturnFormPrintRTL/[id]'),'icon'=>'fa fa-file'];
+	        			$this->addaction[] = ['title'=>'RF','url'=>CRUDBooster::mainpath('ReturnsReturnFormPrintRTL/[id]'),'color'=>'none','icon'=>'fa fa-file'];
 
 
 	        /* 
@@ -464,7 +464,7 @@ use App\StoresFrontEnd;
              
             $to_receive  = 	            ReturnsStatus::where('id','29')->value('warranty_status');      
             
-			if($column_index == 1){
+			if($column_index == 2){
 				if($column_value == $to_schedule){
 					$column_value = '<span class="label label-warning">'.$to_schedule.'</span>';
 			

@@ -51,6 +51,7 @@ use PHPExcel_Style_Fill;
 
 			# START COLUMNS DO NOT REMOVE THIS LINE
 			$this->col = [];
+			$this->col[] = ["label"=>"Brand","name"=>"id","join"=>"returns_body_item_retail,brand","join_id"=>"returns_header_id"];
 			$this->col[] = ["label"=>"Status","name"=>"returns_status_1","join"=>"warranty_statuses,warranty_status"];
 			$this->col[] = ["label"=>"Last Chat", "name"=>"id", 'callback'=>function($row){
 				$img_url = asset("chat_img/$row->last_image");
@@ -74,9 +75,9 @@ use PHPExcel_Style_Fill;
 					return '<div class="no-message">No messages available at the moment.</div>';
 				}
 			}];
+			$this->col[] = ["label"=>"Return Reference#","name"=>"return_reference_no"];
 			$this->col[] = ["label"=>"Created Date","name"=>"created_at"];
 			$this->col[] = ["label"=>"Pickup Schedule","name"=>"return_schedule"];
-			$this->col[] = ["label"=>"Return Reference#","name"=>"return_reference_no"];
 			$this->col[] = ["label"=>"INC#","name"=>"inc_number"];
 			$this->col[] = ["label"=>"RMA#","name"=>"rma_number"];
 			$this->col[] = ["label"=>"Order#","name"=>"order_no"];
@@ -212,8 +213,8 @@ use PHPExcel_Style_Fill;
 			$this->addaction = array();
 			$to_sor = 			ReturnsStatus::where('id','9')->value('id');
 
-			$this->addaction[] = ['title'=>'Edit','url'=>CRUDBooster::mainpath('ReturnsSOREditRTL/[id]'),'icon'=>'fa fa-pencil', "showIf"=>"[returns_status_1] == $to_sor"];
-            $this->addaction[] = ['title'=>'View','url'=>CRUDBooster::mainpath('ViewSORRTL/[id]'),'icon'=>'fa fa-eye'];
+			$this->addaction[] = ['title'=>'Edit','url'=>CRUDBooster::mainpath('ReturnsSOREditRTL/[id]'),'color'=>'none','icon'=>'fa fa-pencil', "showIf"=>"[returns_status_1] == $to_sor"];
+            $this->addaction[] = ['title'=>'View','url'=>CRUDBooster::mainpath('ViewSORRTL/[id]'),'color'=>'none','icon'=>'fa fa-eye'];
 
 	        /* 
 	        | ---------------------------------------------------------------------- 
@@ -388,6 +389,8 @@ use PHPExcel_Style_Fill;
 				'chats.created_at as date_send'
 			);
 
+			$query->whereNotNull('returns_body_item_retail.category');
+
 	        if(CRUDBooster::myPrivilegeName() == "Service Center"){ 
         		
         
@@ -430,7 +433,7 @@ use PHPExcel_Style_Fill;
 			//Your code here
 			$to_sor = 					ReturnsStatus::where('id','9')->value('warranty_status');
 
-			if($column_index == 1){
+			if($column_index == 3){
 				if($column_value == $to_sor){
 					$column_value = '<span class="label label-warning">'.$to_sor.'</span>';
 			

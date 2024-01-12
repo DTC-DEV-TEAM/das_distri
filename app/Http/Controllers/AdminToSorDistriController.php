@@ -52,6 +52,7 @@ use PHPExcel_Style_Fill;
 
 			# START COLUMNS DO NOT REMOVE THIS LINE
 			$this->col = [];
+			$this->col[] = ["label"=>"Brand","name"=>"id","join"=>"returns_body_item_distribution,brand","join_id"=>"returns_header_id"];
 			$this->col[] = ["label"=>"Status","name"=>"returns_status_1","join"=>"warranty_statuses,warranty_status"];
 			$this->col[] = ["label"=>"Last Chat", "name"=>"id", 'callback'=>function($row){
 				$img_url = asset("chat_img/$row->last_image");
@@ -192,8 +193,8 @@ use PHPExcel_Style_Fill;
 	        $this->addaction = array();
 			$to_sor = 			ReturnsStatus::where('id','9')->value('id');
 
-			$this->addaction[] = ['title'=>'Edit','url'=>CRUDBooster::mainpath('ReturnsSOREditDISTRI/[id]'),'icon'=>'fa fa-pencil', "showIf"=>"[returns_status_1] == $to_sor"];
-            $this->addaction[] = ['title'=>'View','url'=>CRUDBooster::mainpath('ViewSORDISTRI/[id]'),'icon'=>'fa fa-eye'];			
+			$this->addaction[] = ['title'=>'Edit','url'=>CRUDBooster::mainpath('ReturnsSOREditDISTRI/[id]'),'color'=>'none','icon'=>'fa fa-pencil', "showIf"=>"[returns_status_1] == $to_sor"];
+            $this->addaction[] = ['title'=>'View','url'=>CRUDBooster::mainpath('ViewSORDISTRI/[id]'),'color'=>'none','icon'=>'fa fa-eye'];			
 
 
 	        /* 
@@ -369,6 +370,8 @@ use PHPExcel_Style_Fill;
 				'chat_distri.created_at as date_send'
 			);
 
+			$query->whereNotNull('returns_body_item_distribution.category');
+
 			if(CRUDBooster::myPrivilegeName() == "Service Center" || CRUDBooster::myPrivilegeName() == "RMA"){ 
 				
 				$query->where(function($sub_query){
@@ -410,7 +413,7 @@ use PHPExcel_Style_Fill;
 			//Your code here
 			$to_sor = ReturnsStatus::where('id','9')->value('warranty_status');
 
-			if($column_index == 1){
+			if($column_index == 3){
 				if($column_value == $to_sor){
 					$column_value = '<span class="label label-warning">'.$to_sor.'</span>';
 			

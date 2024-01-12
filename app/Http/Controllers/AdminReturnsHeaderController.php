@@ -193,14 +193,14 @@ use DateTime;
             
 		    if(CRUDBooster::myPrivilegeName() == "Ecomm Ops"){
 		        
-		        $this->addaction[] = ['title'=>'Detail','url'=>CRUDBooster::mainpath('ReturnsDetail/[id]'),'icon'=>'fa fa-eye'];
+		        $this->addaction[] = ['title'=>'Detail','url'=>CRUDBooster::mainpath('ReturnsDetail/[id]'),'color'=>'none','icon'=>'fa fa-eye'];
 			    
 			}else{
-			    $this->addaction[] = ['title'=>'Edit','url'=>CRUDBooster::mainpath('ReturnsTaggingEdit/[id]'),'icon'=>'fa fa-pencil', "showIf"=>"[returns_status_1] == $requested"];
-			    $this->addaction[] = ['title'=>'Edit','url'=>CRUDBooster::mainpath('ReturnsDeliveryEdit/[id]'),'icon'=>'fa fa-pencil', "showIf"=>"[returns_status_1] == $return_delivery_date"];
-			    $this->addaction[] = ['title'=>'Edit','url'=>CRUDBooster::mainpath('ReturnsSchedulingEdit/[id]'),'icon'=>'fa fa-pencil', "showIf"=>"[returns_status_1] == $to_schedule_aftersales or [returns_status_1] == $to_schedule_logistics"];
-			    $this->addaction[] = ['title'=>'Edit','url'=>CRUDBooster::mainpath('ReturnsCloseRejectEdit/[id]'),'icon'=>'fa fa-pencil', "showIf"=>"[returns_status_1] == $to_ship_back"];
-			    $this->addaction[] = ['title'=>'Print','url'=>CRUDBooster::mainpath('ReturnsPulloutPrint/[id]'),'icon'=>'fa fa-print', "showIf"=>"[returns_status_1] == $pending"];
+			    $this->addaction[] = ['title'=>'Edit','url'=>CRUDBooster::mainpath('ReturnsTaggingEdit/[id]'),'color'=>'none','icon'=>'fa fa-pencil', "showIf"=>"[returns_status_1] == $requested"];
+			    $this->addaction[] = ['title'=>'Edit','url'=>CRUDBooster::mainpath('ReturnsDeliveryEdit/[id]'),'color'=>'none','icon'=>'fa fa-pencil', "showIf"=>"[returns_status_1] == $return_delivery_date"];
+			    $this->addaction[] = ['title'=>'Edit','url'=>CRUDBooster::mainpath('ReturnsSchedulingEdit/[id]'),'color'=>'none','icon'=>'fa fa-pencil', "showIf"=>"[returns_status_1] == $to_schedule_aftersales or [returns_status_1] == $to_schedule_logistics"];
+			    $this->addaction[] = ['title'=>'Edit','url'=>CRUDBooster::mainpath('ReturnsCloseRejectEdit/[id]'),'color'=>'none','icon'=>'fa fa-pencil', "showIf"=>"[returns_status_1] == $to_ship_back"];
+			    $this->addaction[] = ['title'=>'Print','url'=>CRUDBooster::mainpath('ReturnsPulloutPrint/[id]'),'color'=>'none','icon'=>'fa fa-print', "showIf"=>"[returns_status_1] == $pending"];
 			    
 			}
 
@@ -455,7 +455,7 @@ use DateTime;
 			$to_schedule_logistics = 	ReturnsStatus::where('id','23')->value('warranty_status');
 			$pending =                  ReturnsStatus::where('id','19')->value('warranty_status');
 			$return_delivery_date =     ReturnsStatus::where('id','33')->value('warranty_status');
-			if($column_index == 1){
+			if($column_index == 2){
 				if($column_value == $requested){
 					$column_value = '<span class="label label-warning">'.$requested.'</span>';
 			

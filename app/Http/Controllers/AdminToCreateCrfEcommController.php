@@ -279,7 +279,7 @@ use App\ModeOfPayment;
 
 			$to_create_crf = 			ReturnsStatus::where('id','25')->value('id');
 
-			$this->addaction[] = ['title'=>'Edit','url'=>CRUDBooster::mainpath('ReturnsCreateEditEcomm/[id]'),'icon'=>'fa fa-pencil', "showIf"=>"[returns_status_1] == $to_create_crf"];
+			$this->addaction[] = ['title'=>'Edit','url'=>CRUDBooster::mainpath('ReturnsCreateEditEcomm/[id]'),'color'=>'none','icon'=>'fa fa-pencil', "showIf"=>"[returns_status_1] == $to_create_crf"];
 
 
 	        /* 
@@ -467,7 +467,7 @@ use App\ModeOfPayment;
 			//Your code here
 			$to_create_crf = 			ReturnsStatus::where('id','25')->value('warranty_status');
 
-			if($column_index == 1){
+			if($column_index == 2){
 				if($column_value == $to_create_crf){
 					$column_value = '<span class="label label-warning">'.$to_create_crf.'</span>';
 			

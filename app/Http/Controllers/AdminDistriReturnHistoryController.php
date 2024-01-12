@@ -54,6 +54,7 @@ use App\StoresFrontEnd;
 
 			# START COLUMNS DO NOT REMOVE THIS LINE
 			$this->col = [];
+			$this->col[] = ["label"=>"Brand","name"=>"id","join"=>"returns_body_item_distribution,brand","join_id"=>"returns_header_id"];
 			$this->col[] = ["label"=>"Status","name"=>"returns_status_1","join"=>"warranty_statuses,warranty_status"];
 			$this->col[] = ["label"=>"Last Chat", "name"=>"id", 'callback'=>function($row){
 				$img_url = asset("chat_img/$row->last_image");
@@ -77,12 +78,10 @@ use App\StoresFrontEnd;
 					return '<div class="no-message">No messages available at the moment.</div>';
 				}
 			}];
-
-
+			$this->col[] = ["label"=>"Return Reference#","name"=>"return_reference_no"];
 			if(CRUDBooster::myPrivilegeName() == "Distri Logistics" || CRUDBooster::myPrivilegeName() == "Logistics"){
 				$this->col[] = ["label"=>"Created Date","name"=>"created_at"];
 				$this->col[] = ["label"=>"Return Schedule","name"=>"return_schedule"];
-				$this->col[] = ["label"=>"Return Reference#","name"=>"return_reference_no"];
 				$this->col[] = ["label"=>"INC#","name"=>"inc_number"];
 				$this->col[] = ["label"=>"RMA#","name"=>"rma_number"];
 				$this->col[] = ["label"=>"Order#","name"=>"order_no"];
@@ -98,7 +97,6 @@ use App\StoresFrontEnd;
 			}else if(CRUDBooster::myPrivilegeName() == "Distri RMA"){
 				$this->col[] = ["label"=>"Created Date","name"=>"created_at"];
 				//$this->col[] = ["label"=>"Return Schedule","name"=>"return_schedule"];
-				$this->col[] = ["label"=>"Return Reference#","name"=>"return_reference_no"];
 				$this->col[] = ["label"=>"INC#","name"=>"inc_number"];
 				$this->col[] = ["label"=>"RMA#","name"=>"rma_number"];
 				//$this->col[] = ["label"=>"Order#","name"=>"order_no"];
@@ -120,7 +118,6 @@ use App\StoresFrontEnd;
 			}elseif(CRUDBooster::myPrivilegeName() == "Service Center"){ 
 				$this->col[] = ["label"=>"Created Date","name"=>"created_at"];
 				//$this->col[] = ["label"=>"Return Schedule","name"=>"return_schedule"];
-				$this->col[] = ["label"=>"Return Reference#","name"=>"return_reference_no"];
 				$this->col[] = ["label"=>"INC#","name"=>"inc_number"];
 				$this->col[] = ["label"=>"RMA#","name"=>"rma_number"];
 				//$this->col[] = ["label"=>"Order#","name"=>"order_no"];
@@ -147,7 +144,6 @@ use App\StoresFrontEnd;
 			}else if(CRUDBooster::myPrivilegeName() == "Accounting" || CRUDBooster::myPrivilegeName() == "Inventory Control" ){
 				$this->col[] = ["label"=>"Created Date","name"=>"created_at"];
 				$this->col[] = ["label"=>"Pickup Schedule","name"=>"return_schedule"];
-				$this->col[] = ["label"=>"Return Reference#","name"=>"return_reference_no"];
 				$this->col[] = ["label"=>"INC#","name"=>"inc_number"];
 				$this->col[] = ["label"=>"RMA#","name"=>"rma_number"];
 				$this->col[] = ["label"=>"Order#","name"=>"order_no"];
@@ -165,7 +161,6 @@ use App\StoresFrontEnd;
 			}else if(CRUDBooster::myPrivilegeName() == "Aftersales (Ops)"){
 				$this->col[] = ["label"=>"Created Date","name"=>"created_at"];
 				$this->col[] = ["label"=>"Pickup Schedule","name"=>"return_schedule"];
-				$this->col[] = ["label"=>"Return Reference#","name"=>"return_reference_no"];
 				$this->col[] = ["label"=>"INC#","name"=>"inc_number"];
 				$this->col[] = ["label"=>"RMA#","name"=>"rma_number"];
 				$this->col[] = ["label"=>"Order#","name"=>"order_no"];
@@ -183,7 +178,6 @@ use App\StoresFrontEnd;
 			}else if(CRUDBooster::myPrivilegeName() == "SDM"){
 				$this->col[] = ["label"=>"Created Date","name"=>"created_at"];
 				$this->col[] = ["label"=>"Pickup Schedule","name"=>"return_schedule"];
-				$this->col[] = ["label"=>"Return Reference#","name"=>"return_reference_no"];
 				$this->col[] = ["label"=>"Order#","name"=>"order_no"];
 				//$this->col[] = ["label"=>"SOR#","name"=>"sor_number"];
 				$this->col[] = ["label"=>"Customer Location","name"=>"customer_location"];
@@ -199,7 +193,6 @@ use App\StoresFrontEnd;
 			}elseif(CRUDBooster::myPrivilegeName() == "Distri Ops"  || CRUDBooster::myPrivilegeName() == "Distri Store Ops" ){ 
 				$this->col[] = ["label"=>"Created Date","name"=>"created_at"];
 				//$this->col[] = ["label"=>"Pickup Schedule","name"=>"return_schedule"];
-				$this->col[] = ["label"=>"Return Reference#","name"=>"return_reference_no"];
 				$this->col[] = ["label"=>"Order#","name"=>"order_no"];
 				$this->col[] = ["label"=>"Customer Customer","name"=>"customer_location"];
 				$this->col[] = ["label"=>"Purchase Location","name"=>"purchase_location"];
@@ -214,7 +207,6 @@ use App\StoresFrontEnd;
 			}else{
 				$this->col[] = ["label"=>"Created Date","name"=>"created_at"];
 				$this->col[] = ["label"=>"Pickup Schedule","name"=>"return_schedule"];
-				$this->col[] = ["label"=>"Return Reference#","name"=>"return_reference_no"];
 				$this->col[] = ["label"=>"INC#","name"=>"inc_number"];
 				$this->col[] = ["label"=>"RMA#","name"=>"rma_number"];
 				$this->col[] = ["label"=>"Order#","name"=>"order_no"];
@@ -337,12 +329,12 @@ use App\StoresFrontEnd;
 			$repair_complete = 			ReturnsStatus::where('id','17')->value('id');
 			$replacement_complete = 	ReturnsStatus::where('id','21')->value('id');	
 			if(CRUDBooster::myPrivilegeName() == "RMA"){
-			$this->addaction[] = ['title'=>'Edit','url'=>CRUDBooster::mainpath('ReturnsHistoryEdit/[id]'),'icon'=>'fa fa-pencil', "showIf"=>"[returns_status_1] == $refund_complete or [returns_status_1] == $return_invalid or [returns_status_1] == $repair_complete or [returns_status_1] == $replacement_complete"];
+			$this->addaction[] = ['title'=>'Edit','url'=>CRUDBooster::mainpath('ReturnsHistoryEdit/[id]'),'color'=>'none','icon'=>'fa fa-pencil', "showIf"=>"[returns_status_1] == $refund_complete or [returns_status_1] == $return_invalid or [returns_status_1] == $repair_complete or [returns_status_1] == $replacement_complete"];
 			}
-			$this->addaction[] = ['title'=>'Detail','url'=>CRUDBooster::mainpath('ReturnsHistoryDetailDISTRI/[id]'),'icon'=>'fa fa-eye'];
-			$this->addaction[] = ['title'=>'Print','url'=>CRUDBooster::mainpath('ReturnsPulloutPrint/[id]'),'icon'=>'fa fa-print', "showIf"=>"[returns_status_1] != $cancelled"];
-			$this->addaction[] = ['title'=>'CRF','url'=>CRUDBooster::mainpath('ReturnsCRFPrintDISTRI/[id]'),'icon'=>'fa fa-file', "showIf"=>"[diagnose] == 'REFUND' and [level2_personnel] != null"];
-			$this->addaction[] = ['title'=>'RF','url'=>CRUDBooster::mainpath('ReturnsReturnFormPrintDISTRI/[id]'),'icon'=>'fa fa-file', "showIf"=>"[diagnose] == 'REJECT' and [level2_personnel] != null or [diagnose] == 'REPAIR' and [level2_personnel] != null"];
+			$this->addaction[] = ['title'=>'Detail','url'=>CRUDBooster::mainpath('ReturnsHistoryDetailDISTRI/[id]'),'color'=>'none','icon'=>'fa fa-eye'];
+			$this->addaction[] = ['title'=>'Print','url'=>CRUDBooster::mainpath('ReturnsPulloutPrint/[id]'),'color'=>'none','icon'=>'fa fa-print', "showIf"=>"[returns_status_1] != $cancelled"];
+			$this->addaction[] = ['title'=>'CRF','url'=>CRUDBooster::mainpath('ReturnsCRFPrintDISTRI/[id]'),'color'=>'none','icon'=>'fa fa-file', "showIf"=>"[diagnose] == 'REFUND' and [level2_personnel] != null"];
+			$this->addaction[] = ['title'=>'RF','url'=>CRUDBooster::mainpath('ReturnsReturnFormPrintDISTRI/[id]'),'color'=>'none','icon'=>'fa fa-file', "showIf"=>"[diagnose] == 'REJECT' and [level2_personnel] != null or [diagnose] == 'REPAIR' and [level2_personnel] != null"];
 
 
 	        /* 
@@ -522,7 +514,8 @@ use App\StoresFrontEnd;
 				'chat_distri.created_at as date_send'
 			);
 
-	     
+			$query->whereNotNull('returns_body_item_distribution.category');
+
 			$query->whereNotNull('returns_status_1')->orderBy('history_status', 'desc'); 
 			
 	    }
@@ -565,7 +558,7 @@ use App\StoresFrontEnd;
 			$to_assign_inc = 			ReturnsStatus::where('id','39')->value('warranty_status');
 			$to_ongoing_testing = 		ReturnsStatus::where('id','40')->value('warranty_status');
 
-			if($column_index == 1){
+			if($column_index == 3){
 				if($column_value == $to_schedule){
 					$column_value = '<span class="label label-warning">'.$to_schedule.'</span>';
 			

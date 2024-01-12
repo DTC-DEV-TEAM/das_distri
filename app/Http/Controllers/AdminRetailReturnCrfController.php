@@ -214,10 +214,10 @@ use PHPExcel_Style_Fill;
 			$refund_in_process = ReturnsStatus::where('id','8')->value('id');
 			$to_close = 			ReturnsStatus::where('id','30')->value('id');
 			
-			$this->addaction[] = ['title'=>'Print','url'=>CRUDBooster::mainpath('ReturnsCRFPrintRTL/[id]'),'icon'=>'fa fa-print', "showIf"=>"[returns_status_1] == $to_print_crf"];
-			$this->addaction[] = ['title'=>'Edit','url'=>CRUDBooster::mainpath('ReturnsClosingEditRTL/[id]'),'icon'=>'fa fa-pencil', "showIf"=>"[returns_status_1] == $refund_in_process"];
+			$this->addaction[] = ['title'=>'Print','url'=>CRUDBooster::mainpath('ReturnsCRFPrintRTL/[id]'),'color'=>'none','icon'=>'fa fa-print', "showIf"=>"[returns_status_1] == $to_print_crf"];
+			$this->addaction[] = ['title'=>'Edit','url'=>CRUDBooster::mainpath('ReturnsClosingEditRTL/[id]'),'color'=>'none','icon'=>'fa fa-pencil', "showIf"=>"[returns_status_1] == $refund_in_process"];
 			if(CRUDBooster::myPrivilegeName() == "Inventory Control"){ 
-		    	$this->addaction[] = ['title'=>'Edit','url'=>CRUDBooster::mainpath('ReturnsClosingEditReplaceRTL/[id]'),'icon'=>'fa fa-pencil', "showIf"=>"[returns_status_1] == $to_close"];
+		    	$this->addaction[] = ['title'=>'Edit','url'=>CRUDBooster::mainpath('ReturnsClosingEditReplaceRTL/[id]'),'color'=>'none','icon'=>'fa fa-pencil', "showIf"=>"[returns_status_1] == $to_close"];
 			}
 	        /* 
 	        | ---------------------------------------------------------------------- 
@@ -426,7 +426,7 @@ use PHPExcel_Style_Fill;
 			$refund_in_process = 		ReturnsStatus::where('id','8')->value('warranty_status');
 			$to_close = 			ReturnsStatus::where('id','30')->value('warranty_status');
 
-			if($column_index == 1){
+			if($column_index == 2){
 				if($column_value == $to_print_crf){
 					$column_value = '<span class="label label-warning">'.$to_print_crf.'</span>';
 			

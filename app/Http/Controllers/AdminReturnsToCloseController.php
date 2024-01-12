@@ -266,13 +266,13 @@ use App\StoresFrontEnd;
 			//$this->addaction[] = ['title'=>'Edit','url'=>CRUDBooster::mainpath('ReturnsSchedulingEdit/[id]'),'icon'=>'fa fa-pencil', "showIf"=>"[returns_status_1] == $to_schedule_aftersales or [returns_status_1] == $to_schedule_logistics"];
 			if(CRUDBooster::myPrivilegeName() == "Ecomm Ops"){
 		        
-		        $this->addaction[] = ['title'=>'Detail','url'=>CRUDBooster::mainpath('ReturnsDetailClose/[id]'),'icon'=>'fa fa-eye'];
+		        $this->addaction[] = ['title'=>'Detail','url'=>CRUDBooster::mainpath('ReturnsDetailClose/[id]'),'color'=>'none','icon'=>'fa fa-eye'];
 			    
 			}else{
 			
-			    $this->addaction[] = ['title'=>'Edit','url'=>CRUDBooster::mainpath('ReturnsCloseRejectEdit/[id]'),'icon'=>'fa fa-pencil', "showIf"=>"[returns_status_1] == $to_ship_back"];
+			    $this->addaction[] = ['title'=>'Edit','url'=>CRUDBooster::mainpath('ReturnsCloseRejectEdit/[id]'),'color'=>'none','icon'=>'fa fa-pencil', "showIf"=>"[returns_status_1] == $to_ship_back"];
 			    
-			    $this->addaction[] = ['title'=>'Edit','url'=>CRUDBooster::mainpath('ReturnsClosingEdit/[id]'),'icon'=>'fa fa-pencil', "showIf"=>"[returns_status_1] == $for_replacement"];
+			    $this->addaction[] = ['title'=>'Edit','url'=>CRUDBooster::mainpath('ReturnsClosingEdit/[id]'),'color'=>'none','icon'=>'fa fa-pencil', "showIf"=>"[returns_status_1] == $for_replacement"];
 			
 			}
 			//$this->addaction[] = ['title'=>'Print','url'=>CRUDBooster::mainpath('ReturnsPulloutPrint/[id]'),'icon'=>'fa fa-print', "showIf"=>"[returns_status_1] == $pending"];
@@ -539,7 +539,7 @@ use App\StoresFrontEnd;
 			$for_replacement = 	  		ReturnsStatus::where('id','20')->value('warranty_status');
 			
 			$pending = ReturnsStatus::where('id','19')->value('warranty_status');
-			if($column_index == 1){
+			if($column_index == 2){
 				if($column_value == $requested){
 					$column_value = '<span class="label label-warning">'.$requested.'</span>';
 			

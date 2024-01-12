@@ -55,8 +55,8 @@ use PHPExcel_Style_Fill;
 
 			# START COLUMNS DO NOT REMOVE THIS LINE
 			$this->col = [];
-			$this->col[] = ["label"=>"Status","name"=>"returns_status_1","join"=>"warranty_statuses,warranty_status"];
 			$this->col[] = ["label"=>"Brand","name"=>"id","join"=>"returns_body_item,brand","join_id"=>"returns_header_id"];
+			$this->col[] = ["label"=>"Status","name"=>"returns_status_1","join"=>"warranty_statuses,warranty_status"];
 			$this->col[] = ["label"=>"Last Chat", "name"=>"id", 'callback'=>function($row){
 				$img_url = asset("chat_img/$row->last_image");
 				;
@@ -79,32 +79,18 @@ use PHPExcel_Style_Fill;
 					return '<div class="no-message">No messages available at the moment.</div>';
 				}
 			}];
-			if(CRUDBooster::myPrivilegeName() == "Service Center"){ 
-        			$this->col[] = ["label"=>"Created Date","name"=>"created_at"];
-        			$this->col[] = ["label"=>"Pickup Schedule","name"=>"return_schedule"];
-        			$this->col[] = ["label"=>"Return Reference#","name"=>"return_reference_no"];
-        			$this->col[] = ["label"=>"Order#","name"=>"order_no"];
-        			$this->col[] = ["label"=>"Customer Location","name"=>"customer_location"];
-        			$this->col[] = ["label"=>"Purchase Location","name"=>"purchase_location"];
-        			$this->col[] = ["label"=>"Store","name"=>"store"];
-        		    $this->col[] = ["label"=>"Warranty Status","name"=>"warranty_status"];
-        			$this->col[] = ["label"=>"Customer Last Name","name"=>"customer_last_name"];
-        			$this->col[] = ["label"=>"Customer First Name","name"=>"customer_first_name"];
-        			$this->col[] = ["label"=>"Mode Of Payment","name"=>"mode_of_payment"];
-			}else{
-				$this->col[] = ["label"=>"Created Date","name"=>"created_at"];
-				$this->col[] = ["label"=>"Pickup Schedule","name"=>"return_schedule"];
-				$this->col[] = ["label"=>"Return Reference#","name"=>"return_reference_no"];
-				$this->col[] = ["label"=>"INC#","name"=>"inc_number"];
-				$this->col[] = ["label"=>"Order#","name"=>"order_no"];
-				$this->col[] = ["label"=>"Customer Location","name"=>"customer_location"];
-				$this->col[] = ["label"=>"Purchase Location","name"=>"purchase_location"];
-				$this->col[] = ["label"=>"Store","name"=>"store"];
-				$this->col[] = ["label"=>"Warranty Status","name"=>"warranty_status"];
-				$this->col[] = ["label"=>"Customer Last Name","name"=>"customer_last_name"];
-				$this->col[] = ["label"=>"Customer First Name","name"=>"customer_first_name"];
-				$this->col[] = ["label"=>"Mode Of Payment","name"=>"mode_of_payment"];
-			}
+			$this->col[] = ["label"=>"Return Reference#","name"=>"return_reference_no"];
+			$this->col[] = ["label"=>"Created Date","name"=>"created_at"];
+			$this->col[] = ["label"=>"Pickup Schedule","name"=>"return_schedule"];
+			$this->col[] = ["label"=>"Order#","name"=>"order_no"];
+			$this->col[] = ["label"=>"Customer Location","name"=>"customer_location"];
+			$this->col[] = ["label"=>"Purchase Location","name"=>"purchase_location"];
+			$this->col[] = ["label"=>"Store","name"=>"store"];
+			$this->col[] = ["label"=>"Warranty Status","name"=>"warranty_status"];
+			$this->col[] = ["label"=>"Customer Last Name","name"=>"customer_last_name"];
+			$this->col[] = ["label"=>"Customer First Name","name"=>"customer_first_name"];
+			$this->col[] = ["label"=>"Mode Of Payment","name"=>"mode_of_payment"];
+
 			# END COLUMNS DO NOT REMOVE THIS LINE
 
 			# START FORM DO NOT REMOVE THIS LINE
@@ -517,7 +503,7 @@ use PHPExcel_Style_Fill;
 			$to_print_return_form = ReturnsStatus::where('id','13')->value('warranty_status');
 			$to_assign_inc = ReturnsStatus::where('id','39')->value('warranty_status');
 
-			if($column_index == 1){
+			if($column_index == 3){
 				if($column_value == $requested){
 					$column_value = '<span class="label label-warning">'.$requested.'</span>';
 			

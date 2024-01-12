@@ -265,8 +265,8 @@ use PHPExcel_Style_Fill;
 			$for_replacement = 	  ReturnsStatus::where('id','20')->value('id');
 			$for_replacement_sdm = 	  ReturnsStatus::where('id','26')->value('id');
 
-			$this->addaction[] = ['title'=>'Edit','url'=>CRUDBooster::mainpath('ReturnsClosingEditDISTRIOPS/[id]'),'icon'=>'fa fa-pencil', "showIf"=>"[returns_status_1] == $to_ship_back or [returns_status_1] == $for_replacement"];
-			$this->addaction[] = ['title'=>'Edit','url'=>CRUDBooster::mainpath('ReturnsClosingEditDISTRIOPS/[id]'),'icon'=>'fa fa-pencil', "showIf"=>"[returns_status_1] == $for_replacement_sdm"];
+			$this->addaction[] = ['title'=>'Edit','url'=>CRUDBooster::mainpath('ReturnsClosingEditDISTRIOPS/[id]'),'color'=>'none','icon'=>'fa fa-pencil', "showIf"=>"[returns_status_1] == $to_ship_back or [returns_status_1] == $for_replacement"];
+			$this->addaction[] = ['title'=>'Edit','url'=>CRUDBooster::mainpath('ReturnsClosingEditDISTRIOPS/[id]'),'color'=>'none','icon'=>'fa fa-pencil', "showIf"=>"[returns_status_1] == $for_replacement_sdm"];
 
 
 	        /* 
@@ -507,7 +507,7 @@ use PHPExcel_Style_Fill;
 			$for_replacement = 	  		ReturnsStatus::where('id','20')->value('warranty_status');
 			$for_replacement_sdm = 	  	ReturnsStatus::where('id','26')->value('warranty_status');
 
-			if($column_index == 1){
+			if($column_index == 2){
 				if($column_value == $to_ship_back){
 					$column_value = '<span class="label label-warning">'.$to_ship_back.'</span>';
 			
