@@ -567,7 +567,7 @@ use App\StoresFrontEnd;
 				'chat_ecomms.created_at as date_send'
 			);
 
-			$query->whereNotNull('returns_body_item.category');
+			$query->whereNull('returns_body_item.category');
 			
 			if(CRUDBooster::myPrivilegeName() == "Aftersales" || CRUDBooster::myPrivilegeName() == "Ecomm Ops"){ 
 				$requested = 		ReturnsStatus::where('id','1')->value('id');

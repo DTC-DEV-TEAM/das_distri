@@ -638,12 +638,13 @@ use Illuminate\Support\Facades\Validator;
 						$postdata['returns_status'] = 					    $replacement_complete;
 						$postdata['returns_status_1'] = 					$to_close; */
 
+						
 						$validator = Validator::make(
 							['negative_positive_invoice' => $negative_positive_invoice],
 							['negative_positive_invoice' => 'unique:returns_header_retail,returns_header_retail.negative_positive_invoice']
 						);
 						
-						if ($validator->fails()) {
+						if ($validator->fails() && $ReturnRequest->diagnose != 'REFUND') {
 							// Validation failed
 							$errors = $validator->errors();
 
