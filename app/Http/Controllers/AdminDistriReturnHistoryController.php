@@ -348,7 +348,22 @@ use App\StoresFrontEnd;
 	        | 
 	        */
 	        $this->button_selected = array();
+			if(CRUDBooster::isUpdate())
+	        {
+				if(CRUDBooster::myPrivilegeName() == "Admin Ops" ||  CRUDBooster::isSuperadmin()){ 
+					$this->button_selected[] = ['label'=>'Void',
+												'icon'=>'fa fa-times-circle',
+												'name'=>'void'];
+				}else{
+				    if(CRUDBooster::myName() == "Joelan Delota" ||
+				       CRUDBooster::myName() == "Jan Franz Josef Sevilla"){
+				        						$this->button_selected[] = ['label'=>'Void',
+													'icon'=>'fa fa-times-circle',
+													'name'=>'void'];
+				    }
+				}
 
+	        }
 	                
 	        /* 
 	        | ---------------------------------------------------------------------- 
@@ -493,7 +508,26 @@ use App\StoresFrontEnd;
 	    */
 	    public function actionButtonSelected($id_selected,$button_name) {
 	        //Your code here
-	            
+			if($button_name == 'void') {
+				
+				DB::table('returns_header_distribution')->whereIn('id',$id_selected)->update([
+					'returns_status_1'=> 28,
+					'returns_status'=> 28
+				]);
+					
+
+			
+
+				DB::connection('mysql_front_end')
+				->statement("update returns_header_retail set returns_status_1 = 28,
+								returns_status = 28
+								where id  in  ('$id_selected')");
+	
+				DB::disconnect('mysql_front_end');
+
+			
+				
+			}
 	    }
 
 

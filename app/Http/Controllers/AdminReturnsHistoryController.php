@@ -361,8 +361,7 @@ use App\StoresFrontEnd;
 				    
 			
 				    
-				    if(CRUDBooster::myName() == "Jomark Tamboong" || 
-				       CRUDBooster::myName() == "Aldrin Gerasmio" ||
+				    if(CRUDBooster::myName() == "Joelan Delota" ||
 				       CRUDBooster::myName() == "Jan Franz Josef Sevilla"){
 				        						$this->button_selected[] = ['label'=>'Void',
 													'icon'=>'fa fa-times-circle',
