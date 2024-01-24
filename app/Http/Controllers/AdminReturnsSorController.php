@@ -386,7 +386,9 @@ use PHPExcel_Style_Fill;
 				'sender.name as sender_name',
 				'chat_ecomms.created_at as date_send'
 			);
-	        
+
+			$query->whereNull('returns_body_item.category');
+
 	        if(CRUDBooster::myPrivilegeName() == "Service Center"){ 
 	            
 	            $query->where(function($sub_query){
