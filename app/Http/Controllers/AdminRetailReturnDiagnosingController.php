@@ -56,7 +56,14 @@ use PHPExcel_Style_Fill;
 
 			# START COLUMNS DO NOT REMOVE THIS LINE
 			$this->col = [];
-			$this->col[] = ["label"=>"Brand","name"=>"id","join"=>"returns_body_item_retail,brand","join_id"=>"returns_header_id"];
+			$this->col[] = ["label"=>"Brand","name"=>"id", 'callback'=>function($row){
+				
+				$id = $row->id;
+
+				$brand = DB::table('returns_body_item_retail')->where('returns_header_id', $id)->orderBy('id', 'desc')->first()->brand;
+				
+				return $brand;
+			}];			
 			$this->col[] = ["label"=>"Status","name"=>"returns_status_1","join"=>"warranty_statuses,warranty_status"];
 			$this->col[] = ["label"=>"Last Chat", "name"=>"id", 'callback'=>function($row){
 				$img_url = asset("chat_img/$row->last_image");
@@ -437,7 +444,7 @@ use PHPExcel_Style_Fill;
 				'chats.created_at as date_send'
 			);
 
-			$query->whereNotNull('returns_body_item_retail.category');
+			// $query->whereNotNull('returns_body_item_retail.category');
 
 			if(CRUDBooster::myPrivilegeName() == "Service Center"){ 
 				$query->where(function($sub_query){
