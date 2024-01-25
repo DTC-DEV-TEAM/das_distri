@@ -101,7 +101,7 @@
                                 @foreach($via as $data)
                                     @if($data->id == 1)
                                         <td>
-                                            <label class="radio-inline control-label" ><input type="radio" required checked  class="via_class" name="via_id" value="{{$data->id}}" >{{$data->via_name}}</label>
+                                            <label class="radio-inline control-label" ><input type="radio" required class="via_class" name="via_id" value="{{$data->id}}" >{{$data->via_name}}</label>
                                         </td>
                                     @else
                                         <td>
@@ -123,11 +123,11 @@
                                 @foreach($warranty_status as $data)
                                     @if($data->warranty_name =="IN WARRANTY")
                                             <td>
-                                                <label class="radio-inline control-label" ><input type="radio" required checked    name="warranty_status_val" value="{{$data->warranty_name}}" >{{$data->warranty_name}}</label>
+                                                <label class="radio-inline control-label" ><input type="radio" required name="warranty_status_val" value="{{$data->warranty_name}}" >{{$data->warranty_name}}</label>
                                             </td>
                                     @else
                                             <td>
-                                                <label class="radio-inline control-label"><input type="radio" required  name="warranty_status_val" value="{{$data->warranty_name}}" >{{$data->warranty_name}}</label>
+                                                <label class="radio-inline control-label"><input type="radio" required name="warranty_status_val" value="{{$data->warranty_name}}" >{{$data->warranty_name}}</label>
                                             </td>
                                     @endif
                                 @endforeach

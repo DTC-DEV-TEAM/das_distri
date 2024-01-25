@@ -54,7 +54,14 @@ use App\StoresFrontEnd;
 
 			# START COLUMNS DO NOT REMOVE THIS LINE
 			$this->col = [];
-			$this->col[] = ["label"=>"Brand","name"=>"id","join"=>"returns_body_item,brand","join_id"=>"returns_header_id"];
+			$this->col[] = ["label"=>"Brand","name"=>"id", 'callback'=>function($row){
+				
+				$id = $row->id;
+
+				$brand = DB::table('returns_body_item')->where('returns_header_id', $id)->orderBy('id', 'desc')->first()->brand;
+
+				return $brand;
+			}];
 			$this->col[] = ["label"=>"Status","name"=>"returns_status_1","join"=>"warranty_statuses,warranty_status"];
 			$this->col[] = ["label"=>"Last Chat", "name"=>"id", 'callback'=>function($row){
 				$img_url = asset("chat_img/$row->last_image");
@@ -566,8 +573,6 @@ use App\StoresFrontEnd;
 				'chat_ecomms.created_at as date_send'
 			);
 
-			$query->whereNull('returns_body_item.category');
-			
 			if(CRUDBooster::myPrivilegeName() == "Aftersales" || CRUDBooster::myPrivilegeName() == "Ecomm Ops"){ 
 				$requested = 		ReturnsStatus::where('id','1')->value('id');
 				$to_ship_back = 	ReturnsStatus::where('id','14')->value('id');

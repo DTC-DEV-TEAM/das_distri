@@ -54,8 +54,14 @@ use App\StoresFrontEnd;
 
 			# START COLUMNS DO NOT REMOVE THIS LINE
 			$this->col = [];
-			$this->col[] = ["label"=>"Brand","name"=>"id","join"=>"returns_body_item_distribution,brand","join_id"=>"returns_header_id"];
-			$this->col[] = ["label"=>"Status","name"=>"returns_status_1","join"=>"warranty_statuses,warranty_status"];
+			$this->col[] = ["label"=>"Brand","name"=>"id", 'callback'=>function($row){
+				
+				$id = $row->id;
+
+				$brand = DB::table('returns_body_item_distribution')->where('returns_header_id', $id)->orderBy('id', 'desc')->first()->brand;
+				
+				return $brand;
+			}];						$this->col[] = ["label"=>"Status","name"=>"returns_status_1","join"=>"warranty_statuses,warranty_status"];
 			$this->col[] = ["label"=>"Last Chat", "name"=>"id", 'callback'=>function($row){
 				$img_url = asset("chat_img/$row->last_image");
 				;
@@ -539,6 +545,7 @@ use App\StoresFrontEnd;
 	    |
 	    */
 	    public function hook_query_index(&$query) {
+
 			$query->leftJoin('distri_last_comments', 'distri_last_comments.returns_header_distri_id', 'returns_header_distribution.id')
 			->leftJoin('chat_distri', 'chat_distri.id', 'distri_last_comments.chats_id')
 			->leftJoin('cms_users as sender', 'sender.id', 'chat_distri.created_by')
@@ -548,10 +555,7 @@ use App\StoresFrontEnd;
 				'chat_distri.created_at as date_send'
 			);
 
-			$query->whereNotNull('returns_body_item_distribution.category');
-
 			$query->whereNotNull('returns_status_1')->orderBy('history_status', 'desc'); 
-			
 	    }
 
 	    /*

@@ -57,7 +57,7 @@
                     <div> 
                         <div class="row">                           
                             <label class="control-label col-md-2"  style="margin-top:4px;">{{ trans('message.form-label.customer_location') }}</label>
-                            <div class="col-md-5">
+                            <div class="col-md-4">
                                 <select class="js-example-basic-single" name="customer_location" id="customer_location" required style="width:100%">
                                                 <option value="" disabled>-- Select Customer Location Name --</option>
                                         @foreach($store_list as $datas)    
@@ -71,7 +71,7 @@
                         <div id="locations"> 
                             <div class="row">                           
                                 <label class="control-label col-md-2"  style="margin-top:4px;" >Service Center Location:</label>
-                                <div class="col-md-5">
+                                <div class="col-md-4">
                                     <select class="js-example-basic-single" name="deliver_to" id="deliver_to" required style="width:100%">
                                             <option value="" selected id="">-- Select Service Center Location --</option>
                                             @foreach($SCLocation as $datas)    
@@ -93,12 +93,12 @@
 
                                 @if($data->id == 1)
                                             <div class="col-md-5">
-                                                <label class="radio-inline control-label col-md-5" ><input type="radio" required checked  class="via_class" name="via_id" value="{{$data->id}}" >{{$data->via_name}}</label>
+                                                <label class="radio-inline control-label col-md-5" ><input type="radio" required class="via_class" name="via_id" value="{{$data->id}}" >{{$data->via_name}}</label>
                                                 <br>
                                             </div>
                                     @else
                                             <div class="col-md-5">
-                                                <label class="radio-inline control-label col-md-5"><input type="radio" required  class="via_class" name="via_id" value="{{$data->id}}" >{{$data->via_name}}</label>
+                                                <label class="radio-inline control-label col-md-5"><input type="radio" class="via_class" name="via_id" value="{{$data->id}}" >{{$data->via_name}}</label>
                                                 <br>
                                             </div>
                                 @endif
@@ -130,12 +130,12 @@
 
                                     @if($data->warranty_name =="IN WARRANTY")
                                                 <div class="col-md-5">
-                                                    <label class="radio-inline control-label col-md-5" ><input type="radio" required checked    name="warranty_status_val" value="{{$data->warranty_name}}" >{{$data->warranty_name}}</label>
+                                                    <label class="radio-inline control-label col-md-5" ><input type="radio" required name="warranty_status_val" value="{{$data->warranty_name}}" >{{$data->warranty_name}}</label>
                                                     <br>
                                                 </div>
                                         @else
                                                 <div class="col-md-5">
-                                                    <label class="radio-inline control-label col-md-5"><input type="radio" required  name="warranty_status_val" value="{{$data->warranty_name}}" >{{$data->warranty_name}}</label>
+                                                    <label class="radio-inline control-label col-md-5"><input type="radio" required name="warranty_status_val" value="{{$data->warranty_name}}" >{{$data->warranty_name}}</label>
                                                     <br>
                                                 </div>
                                     @endif
@@ -165,12 +165,12 @@
 
                                     @if($data->id == 5)
                                                 <div class="col-md-5">
-                                                    <label class="radio-inline control-label col-md-12" ><input type="radio" class="transactionradio"  required name="transaction_type_id" id="transaction_type_id" value="{{$data->id}}" >{{$data->transaction_type_name}}</label>
+                                                    <label class="radio-inline control-label col-md-12" ><input type="radio" class="transactionradio" required checked name="transaction_type_id" id="transaction_type_id" value="{{$data->id}}" >{{$data->transaction_type_name}}</label>
                                                     <br>
                                                 </div>
                                         @else
                                                 <div class="col-md-5">
-                                                    <label class="radio-inline control-label col-md-12"><input type="radio"  class="transactionradio"  required name="transaction_type_id" id="transaction_type_id" value="{{$data->id}}" >{{$data->transaction_type_name}}</label>
+                                                    <label class="radio-inline control-label col-md-12"><input type="radio"  class="transactionradio" required name="transaction_type_id" id="transaction_type_id" value="{{$data->id}}" >{{$data->transaction_type_name}}</label>
                                                     <br>
                                                 </div>
                                     @endif

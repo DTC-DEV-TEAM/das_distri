@@ -1053,7 +1053,6 @@ use App\StoresFrontEnd;
 
 			$to_receive_sc = ReturnsStatus::where('id','35')->value('id');
 
-			
 			if(     $return_request->returns_status_1 != $to_schedule_logistics 
 			    &&  $return_request->returns_status_1 != $to_receive_rma
 			    &&  $return_request->returns_status_1 != $to_receive_sc){
@@ -1066,7 +1065,8 @@ use App\StoresFrontEnd;
         
         						ReturnsHeader::where('id',$request_id)
         							->update([
-        							'returns_status_1'=> 		$to_schedule_logistics
+        							'returns_status_1'=> 		$to_schedule_logistics,
+									'po_store_date'=>			date('Y-m-d H:i:s')
         						]);	
         						
         						

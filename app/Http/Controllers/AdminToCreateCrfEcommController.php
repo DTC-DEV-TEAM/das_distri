@@ -46,7 +46,7 @@ use App\ModeOfPayment;
 			$this->button_show = true;
 			$this->button_filter = true;
 			$this->button_import = false;
-			$this->button_export = false;
+			$this->button_export = true;
 			$this->table = "returns_header";
 			# END CONFIGURATION DO NOT REMOVE THIS LINE
 

@@ -1521,7 +1521,8 @@ use App\TransactionTypeList;
 
 						ReturnsHeaderRTL::where('id',$request_id)
 						->update([
-							'returns_status_1'=> 		$to_schedule
+							'returns_status_1'=> 		$to_schedule,
+							'po_store_date'=>			date('Y-m-d H:i:s')
 						]);	
 					
 					}else{
