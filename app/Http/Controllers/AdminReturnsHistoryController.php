@@ -86,9 +86,8 @@ use App\StoresFrontEnd;
 				}
 			}];
 			$this->col[] = ["label"=>"Return Reference#","name"=>"return_reference_no"];
-
+			$this->col[] = ["label"=>"Created Date","name"=>"created_at"];
 			if(CRUDBooster::myPrivilegeName() == "Aftersales"){ 
-				$this->col[] = ["label"=>"Created Date","name"=>"created_at"];
 				$this->col[] = ["label"=>"Return Schedule","name"=>"return_schedule"];
 				$this->col[] = ["label"=>"Order#","name"=>"order_no"];
 				$this->col[] = ["label"=>"Customer Location","name"=>"customer_location"];
@@ -102,7 +101,6 @@ use App\StoresFrontEnd;
 				$this->col[] = ["label"=>"Diagnose","name"=>"diagnose","visible"=>false];
 				$this->col[] = ["label"=>"Level3 Personnel","name"=>"level3_personnel","visible"=>false];
 			}elseif(CRUDBooster::myPrivilegeName() == "Logistics"){ 
-				$this->col[] = ["label"=>"Created Date","name"=>"created_at"];
 				$this->col[] = ["label"=>"Return Schedule","name"=>"return_schedule"];
 				$this->col[] = ["label"=>"Order#","name"=>"order_no"];
 				$this->col[] = ["label"=>"Customer Location","name"=>"customer_location"];
@@ -115,7 +113,6 @@ use App\StoresFrontEnd;
 				$this->col[] = ["label"=>"Diagnose","name"=>"diagnose","visible"=>false];
 				$this->col[] = ["label"=>"Level3 Personnel","name"=>"level3_personnel","visible"=>false];
 			}elseif(CRUDBooster::myPrivilegeName() == "Ecomm Ops"){ 
-				$this->col[] = ["label"=>"Created Date","name"=>"created_at"];
 				//$this->col[] = ["label"=>"Pickup Schedule","name"=>"return_schedule"];
 				$this->col[] = ["label"=>"Order#","name"=>"order_no"];
 				$this->col[] = ["label"=>"Customer Customer","name"=>"customer_location"];
@@ -128,7 +125,6 @@ use App\StoresFrontEnd;
 				$this->col[] = ["label"=>"Diagnose","name"=>"diagnose","visible"=>false];
 				$this->col[] = ["label"=>"Level3 Personnel","name"=>"level3_personnel","visible"=>false];
 			}elseif(in_array(CRUDBooster::myPrivilegeName(), ['RMA Inbound', 'Tech Lead', 'RMA Technician', 'RMA Specialist'])){ 
-				$this->col[] = ["label"=>"Created Date","name"=>"created_at"];
 				//$this->col[] = ["label"=>"Return Schedule","name"=>"return_schedule"];
 				//$this->col[] = ["label"=>"Order#","name"=>"order_no"];
 				$this->col[] = ["label"=>"SOR#","name"=>"sor_number"];
@@ -171,7 +167,6 @@ use App\StoresFrontEnd;
 
 				$this->col[] = ["label"=>"Level3 Personnel","name"=>"level3_personnel","visible"=>false];
 			}elseif(CRUDBooster::myPrivilegeName() == "Accounting"){ 
-				$this->col[] = ["label"=>"Created Date","name"=>"created_at"];
 				$this->col[] = ["label"=>"Return Schedule","name"=>"return_schedule"];
 				$this->col[] = ["label"=>"Order#","name"=>"order_no"];
 				$this->col[] = ["label"=>"SOR#","name"=>"sor_number"];
@@ -189,9 +184,7 @@ use App\StoresFrontEnd;
 
 			}else{
 				$this->col[] = ["label"=>"Id","name"=>"id","visible"=>false];
-				$this->col[] = ["label"=>"Created Date","name"=>"created_at"];
 				$this->col[] = ["label"=>"Closed Date","name"=>"level5_personnel_edited"];
-
 				$this->col[] = ["label"=>"Return Schedule","name"=>"return_schedule"];
 				$this->col[] = ["label"=>"Order#","name"=>"order_no"];
 				$this->col[] = ["label"=>"SOR#","name"=>"sor_number"];
@@ -206,7 +199,6 @@ use App\StoresFrontEnd;
 				$this->col[] = ["label"=>"Diagnose","name"=>"diagnose","visible"=>false];
 				$this->col[] = ["label"=>"Level3 Personnel","name"=>"level3_personnel","visible"=>false];
 			}
-
 
 			
 			# END COLUMNS DO NOT REMOVE THIS LINE

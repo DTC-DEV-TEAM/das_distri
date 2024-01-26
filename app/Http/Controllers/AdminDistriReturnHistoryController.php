@@ -85,8 +85,8 @@ use App\StoresFrontEnd;
 				}
 			}];
 			$this->col[] = ["label"=>"Return Reference#","name"=>"return_reference_no"];
+			$this->col[] = ["label"=>"Created At","name"=>"created_at","visible"=>false];
 			if(CRUDBooster::myPrivilegeName() == "Distri Logistics" || CRUDBooster::myPrivilegeName() == "Logistics"){
-				$this->col[] = ["label"=>"Created Date","name"=>"created_at"];
 				$this->col[] = ["label"=>"Return Schedule","name"=>"return_schedule"];
 				$this->col[] = ["label"=>"INC#","name"=>"inc_number"];
 				$this->col[] = ["label"=>"RMA#","name"=>"rma_number"];
@@ -101,7 +101,6 @@ use App\StoresFrontEnd;
 				$this->col[] = ["label"=>"Diagnose","name"=>"diagnose","visible"=>false];
 				$this->col[] = ["label"=>"Level3 Personnel","name"=>"level3_personnel","visible"=>false];
 			}else if(CRUDBooster::myPrivilegeName() == "Distri RMA"){
-				$this->col[] = ["label"=>"Created Date","name"=>"created_at"];
 				//$this->col[] = ["label"=>"Return Schedule","name"=>"return_schedule"];
 				$this->col[] = ["label"=>"INC#","name"=>"inc_number"];
 				$this->col[] = ["label"=>"RMA#","name"=>"rma_number"];
@@ -122,7 +121,6 @@ use App\StoresFrontEnd;
 
 				$this->col[] = ["label"=>"Level3 Personnel","name"=>"level3_personnel","visible"=>false];
 			}elseif(CRUDBooster::myPrivilegeName() == "Service Center"){ 
-				$this->col[] = ["label"=>"Created Date","name"=>"created_at"];
 				//$this->col[] = ["label"=>"Return Schedule","name"=>"return_schedule"];
 				$this->col[] = ["label"=>"INC#","name"=>"inc_number"];
 				$this->col[] = ["label"=>"RMA#","name"=>"rma_number"];
@@ -148,7 +146,6 @@ use App\StoresFrontEnd;
 
 				$this->col[] = ["label"=>"Level3 Personnel","name"=>"level3_personnel","visible"=>false];
 			}else if(CRUDBooster::myPrivilegeName() == "Accounting" || CRUDBooster::myPrivilegeName() == "Inventory Control" ){
-				$this->col[] = ["label"=>"Created Date","name"=>"created_at"];
 				$this->col[] = ["label"=>"Pickup Schedule","name"=>"return_schedule"];
 				$this->col[] = ["label"=>"INC#","name"=>"inc_number"];
 				$this->col[] = ["label"=>"RMA#","name"=>"rma_number"];
@@ -165,7 +162,6 @@ use App\StoresFrontEnd;
 				$this->col[] = ["label"=>"Diagnose","name"=>"diagnose","visible"=>false];
 				$this->col[] = ["label"=>"Level3 Personnel","name"=>"level3_personnel","visible"=>false];
 			}else if(CRUDBooster::myPrivilegeName() == "Aftersales (Ops)"){
-				$this->col[] = ["label"=>"Created Date","name"=>"created_at"];
 				$this->col[] = ["label"=>"Pickup Schedule","name"=>"return_schedule"];
 				$this->col[] = ["label"=>"INC#","name"=>"inc_number"];
 				$this->col[] = ["label"=>"RMA#","name"=>"rma_number"];
@@ -182,7 +178,6 @@ use App\StoresFrontEnd;
 				$this->col[] = ["label"=>"Diagnose","name"=>"diagnose","visible"=>false];
 				$this->col[] = ["label"=>"Level3 Personnel","name"=>"level3_personnel","visible"=>false];
 			}else if(CRUDBooster::myPrivilegeName() == "SDM"){
-				$this->col[] = ["label"=>"Created Date","name"=>"created_at"];
 				$this->col[] = ["label"=>"Pickup Schedule","name"=>"return_schedule"];
 				$this->col[] = ["label"=>"Order#","name"=>"order_no"];
 				//$this->col[] = ["label"=>"SOR#","name"=>"sor_number"];
@@ -197,7 +192,6 @@ use App\StoresFrontEnd;
 				$this->col[] = ["label"=>"Diagnose","name"=>"diagnose","visible"=>false];
 				$this->col[] = ["label"=>"Level3 Personnel","name"=>"level3_personnel","visible"=>false];
 			}elseif(CRUDBooster::myPrivilegeName() == "Distri Ops"  || CRUDBooster::myPrivilegeName() == "Distri Store Ops" ){ 
-				$this->col[] = ["label"=>"Created Date","name"=>"created_at"];
 				//$this->col[] = ["label"=>"Pickup Schedule","name"=>"return_schedule"];
 				$this->col[] = ["label"=>"Order#","name"=>"order_no"];
 				$this->col[] = ["label"=>"Customer Customer","name"=>"customer_location"];
@@ -211,7 +205,6 @@ use App\StoresFrontEnd;
 				$this->col[] = ["label"=>"Diagnose","name"=>"diagnose","visible"=>false];
 				$this->col[] = ["label"=>"Level3 Personnel","name"=>"level3_personnel","visible"=>false];
 			}else{
-				$this->col[] = ["label"=>"Created Date","name"=>"created_at"];
 				$this->col[] = ["label"=>"Pickup Schedule","name"=>"return_schedule"];
 				$this->col[] = ["label"=>"INC#","name"=>"inc_number"];
 				$this->col[] = ["label"=>"RMA#","name"=>"rma_number"];
