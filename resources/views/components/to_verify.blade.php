@@ -800,7 +800,7 @@ $("#btnSubmit").on('click',function() {
                     signal = 0;
                     alert_message = 1;
                     Swal.fire({
-                        title: "Incorrect Negative/Positive Invoice format! e.g. INV#1001",
+                        title: "Incorrect Negative/Positive Invoice format! e.g. INV#1001 remove space",
                         icon: 'warning',
                         showCancelButton: false,
                         confirmButtonColor: '#3085d6',
@@ -825,8 +825,8 @@ $("#btnSubmit").on('click',function() {
                 }else{
                     signal =    1;
                 }
-                
-            }else{
+            }
+            else if(!$("#negative_positive_invoice").val().includes("INV#")){
                 signal = 0;
                 alert_message = 1;
                 Swal.fire({
@@ -840,6 +840,20 @@ $("#btnSubmit").on('click',function() {
                 })
                 return false;
             }
+            // else{
+            //     signal = 0;
+            //     alert_message = 1;
+            //     Swal.fire({
+            //         title: "Incorrect Negative/Positive Invoice format! e.g. INV#1001",
+            //         icon: 'warning',
+            //         showCancelButton: false,
+            //         confirmButtonColor: '#3085d6',
+            //         confirmButtonText: 'Ok',
+            //         returnFocus: false,
+            //         allowOutsideClick: true
+            //     })
+            //     return false;
+            // }
             
             
             
@@ -875,7 +889,8 @@ $("#btnSubmit").on('click',function() {
                     signal =    1;
                 }
                 
-            }else{
+            }
+            else if(!$("#pos_replacement_ref").val().includes("INV#")){
                 signal = 0;
                 alert_message = 1;
                 Swal.fire({
@@ -889,6 +904,20 @@ $("#btnSubmit").on('click',function() {
                 })
                 return false;
             }
+            // else{
+            //     signal = 0;
+            //     alert_message = 1;
+            //     Swal.fire({
+            //         title: "Incorrect POS Replacement Ref# format! e.g. REP#1001",
+            //         icon: 'warning',
+            //         showCancelButton: false,
+            //         confirmButtonColor: '#3085d6',
+            //         confirmButtonText: 'Ok',
+            //         returnFocus: false,
+            //         allowOutsideClick: true
+            //     })
+            //     return false;
+            // }
 
         }
         
