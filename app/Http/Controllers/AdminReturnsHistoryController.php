@@ -331,6 +331,8 @@ use App\StoresFrontEnd;
 			
 			
 			$this->addaction[] = ['title'=>'Detail','url'=>CRUDBooster::mainpath('ReturnsHistoryDetail/[id]'),'icon'=>'fa fa-eye', 'color'=>'none'];
+			$this->addaction[] = ['title'=>'Edit','url'=>CRUDBooster::mainpath('ReturnsHistoryEditEcomm/[id]'),'icon'=>'fa fa-pencil'];
+
 			$this->addaction[] = ['title'=>'Print','url'=>CRUDBooster::mainpath('ReturnsReturnFormPrint/[id]'),'icon'=>'fa fa-print', 'color'=>'none', "showIf"=>"[diagnose] != 'REFUND' and [level3_personnel] != null"];
 			$this->addaction[] = ['title'=>'Print','url'=>CRUDBooster::mainpath('ReturnsCRFPrint/[id]'),'icon'=>'fa fa-print', 'color'=>'none', "showIf"=>"[diagnose] == 'REFUND' and [level3_personnel] != null"];
 			/* 
@@ -915,6 +917,37 @@ use App\StoresFrontEnd;
 
 	    }
 
+		public function ReturnsHistoryEditEcomm($id)
+		{
+			$data = [];
+			$data['id'] = $id; 
+			$data['return_statuses'] = DB::table('warranty_statuses')
+				->orderBy('warranty_status', 'asc')
+				->get();
+			$item = DB::table('returns_header')
+				->where('returns_header.id', $id)
+				->leftJoin('warranty_statuses', 'warranty_statuses.id', '=' , 'returns_header.returns_status_1')
+				->select(
+					'returns_header.*',
+					'warranty_statuses.warranty_status'
+				)
+				->get()
+				->first();
+			$data['item'] = $item;
+			$this->cbview('edit_return_ecoms', $data);
+		}
+		public function updateReturnEcoms(Request $request, $id)
+		{
+			DB::table('returns_header')
+				->where('id', $id)
+				->update([
+					'returns_status_1' => $request->input('return_status'),
+					'pos_replacement_ref' => $request->input('pos_replacement_ref'),
+					'negative_positive_invoice' => $request->input('negative_positive_invoice'),
+				]);
+				
+				CRUDBooster::redirect(CRUDBooster::mainpath(), sprintf("Edited Successfully!"),"success");
+		}
 
 
 		//By the way, you can still create your own method in here... :) 

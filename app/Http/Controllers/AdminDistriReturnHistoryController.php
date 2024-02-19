@@ -331,6 +331,7 @@ use App\StoresFrontEnd;
 			$this->addaction[] = ['title'=>'Edit','url'=>CRUDBooster::mainpath('ReturnsHistoryEdit/[id]'),'color'=>'none','icon'=>'fa fa-pencil', "showIf"=>"[returns_status_1] == $refund_complete or [returns_status_1] == $return_invalid or [returns_status_1] == $repair_complete or [returns_status_1] == $replacement_complete"];
 			}
 			$this->addaction[] = ['title'=>'Detail','url'=>CRUDBooster::mainpath('ReturnsHistoryDetailDISTRI/[id]'),'color'=>'none','icon'=>'fa fa-eye'];
+			// $this->addaction[] = ['title'=>'Edit','url'=>CRUDBooster::mainpath('ReturnsHistoryEditDISTRI/[id]'),'icon'=>'fa fa-pencil'];
 			$this->addaction[] = ['title'=>'Print','url'=>CRUDBooster::mainpath('ReturnsPulloutPrint/[id]'),'color'=>'none','icon'=>'fa fa-print', "showIf"=>"[returns_status_1] != $cancelled"];
 			$this->addaction[] = ['title'=>'CRF','url'=>CRUDBooster::mainpath('ReturnsCRFPrintDISTRI/[id]'),'color'=>'none','icon'=>'fa fa-file', "showIf"=>"[diagnose] == 'REFUND' and [level2_personnel] != null"];
 			$this->addaction[] = ['title'=>'RF','url'=>CRUDBooster::mainpath('ReturnsReturnFormPrintDISTRI/[id]'),'color'=>'none','icon'=>'fa fa-file', "showIf"=>"[diagnose] == 'REJECT' and [level2_personnel] != null or [diagnose] == 'REPAIR' and [level2_personnel] != null"];
@@ -764,7 +765,25 @@ use App\StoresFrontEnd;
 
 	    }
 
-
+		public function ReturnsHistoryEditDISTRI($id)
+		{
+			$data = [];
+			$data['id'] = $id; 
+			$data['return_statuses'] = DB::table('warranty_statuses')
+				->orderBy('warranty_status', 'asc')
+				->get();
+			$item = DB::table('returns_header_distribution')
+				->where('returns_header_distribution.id', $id)
+				->leftJoin('warranty_statuses', 'warranty_statuses.id', '=' , 'returns_header_distribution.returns_status')
+				->select(
+					'*',
+					'warranty_statuses.warranty_status'
+				)
+				->get()
+				->first();
+			$data['item'] = $item;
+			$this->cbview('edit_return_distri', $data);
+		}
 
 	    //By the way, you can still create your own method in here... :) 
 		public function ReturnsHistoryDetailDISTRI($id)

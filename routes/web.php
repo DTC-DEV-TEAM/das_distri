@@ -92,6 +92,8 @@ Route::group(['middleware' => ['web']], function() {
     Route::get('/admin/returns_sor/ViewSOR/{id}','AdminReturnsSorController@ViewSOR'); 
     //history
     Route::get('/admin/returns_history/ReturnsHistoryDetail/{id}','AdminReturnsHistoryController@ReturnsHistoryDetail');
+    Route::get('/admin/returns_history/ReturnsHistoryEditEcomm/{id}','AdminReturnsHistoryController@ReturnsHistoryEditEcomm');
+    Route::post('/admin/returns_history/SuccessEditEcomm/{id}','AdminReturnsHistoryController@updateReturnEcoms')->name('edit-return-ecoms');
     Route::get('/admin/returns_history/ReturnsReturnFormPrint/{id}','AdminReturnsHistoryController@ReturnsReturnFormPrint'); 
     Route::get('/admin/returns_history/ReturnsCRFPrint/{id}','AdminReturnsHistoryController@ReturnsCRFPrint');   
     Route::get('/admin/returns_history/ReturnsHistoryEdit/{id}','AdminReturnsHistoryController@ReturnsHistoryEdit');   
@@ -148,6 +150,9 @@ Route::group(['middleware' => ['web']], function() {
     
     //retailhistory
     Route::get('/admin/retail_return_history/ReturnsHistoryDetailRTL/{id}','AdminRetailReturnHistoryController@ReturnsHistoryDetailRTL');
+    Route::get('/admin/retail_return_history/ReturnsHistoryEditRTL/{id}','AdminRetailReturnHistoryController@ReturnsHistoryEditRTL');
+
+    Route::post('/admin/retail_return_history/SuccessEditRetail/{id}','AdminRetailReturnHistoryController@updateReturnRetail')->name('edit-return-retail');
 
     Route::get('/admin/retail_return_history/ReturnsPulloutPrint/{id}','AdminRetailReturnHistoryController@ReturnsPulloutPrint');   
     Route::get('/admin/retail_return_history/ReturnsCRFPrintRTL/{id}','AdminRetailReturnHistoryController@ReturnsCRFPrintRTL');   
@@ -281,6 +286,7 @@ Route::group(['middleware' => ['web']], function() {
 
     //distrihistory
     Route::get('/admin/distri_return_history/ReturnsHistoryDetailDISTRI/{id}','AdminDistriReturnHistoryController@ReturnsHistoryDetailDISTRI');
+    Route::get('/admin/distri_return_history/ReturnsHistoryEditDISTRI/{id}','AdminDistriReturnHistoryController@ReturnsHistoryEditDISTRI');
     Route::get('/admin/distri_return_history/ReturnsPulloutPrint/{id}','AdminDistriReturnHistoryController@ReturnsPulloutPrint');   
     Route::get('/admin/distri_return_history/ReturnsCRFPrintDISTRI/{id}','AdminDistriReturnHistoryController@ReturnsCRFPrintDISTRI');   
     Route::get('/admin/distri_return_history/ReturnsReturnFormPrintDISTRI/{id}','AdminDistriReturnHistoryController@ReturnsReturnFormPrintDISTRI');     
