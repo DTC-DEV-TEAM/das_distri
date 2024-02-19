@@ -64,6 +64,10 @@
                         <td>{{ trans('message.form-label.mode_of_payment') }}</td>
                         <td>{{$row->mode_of_payment}}</td>
                     </tr>
+                    <tr>
+                        <td>Via</td>
+                        <td>{{$row->via_id}}</td>
+                    </tr>
                 </tbody>
             </table>
             <br>

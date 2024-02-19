@@ -324,14 +324,15 @@ use App\StoresFrontEnd;
 			$this->addaction[] = ['title'=>'Edit','url'=>CRUDBooster::mainpath('ReturnsHistoryEdit/[id]'),'icon'=>'fa fa-pencil', "showIf"=>"[returns_status_1] == $refund_complete or [returns_status_1] == $return_invalid or [returns_status_1] == $repair_complete"];
 			}
 			
-			
 			if(CRUDBooster::myPrivilegeName() == "Admin Ops"){
 			    $this->addaction[] = ['title'=>'Edit','url'=>CRUDBooster::mainpath('EditHistoryEcomm/[id]'),'icon'=>'fa fa-pencil'];
 			}
 			
-			
 			$this->addaction[] = ['title'=>'Detail','url'=>CRUDBooster::mainpath('ReturnsHistoryDetail/[id]'),'icon'=>'fa fa-eye', 'color'=>'none'];
-			$this->addaction[] = ['title'=>'Edit','url'=>CRUDBooster::mainpath('ReturnsHistoryEditEcomm/[id]'),'icon'=>'fa fa-pencil'];
+
+			if(CRUDBooster::myPrivilegeName() == 'Super Administrator'){
+				$this->addaction[] = ['title'=>'Edit','url'=>CRUDBooster::mainpath('ReturnsHistoryEditEcomm/[id]'),'icon'=>'fa fa-pencil', 'color'=>'none'];
+			}
 
 			$this->addaction[] = ['title'=>'Print','url'=>CRUDBooster::mainpath('ReturnsReturnFormPrint/[id]'),'icon'=>'fa fa-print', 'color'=>'none', "showIf"=>"[diagnose] != 'REFUND' and [level3_personnel] != null"];
 			$this->addaction[] = ['title'=>'Print','url'=>CRUDBooster::mainpath('ReturnsCRFPrint/[id]'),'icon'=>'fa fa-print', 'color'=>'none', "showIf"=>"[diagnose] == 'REFUND' and [level3_personnel] != null"];
@@ -971,6 +972,7 @@ use App\StoresFrontEnd;
 			->leftjoin('cms_users as received', 'returns_header.level6_personnel','=', 'received.id')
 			->leftjoin('cms_users as closed', 'returns_header.level7_personnel','=', 'closed.id')																		
 			->leftjoin('transaction_type', 'returns_header.transaction_type_id', '=', 'transaction_type.id')
+			->leftJoin('via', 'returns_header.via_id', 'via.id')
 			->select(
 			'returns_header.*',
 			'scheduled.name as scheduled_by',
@@ -980,7 +982,8 @@ use App\StoresFrontEnd;
 			'transacted.name as transacted_by',	
 			'received.name as received_by',
 			'transaction_type.transaction_type_name',
-			'closed.name as closed_by'						
+			'closed.name as closed_by',
+			'via.via_name as via_id'					
 			)
 			->where('returns_header.id',$id)->first();
 

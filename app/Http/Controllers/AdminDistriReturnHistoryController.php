@@ -803,11 +803,15 @@ use App\StoresFrontEnd;
 				->leftjoin('cms_users as printed', 'returns_header_distribution.level3_personnel','=', 'printed.id')																	
 				->leftjoin('cms_users as transacted', 'returns_header_distribution.level4_personnel','=', 'transacted.id')
 				->leftjoin('cms_users as received', 'returns_header_distribution.level6_personnel','=', 'received.id')
-				->leftjoin('cms_users as closed', 'returns_header_distribution.level5_personnel','=', 'closed.id')																		
-				->select('returns_header_distribution.*','scheduled.name as scheduled_by',
-						'diagnosed.name as diagnosed_by','printed.name as printed_by',	
-						'transacted.name as transacted_by',	'received.name as received_by',
-						'closed.name as closed_by','created.name as created_by')
+				->leftjoin('cms_users as closed', 'returns_header_distribution.level5_personnel','=', 'closed.id')	
+				->leftJoin('via', 'returns_header_distribution.via_id', 'via.id')
+				->select(
+					'returns_header_distribution.*','scheduled.name as scheduled_by',
+					'diagnosed.name as diagnosed_by','printed.name as printed_by',	
+					'transacted.name as transacted_by',	'received.name as received_by',
+					'closed.name as closed_by','created.name as created_by',
+					'via.via_name as via_id'					
+				)
 				->where('returns_header_distribution.id',$id)
 				->first();
 

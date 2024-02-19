@@ -105,6 +105,10 @@
                             <td>{{$row->items_included}}</td>
                             @endif
                         </tr>
+                        <tr>
+                            <td>Via</td>
+                            <td>{{$row->via_id}}</td>
+                        </tr>
                     </tbody>
                 </table> 
                 <br>

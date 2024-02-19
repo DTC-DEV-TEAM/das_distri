@@ -347,7 +347,9 @@ use App\StoresFrontEnd;
 			$this->addaction[] = ['title'=>'Edit','url'=>CRUDBooster::mainpath('ReturnsHistoryEdit/[id]'),'icon'=>'fa fa-pencil', "showIf"=>"[returns_status_1] == $refund_complete or [returns_status_1] == $return_invalid or [returns_status_1] == $repair_complete or [returns_status_1] == $replacement_complete"];
 			}
 			$this->addaction[] = ['title'=>'Detail','url'=>CRUDBooster::mainpath('ReturnsHistoryDetailRTL/[id]'),'color'=>'none','icon'=>'fa fa-eye'];
-			$this->addaction[] = ['title'=>'Edit','url'=>CRUDBooster::mainpath('ReturnsHistoryEditRTL/[id]'),'icon'=>'fa fa-pencil'];
+			if(CRUDBooster::myPrivilegeName() == 'Super Administrator'){
+				$this->addaction[] = ['title'=>'Edit','url'=>CRUDBooster::mainpath('ReturnsHistoryEditRTL/[id]'),'color'=>'none','icon'=>'fa fa-pencil'];
+			}
 			$this->addaction[] = ['title'=>'Print','url'=>CRUDBooster::mainpath('ReturnsPulloutPrint/[id]'),'color'=>'none','icon'=>'fa fa-print', "showIf"=>"[returns_status_1] != $cancelled"];
 			$this->addaction[] = ['title'=>'CRF','url'=>CRUDBooster::mainpath('ReturnsCRFPrintRTL/[id]'),'color'=>'none','icon'=>'fa fa-file', "showIf"=>"[diagnose] == 'REFUND' and [level2_personnel] != null"];
 			$this->addaction[] = ['title'=>'RF','url'=>CRUDBooster::mainpath('ReturnsReturnFormPrintRTL/[id]'),'color'=>'none','icon'=>'fa fa-file', "showIf"=>"[diagnose] == 'REJECT' and [level2_personnel] != null or [diagnose] == 'REPAIR' and [level2_personnel] != null"];
@@ -972,6 +974,7 @@ use App\StoresFrontEnd;
 			->leftjoin('cms_users as received', 'returns_header_retail.level6_personnel','=', 'received.id')
 			->leftjoin('cms_users as closed', 'returns_header_retail.level5_personnel','=', 'closed.id')																		
 			->leftjoin('transaction_type', 'returns_header_retail.transaction_type_id', '=', 'transaction_type.id')
+			->leftJoin('via', 'returns_header_retail.via_id', 'via.id')
 			->select(
 			'returns_header_retail.*',
 			'scheduled.name as scheduled_by',
@@ -982,7 +985,8 @@ use App\StoresFrontEnd;
 			'received.name as received_by',
 			'transaction_type.transaction_type_name',
 			'closed.name as closed_by',
-			'created.name as created_by'						
+			'created.name as created_by',	
+			'via.via_name as via_id'					
 			)
 			->where('returns_header_retail.id',$id)->first();
             if($data['row']->returns_status_1 == 1){

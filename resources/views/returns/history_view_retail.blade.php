@@ -81,6 +81,10 @@
                         <td>{{ trans('message.form-label.customer_location') }}</td>
                         <td>{{$row->customer_location}}</td>
                     </tr>
+                    <tr>
+                        <td>Via</td>
+                        <td>{{$row->via_id}}</td>
+                    </tr>
                 </tbody>
             </table> 
             <br>
