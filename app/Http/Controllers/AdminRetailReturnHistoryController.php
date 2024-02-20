@@ -923,7 +923,7 @@ use App\StoresFrontEnd;
 		{
 			$data = [];
 			$data['id'] = $id; 
-			$data['return_statuses'] = DB::table('warranty_statuses')
+			$return_statuses = DB::table('warranty_statuses')
 				->orderBy('warranty_status', 'asc')
 				->get();
 			$item = DB::table('returns_header_retail')
@@ -931,11 +931,14 @@ use App\StoresFrontEnd;
 				->leftJoin('warranty_statuses', 'warranty_statuses.id', '=' , 'returns_header_retail.returns_status_1')
 				->select(
 					'returns_header_retail.*',
-					'warranty_statuses.warranty_status'
+					'warranty_statuses.warranty_status',
+					'returns_header_retail.warranty_status as item_warranty_status'
 				)
 				->get()
 				->first();
 			$data['item'] = $item;
+			$data['return_statuses'] = $return_statuses;
+
 			$this->cbview('edit_return_retail', $data);
 		}
 		public function updateReturnRetail(Request $request, $id)
@@ -943,9 +946,15 @@ use App\StoresFrontEnd;
 			DB::table('returns_header_retail')
 				->where('id', $id)
 				->update([
-					'returns_status_1' => $request->input('return_status'),
+					'returns_status' => $request->input('return_status'),
+					'returns_status_1' => $request->input('return_status_1'),
 					'pos_replacement_ref' => $request->input('pos_replacement_ref'),
 					'negative_positive_invoice' => $request->input('negative_positive_invoice'),
+					'address' => $request->input('address'),
+					'customer_location' => $request->input('customer_location'),
+					'order_no' => $request->input('order_no'),
+					'diagnose' => $request->input('diagnose'),
+					'warranty_status' => $request->input('item_warranty_status'),
 				]);
 				
 				CRUDBooster::redirect(CRUDBooster::mainpath(), sprintf("Edited Successfully!"),"success");
