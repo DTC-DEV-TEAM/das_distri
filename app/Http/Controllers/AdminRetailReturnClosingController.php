@@ -638,16 +638,18 @@ use Illuminate\Support\Facades\Validator;
 						$postdata['returns_status'] = 					    $replacement_complete;
 						$postdata['returns_status_1'] = 					$to_close; */
 
+						$s_id = DB::table('cms_users')->where('id', CRUDBooster::myId())->first()->stores_id;
 						
-						$validator = Validator::make(
-							['negative_positive_invoice' => $negative_positive_invoice],
-							['negative_positive_invoice' => 'unique:returns_header_retail,returns_header_retail.negative_positive_invoice']
-						);
-						
-						if ($validator->fails() && $ReturnRequest->diagnose != 'REFUND') {
-							// Validation failed
-							$errors = $validator->errors();
+						if($s_id){
+							$np_invoice = DB::table('returns_header_retail')
+							->where('stores_id', $s_id)
+							->whereNotNull('returns_header_retail.negative_positive_invoice')
+							->get()
+							->pluck('negative_positive_invoice')
+							->toArray();
+						}
 
+						if(in_array($negative_positive_invoice, $np_invoice) && $ReturnRequest->diagnose != 'REFUND'){
 							return 	CRUDBooster::redirect(CRUDBooster::mainpath('ReturnsClosingEditRTLOPS/'.$id), 'The Negative/Positive Invoice has already been taken.', 'danger');
 						} else {
 

@@ -33,6 +33,11 @@
     
 </style>
 @section('content')
+@if(g('return_url'))
+	<p class="noprint"><a title='Return' href='{{g("return_url")}}'><i class='fa fa-chevron-circle-left '></i> &nbsp; {{trans("crudbooster.form_back_to_list",['module'=>CRUDBooster::getCurrentModule()->name])}}</a></p>       
+@else
+	<p class="noprint"><a title='Main Module' href='{{CRUDBooster::mainpath()}}'><i class='fa fa-chevron-circle-left '></i> &nbsp; {{trans("crudbooster.form_back_to_list",['module'=>CRUDBooster::getCurrentModule()->name])}}</a></p>       
+@endif
     <div class='panel panel-default'>
         <form method='POST' action="{{ route('edit-return-ecoms', ['id' => $id]) }}">
             <input type="hidden" name="_token" value="{{ csrf_token() }}">
@@ -66,7 +71,7 @@
                 <div class="row input_div">     
                     <label class="control-label col-md-2">Frontend Status:</label>
                     <div class="col-md-4">
-                        <select name="return_status" class="form-control" id="return_status" required>
+                        <select name="return_status" class="form-control" id="return_status">
                             <option value="">None selected</option>
                             @foreach ($return_statuses as $return_status)
                                 <option value="{{ $return_status->id }}" {{ $item->returns_status == $return_status->id ? 'selected' : '' }}>
@@ -77,7 +82,7 @@
                     </div>
                     <label class="control-label col-md-2">Backend Status:</label>
                     <div class="col-md-4">
-                        <select name="return_status_1" class="form-control" id="return_status_1" required>
+                        <select name="return_status_1" class="form-control" id="return_status_1">
                             <option value="">None selected</option>
                             @foreach ($return_statuses as $return_status)
                                 <option value="{{ $return_status->id }}" {{ $item->returns_status_1 == $return_status->id ? 'selected' : '' }}>
@@ -90,40 +95,40 @@
                 <div class="row">                           
                     <label class="control-label col-md-2">Negative Postive Invoice:</label>
                     <div class="col-md-4">
-                        <input type='input' value='{{ $item->negative_positive_invoice }}' name='negative_positive_invoice' id='negative_positive_invoice' required  class='form-control'/>                
+                        <input type='input' value='{{ $item->negative_positive_invoice }}' name='negative_positive_invoice' id='negative_positive_invoice'  class='form-control'/>                
                     </div>
                     <label class="control-label col-md-2">Address:</label>
                     <div class="col-md-4">
-                        <input type='input' value='{{ $item->address }}' name='address' id='address' required  class='form-control'/>                
+                        <input type='input' value='{{ $item->address }}' name='address' id='address'  class='form-control'/>                
                     </div>
                 </div>
                 <br>
                 <div class="row">
                     <label class="control-label col-md-2">Customer Location:</label>
                     <div class="col-md-4">
-                        <input type='input' value='{{ $item->customer_location }}' name='customer_location' id='customer_location' required  class='form-control'/>                
+                        <input type='input' value='{{ $item->customer_location }}' name='customer_location' id='customer_location'  class='form-control'/>                
                     </div>
                     <label class="control-label col-md-2">Pos Replacement Reference:</label>
                     <div class="col-md-4">
-                        <input type='input' value='{{ $item->pos_replacement_ref }}' name='pos_replacement_ref' id='pos_replacement_ref' required  class='form-control'/>                
+                        <input type='input' value='{{ $item->pos_replacement_ref }}' name='pos_replacement_ref' id='pos_replacement_ref'  class='form-control'/>                
                     </div>
                 </div>
                 <br>
                 <div class="row">
                     <label class="control-label col-md-2">Order No.:</label>
                     <div class="col-md-4">
-                        <input type='input' value='{{ $item->order_no }}' name='order_no' id='order_no' required  class='form-control'/>                
+                        <input type='input' value='{{ $item->order_no }}' name='order_no' id='order_no'  class='form-control'/>                
                     </div>
                     <label class="control-label col-md-2">Diagnose:</label>
                     <div class="col-md-4">
-                        <input type='input' value='{{ $item->diagnose }}' name='diagnose' id='diagnose' required  class='form-control'/>                
+                        <input type='input' value='{{ $item->diagnose }}' name='diagnose' id='diagnose'  class='form-control'/>                
                     </div>
                 </div>
                 <br>
                 <div class="row">
                     <label class="control-label col-md-2">Warranty Status:</label>
                     <div class="col-md-4">
-                        <input type='input' value='{{ $item->item_warranty_status }}' name='item_warranty_status' id='item_warranty_status' required  class='form-control'/>                
+                        <input type='input' value='{{ $item->item_warranty_status }}' name='item_warranty_status' id='item_warranty_status'  class='form-control'/>                
                     </div>
                 </div>
                 <br>
