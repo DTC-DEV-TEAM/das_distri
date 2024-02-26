@@ -1490,7 +1490,6 @@ use App\TransactionTypeList;
 		    
 			$data = Input::all();		
 			$request_id = $data['return_id']; 
-			//$comments_variable = $data['comments']; 			
 			
 			$to_print_srr  =     ReturnsStatus::where('id','19')->value('id');
 			
@@ -1507,18 +1506,16 @@ use App\TransactionTypeList;
 
 			$to_receive_sc = ReturnsStatus::where('id','35')->value('id');
 
-			
 			if(     $return_request->returns_status_1 != $to_schedule
 			    &&  $return_request->returns_status_1 != $to_receive_rma
 			    &&  $return_request->returns_status_1 != $to_receive_sc){
 
-			
 				DB::beginTransaction();
-	
+					
 				try {
-				    
-					if($return_request->via_id == 1){
-
+					
+					if($return_request->via_id == 1 || $return_request->carried_by == null){
+						
 						ReturnsHeaderRTL::where('id',$request_id)
 						->update([
 							'returns_status_1'=> 		$to_schedule,
