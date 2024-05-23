@@ -433,11 +433,11 @@
         <a href="{{ CRUDBooster::mainpath() }}" class="btn btn-default">{{ trans('message.form.cancel') }}</a>
         
         @if($row->diagnose == "REJECT" && $row->returns_status_1 != 15 )
-                <button class="btn btn-primary pull-right" type="submit" id="printReturnForm" onclick="printDivision('printableArea')"> <i class="fa fa-print" ></i> Print as PDF</button>
+                <button class="btn btn-primary pull-right" type="submit" id="printReturnForm"> <i class="fa fa-print" ></i> Print as PDF</button>
         @elseif($row->diagnose == "REPAIR" && $row->returns_status_1 != 17 )
-                <button class="btn btn-primary pull-right" type="submit" id="printReturnFormRepair" onclick="printDivision('printableArea')"> <i class="fa fa-print" ></i> Print as PDF</button>
+                <button class="btn btn-primary pull-right" type="submit" id="printReturnFormRepair"> <i class="fa fa-print" ></i> Print as PDF</button>
             @else
-                <button class="btn btn-primary pull-right" type="submit" id="print"    onclick="printDivision('printableArea')"> <i class="fa fa-print" ></i> Print as PDF</button>
+                <button class="btn btn-primary pull-right" type="submit" id="print"   > <i class="fa fa-print" ></i> Print as PDF</button>
         @endif
        
     </form>
@@ -445,8 +445,9 @@
 @endsection
 @push('bottom')
     <script type="text/javascript">
-        $("#printReturnForm").on('click',function(){
+        $("#printReturnForm").on('click',function(e){
         //var strconfirm = confirm("Are you sure you want to approve this pull-out request?");
+        e.preventDefault();
             var data = $('#myform').serialize();
                 $.ajax({
                         type: 'GET',
@@ -454,6 +455,7 @@
                         data: data,
                         success: function( response ){
                             console.log( response );              
+                            printDivision('printableArea');      
                         
                         },
                         error: function( e ) {
@@ -463,8 +465,9 @@
                   return true;
         });
 
-        $("#printReturnFormRepair").on('click',function(){
+        $("#printReturnFormRepair").on('click',function(e){
         //var strconfirm = confirm("Are you sure you want to approve this pull-out request?");
+        e.preventDefault();
             var data = $('#myform').serialize();
                 $.ajax({
                         type: 'GET',
@@ -472,6 +475,7 @@
                         data: data,
                         success: function( response ){
                             console.log( response );              
+                            printDivision('printableArea');      
                         
                         },
                         error: function( e ) {
