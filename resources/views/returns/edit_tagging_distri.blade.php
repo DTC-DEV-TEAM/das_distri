@@ -251,21 +251,12 @@
                                         </select>  
                                     </div>    
                                  @endif      
-
                                  <label class="control-label col-md-2"  style="margin-top:4px;">{{ trans('message.form-label.mode_of_return') }}</label>
                                  <div class="col-md-4">
-                                    <!-- <p>{{$row->mode_of_return}}</p> -->
-
                                      <select class="js-example-basic-single" name="mode_of_return" id="mode_of_return" required style="width:100%">
-                                       
-                                            @if(  $row->mode_of_return == "STORE DROP-OFF")
-                                                  
-                                                        <option  selected value="STORE DROP-OFF">Store Drop-Off</option>
-                                                @else
-                                                        <option   value="STORE DROP-OFF">Store Drop-Off</option>
-                                            @endif
-
-                                    
+                                        @foreach ($mor_data as $mor)
+                                                <option value="{{ $mor->name }}" {{ $row->mode_of_return == $mor->name ? 'selected' : '' }}>{{ $mor->name }}</option>
+                                        @endforeach
                                     </select>  
                                  </div>
                             </div>      
@@ -274,15 +265,13 @@
                                 @if ($row->store_dropoff != null || $row->store_dropoff != "")
                                     <label class="control-label col-md-2"  style="margin-top:4px;">{{ trans('message.form-label.store_dropoff') }}</label>
                                     <div class="col-md-4">
-                                    <!-- <p>{{$row->store_dropoff}}</p> -->
                                             <select class="js-example-basic-single" name="store_dropoff" id="store_dropoff" onchange="showBranch()"  required style="width:100%">
                                                 @foreach($store_drop_off as $datas)    
                                                     @if( $datas->store_name == $row->store_dropoff)
-                                                                <option selected value="{{$datas->store_name}}">{{$datas->store_name}}</option>
+                                                            <option selected value="{{$datas->store_name}}">{{$datas->store_name}}</option>
                                                         @else
-                                                                <option  value="{{$datas->store_name}}">{{$datas->store_name}}</option>
+                                                            <option  value="{{$datas->store_name}}">{{$datas->store_name}}</option>
                                                     @endif
-        
                                                 @endforeach
                                             </select> 
                                     </div>
@@ -293,7 +282,7 @@
                                 <div class="col-md-4">
                                     {{-- {{$row->branch_dropoff}} --}}
                                     
-                                    <select class="js-example-basic-single" name="branch_dropoff" id="branch_dropoff"  style="width:100%">
+                                    <select class="js-example-basic-single" name="branch_dropoff" id="branch_dropoff"  style="width:100%" required>
                                             
                                         @foreach($branch_dropoff as $datas)    
                                             @if( $datas->branch_id == $row->branch_dropoff)
@@ -880,9 +869,11 @@ function branchChange(){
     {
         var drop_off_store = document.getElementById("store_dropoff").value;
         var location = document.getElementById("purchase_location").value;
+        $('#branch_dropoff').val('');
+        
         $.ajax
         ({ 
-            url: '{{ url('admin/retail_for_verification/branch_drop_off') }}',
+            url: '{{ url('admin/distri_to_verify/branch_drop_off') }}',
             type: "POST",
             data: {
                 'drop_off_store': drop_off_store,

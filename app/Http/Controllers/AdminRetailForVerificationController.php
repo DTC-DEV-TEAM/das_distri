@@ -386,7 +386,6 @@ use App\TransactionTypeList;
 	    */
 	    public function hook_query_index(&$query) {
 			//Your code here
-
 			$query->leftJoin('retail_last_comments', 'retail_last_comments.returns_header_retail_id', 'returns_header_retail.id')
 			->leftJoin('chats', 'chats.id', 'retail_last_comments.chats_id')
 			->leftJoin('cms_users as sender', 'sender.id', 'chats.created_by')
@@ -398,12 +397,9 @@ use App\TransactionTypeList;
 			
 		    if(CRUDBooster::myPrivilegeName() == "Store Ops"){ 
 					//Your code here
-					
-
-    			
+    			    
     			   $query->where(function($sub_query){
-    			       
-    			       
+    			        $c_store_id = DB::table('stores')->where('id', DB::table('cms_users')->where('id', CRUDBooster::myId())->first()->stores_id)->first();
     			       
     			        $requested = ReturnsStatus::where('id','1')->value('id');
     			
@@ -416,10 +412,10 @@ use App\TransactionTypeList;
         				$storeList = array_map('intval',explode(",",$approval_string));
         				
         				$to_print_srr  =     ReturnsStatus::where('id','19')->value('id');
-            
+                        
             			$sub_query->where('returns_status_1', $requested)->where('transaction_type','!=', 2)->whereIn('returns_header_retail.stores_id', $storeList)->orderBy('id', 'asc');  
-    			        $sub_query->orwhere('returns_status_1', $to_print_srr)->whereNull('return_schedule')->where('transaction_type','!=', 2)->whereIn('returns_header_retail.stores_id', $storeList)->orderBy('id', 'asc');  
-    			       	
+    			     //   $sub_query->orwhere('returns_status_1', $to_print_srr)->whereNull('return_schedule')->where('transaction_type','!=', 2)->whereIn('returns_header_retail.stores_id', $storeList)->orderBy('id', 'asc');  
+    			       	$sub_query->orwhere('returns_status_1', $to_print_srr)->whereNull('return_schedule')->where('transaction_type','!=', 2)->where('customer_location', $c_store_id->store_name)->orderBy('id', 'asc');  
     			   });	
 
 			}else{
@@ -432,8 +428,7 @@ use App\TransactionTypeList;
     			    	
     			    	
     			    	$sub_query->where('returns_status_1', $requested)->where('transaction_type','!=', 2)->orderBy('id', 'asc');  
-    			    	$sub_query->orwhere('returns_status_1', $to_print_srr)->where('transaction_type','!=', 2)->orderBy('id', 'asc');  
-    			    
+    			    	$sub_query->orwhere('returns_status_1', $to_print_srr)->where('customer_location', $c_store_id->store_name)->orderBy('id', 'asc');  
     			    
     			});
 			}

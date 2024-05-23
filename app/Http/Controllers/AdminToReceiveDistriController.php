@@ -272,7 +272,7 @@ class AdminToReceiveDistriController extends \crocodicstudio\crudbooster\control
 		$this->addaction[] = ['title'=>'Edit','url'=>CRUDBooster::mainpath('ReturnsToReceiveEditDISTRI/[id]'),'color'=>'none','icon'=>'fa fa-pencil', "showIf"=>"[returns_status_1] == $to_diagnose"];
 		$this->addaction[] = ['title'=>'Print','url'=>CRUDBooster::mainpath('ReturnsReturnFormPrintDISTRISC/[id]'),'color'=>'none','icon'=>'fa fa-print', "showIf"=>"[returns_status_1] == $to_print_return_form"];
 		// if(CRUDBooster::myPrivilegeName() == "Distri Logistics" || CRUDBooster::myPrivilegeName() == "Logistics"){
-			$this->addaction[] = ['title'=>'Print','url'=>CRUDBooster::mainpath('ReturnsSRRPrint/[id]'),'color'=>'none','icon'=>'fa fa-print', "showIf"=>"[returns_status_1] == $to_print_srr"];
+		$this->addaction[] = ['title'=>'Print','url'=>CRUDBooster::mainpath('ReturnsSRRPrint/[id]'),'color'=>'none','icon'=>'fa fa-print', "showIf"=>"[returns_status_1] == $to_print_srr"];
 		// }
 		// RMA
 		if(CRUDBooster::myPrivilegeId() == 4){
@@ -1745,15 +1745,14 @@ class AdminToReceiveDistriController extends \crocodicstudio\crudbooster\control
 			$data['store_list'] = Stores::
 				where('channels_id',$channels->id)
 				->get();
-			$store_id = 	StoresFrontEnd::
+			$store_id = StoresFrontEnd::
 				where('store_name', $data['row']->store_dropoff )
-				->where('channels_id', 6 )
+				->whereIn('channels_id', [6,7])
 				->first();
 			$data['store_deliver_to'] = Stores::
 				where('branch_id',  $data['row']->branch_dropoff )
 				->where('stores_frontend_id',  $store_id->id )
 				->first();
-			
 			
 			$this->cbView("returns.print_srr_distri", $data);
 		}

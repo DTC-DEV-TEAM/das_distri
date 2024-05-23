@@ -534,13 +534,9 @@ use App\StoresFrontEnd;
 			}
 			else{
 				$postdata['level1_personnel'] = 					CRUDBooster::myId();
-				$postdata['return_schedule'] = 						$field_1;
+				$postdata['return_schedule'] = 						$field_1 = \DateTime::createFromFormat('m/d/Y', $field_1)->format('Y-m-d');
 				$postdata['returns_status_1'] = 					$pending;
 			}
-
-		
-				
-
 		}
 
 		/* 
