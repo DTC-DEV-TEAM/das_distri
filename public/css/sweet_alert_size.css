@@ -1,0 +1,278 @@
+.swal2-popup, .swal2-modal, .swal2-icon-warning .swal2-show {
+    font-size: 1.6rem !important;
+}
+
+.custom_sm_normal_table{
+    /* width: 100%; */
+    border-collapse: collapse;
+}
+
+.custom_sm_normal_table th, .custom_sm_normal_table td {
+    text-align: left;
+    width: 235px;
+    font-size: 14px;
+}
+
+.custom_sm_normal_table td{
+    padding: 10px;
+}
+
+.custom_sm_normal_table tr td:nth-child(odd){
+    font-weight: bold;
+    color: #4d4b4b !important;
+}
+
+.custom_normal_table{
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.custom_normal_table th, .custom_normal_table td {
+    text-align: left;
+    width: 300px;
+    font-size: 14px;
+}
+
+.custom_normal_table td{
+    padding: 10px;
+}
+
+.custom_normal_table tr td:nth-child(odd){
+    font-weight: bold;
+    color: #4d4b4b !important;
+}
+
+.custom_table {
+    width: 100%;
+    border-collapse: collapse;
+    background-color: #f9f9f9;
+    border-radius: 5px !important;
+}
+
+.custom_table th, .custom_table td {
+    border: 1px solid #ddd;
+    text-align: left;
+    width: 300px;
+    font-size: 14px;
+}
+
+.custom_table tr td:nth-child(odd){
+    font-weight: bold;
+    color: #4d4b4b !important;
+}
+
+.custom_table td{
+    padding: 10px;
+}
+
+/* Use a media query to apply styles for smaller screens */
+@media only screen and (max-width: 600px) {
+    /* Set the table row (tr) to be displayed as a block */
+    .custom_table tr, .custom_normal_table tr, .custom_sm_normal_table tr {
+        display: block;
+    }
+
+    /* Hide table headers on smaller screens */
+    .custom_table th, .custom_normal_table th, .custom_sm_normal_table th{
+        display: none;
+    }
+
+    /* Style table data (td) for smaller screens */
+    .custom_table td, .custom_normal_table td, .custom_sm_normal_table{
+        display: block;
+        text-align: left;
+        width: 100%;
+    }
+}
+
+/* Remove border radius from Select2 input and dropdown */
+.select2-container, .select2-selection {
+    border-radius: 0 !important;
+}
+
+.select2-container--default .select2-selection--single {
+    height: 34px !important;
+    border: 1px solid #ccc !important;
+}
+
+.select2-container--classic .select2-selection--multiple{
+    padding-bottom: 0 !important;
+}
+
+.table-font{
+    font-size: 14px;
+}
+
+/* Loading Animation */
+.sk-chase-position{
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    height: 100%;
+    width: 100%;
+    display: grid;
+    place-items: center;
+    z-index: 1;
+    background-color: #21212172;
+}
+
+.sk-chase {
+    width: 100px;
+    height: 100px;
+    position: relative;
+    animation: sk-chase 2.5s infinite linear both;
+}
+
+.sk-chase-text{
+    position: absolute;
+    top: 60%;
+    color: white;
+}
+
+.sk-chase-text{
+    font-weight: bold;
+    font-size: 15px;
+}
+
+.sk-chase-dot {
+    width: 100%;
+    height: 100%;
+    position: absolute;
+    left: 0;
+    top: 0; 
+    animation: sk-chase-dot 2.0s infinite ease-in-out both; 
+}
+
+.sk-chase-dot:before {
+    content: '';
+    display: block;
+    width: 25%;
+    height: 25%;
+    background-color: #fff;
+    border-radius: 100%;
+    animation: sk-chase-dot-before 2.0s infinite ease-in-out both; 
+}
+
+.sk-chase-dot:nth-child(1) { animation-delay: -1.1s; }
+.sk-chase-dot:nth-child(2) { animation-delay: -1.0s; }
+.sk-chase-dot:nth-child(3) { animation-delay: -0.9s; }
+.sk-chase-dot:nth-child(4) { animation-delay: -0.8s; }
+.sk-chase-dot:nth-child(5) { animation-delay: -0.7s; }
+.sk-chase-dot:nth-child(6) { animation-delay: -0.6s; }
+.sk-chase-dot:nth-child(1):before { animation-delay: -1.1s; }
+.sk-chase-dot:nth-child(2):before { animation-delay: -1.0s; }
+.sk-chase-dot:nth-child(3):before { animation-delay: -0.9s; }
+.sk-chase-dot:nth-child(4):before { animation-delay: -0.8s; }
+.sk-chase-dot:nth-child(5):before { animation-delay: -0.7s; }
+.sk-chase-dot:nth-child(6):before { animation-delay: -0.6s; }
+
+@keyframes sk-chase {
+    100% { transform: rotate(360deg); } 
+}
+
+@keyframes sk-chase-dot {
+    80%, 100% { transform: rotate(360deg); } 
+}
+
+@keyframes sk-chase-dot-before {
+    50% {
+        transform: scale(0.4); 
+    } 100%, 0% {
+        transform: scale(1.0); 
+    } 
+}
+
+/* Swal Table */
+
+#swal_table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 20px;
+}
+
+#swal_table th,
+#swal_table td {
+    border: 1px solid #ddd;
+    padding: 8px;
+    text-align: center;
+}
+
+@media (max-width: 767px) {
+    #swal_table {
+        overflow-x: auto;
+        white-space: nowrap;
+    }
+
+    #swal_table th,
+    #swal_table td {
+        white-space: nowrap;
+    }
+}
+
+.message-pos{
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    z-index: 1;
+}
+
+.message-circ{
+    height: 50px;
+    width: 50px;
+    background-color: #838181;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
+    border-radius: 50%;
+    display: grid;
+    place-items: center;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.message-circ:hover{
+    background-color: #bdbaba;
+}
+
+.message-circ:active {
+    transform: scale(0.8);
+}
+
+.chat-container{
+    position: absolute;
+    bottom: 0;
+    right: 0;
+    z-index: 1;
+}
+
+.chat-content{
+    position: relative;
+    background: #fff;
+    width: 450px;
+}
+
+.hide-chat{
+    position: absolute;
+    top: -12px;
+    right: -10px;
+    border-radius: 50%;
+    height: 25px;
+    width: 25px;
+    display: grid;
+    place-content: center;
+    background-color: red;
+    z-index: 1;
+    cursor: pointer;
+}
+
+@media (max-width: 768px) {
+    .chat-content{
+        width: 400px;
+
+    }
+}
+
+@media (max-width: 576px) {
+    .chat-content{
+        width: 350px;
+    }
+}

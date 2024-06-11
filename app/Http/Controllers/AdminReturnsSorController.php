@@ -50,10 +50,42 @@ use PHPExcel_Style_Fill;
 
 			# START COLUMNS DO NOT REMOVE THIS LINE
 			$this->col = [];
+			$this->col[] = ["label"=>"Brand","name"=>"id", 'callback'=>function($row){
+				
+				$id = $row->id;
+
+				$brand = DB::table('returns_body_item')->where('returns_header_id', $id)->orderBy('id', 'desc')->first()->brand;
+
+				return $brand;
+			}];
 			$this->col[] = ["label"=>"Status","name"=>"returns_status_1","join"=>"warranty_statuses,warranty_status"];
+			$this->col[] = ["label"=>"Last Chat", "name"=>"id", 'callback'=>function($row){
+				$img_url = asset("chat_img/$row->last_image");
+				;
+				$str = '';
+				
+				$str .= "<div class='sender_name'>$row->sender_name</div>";
+				$str .= "<div class='time_ago' datetime='$row->date_send'>$row->date_send</div>";
+				
+				if ($row->last_message) {
+					// Truncate the message if it's longer than 150 characters
+					$truncatedMessage = strlen($row->last_message) > 41 ? substr($row->last_message, 0, 41) . '...' : $row->last_message;
+					$str .= "<div class='text-msg'>$truncatedMessage</div>";
+				}
+				if($row->last_image){
+					$str .= "<div class='last_msg'><img src='$img_url'></div>";
+				}
+				if($row->sender_name){
+					return $str;
+				}else{
+					return '<div class="no-message">No messages available at the moment.</div>';
+				}
+			}];
+			$this->col[] = ["label"=>"Return Reference#","name"=>"return_reference_no"];
 			$this->col[] = ["label"=>"Created Date","name"=>"created_at"];
 			$this->col[] = ["label"=>"Pickup Schedule","name"=>"return_schedule"];
-			$this->col[] = ["label"=>"Return Reference#","name"=>"return_reference_no"];
+			$this->col[] = ["label"=>"INC#","name"=>"inc_number"];
+			$this->col[] = ["label"=>"RMA#","name"=>"rma_number"];
 			$this->col[] = ["label"=>"Order#","name"=>"order_no"];
 			$this->col[] = ["label"=>"Customer Location","name"=>"customer_location"];
 			$this->col[] = ["label"=>"Purchase Location","name"=>"purchase_location"];
@@ -89,7 +121,7 @@ use PHPExcel_Style_Fill;
 			$this->form[] = ['label'=>'Comments','name'=>'comments','type'=>'textarea','validation'=>'required|string|min:5|max:5000','width'=>'col-sm-10'];
 			$this->form[] = ['label'=>'Diagnose Comments','name'=>'diagnose_comments','type'=>'textarea','validation'=>'required|string|min:5|max:5000','width'=>'col-sm-10'];
 			$this->form[] = ['label'=>'Customer Location','name'=>'customer_location','type'=>'text','validation'=>'required|min:1|max:255','width'=>'col-sm-10'];
-			$this->form[] = ['label'=>'Sor No','name'=>'sor_no','type'=>'text','validation'=>'required|min:1|max:255','width'=>'col-sm-10'];
+			// $this->form[] = ['label'=>'Sor No','name'=>'sor_no','type'=>'text','validation'=>'required|min:1|max:255','width'=>'col-sm-10'];
 			$this->form[] = ['label'=>'Total Quantity','name'=>'total_quantity','type'=>'number','validation'=>'required|integer|min:0','width'=>'col-sm-10'];
 			$this->form[] = ['label'=>'Diagnose','name'=>'diagnose','type'=>'text','validation'=>'required|min:1|max:255','width'=>'col-sm-10'];
 			$this->form[] = ['label'=>'Created By','name'=>'created_by','type'=>'number','validation'=>'required|integer|min:0','width'=>'col-sm-10'];
@@ -185,8 +217,8 @@ use PHPExcel_Style_Fill;
 	        $this->addaction = array();
 			$to_sor = ReturnsStatus::where('id','9')->value('id');
 
-			$this->addaction[] = ['title'=>'Edit','url'=>CRUDBooster::mainpath('ReturnsSOREdit/[id]'),'icon'=>'fa fa-pencil', "showIf"=>"[returns_status_1] == $to_sor"];
-			$this->addaction[] = ['title'=>'View','url'=>CRUDBooster::mainpath('ViewSOR/[id]'),'icon'=>'fa fa-eye'];
+			$this->addaction[] = ['title'=>'Edit','url'=>CRUDBooster::mainpath('ReturnsSOREdit/[id]'),'color'=>'none','icon'=>'fa fa-pencil', "showIf"=>"[returns_status_1] == $to_sor"];
+			$this->addaction[] = ['title'=>'View','url'=>CRUDBooster::mainpath('ViewSOR/[id]'),'color'=>'none','icon'=>'fa fa-eye'];
 
 	        /* 
 	        | ---------------------------------------------------------------------- 
@@ -297,7 +329,8 @@ use PHPExcel_Style_Fill;
 	        |
 	        */
 	        $this->load_js = array();
-	        
+			$this->load_js[] = "https://unpkg.com/timeago.js/dist/timeago.min.js";
+			$this->load_js[] = asset("js/time_ago.js");
 	        
 	        
 	        /*
@@ -321,7 +354,8 @@ use PHPExcel_Style_Fill;
 	        |
 	        */
 	        $this->load_css = array();
-	        
+			$this->load_css[] = asset('css/last_message.css');
+
 	        
 	    }
 
@@ -349,7 +383,19 @@ use PHPExcel_Style_Fill;
 	    */
 	    public function hook_query_index(&$query) {
 	        //Your code here
-	        
+
+			// Chatbox
+			$query->leftJoin('ecomm_last_comments', 'ecomm_last_comments.returns_header_id', 'returns_header.id')
+			->leftJoin('chat_ecomms', 'chat_ecomms.id', 'ecomm_last_comments.chats_id')
+			->leftJoin('cms_users as sender', 'sender.id', 'chat_ecomms.created_by')
+			->addSelect('chat_ecomms.message as last_message',
+				'chat_ecomms.file_name as last_image',
+				'sender.name as sender_name',
+				'chat_ecomms.created_at as date_send'
+			);
+
+			// $query->whereNull('returns_body_item.category');
+
 	        if(CRUDBooster::myPrivilegeName() == "Service Center"){ 
 	            
 	            $query->where(function($sub_query){
@@ -372,6 +418,7 @@ use PHPExcel_Style_Fill;
 					$sub_query->where('returns_status_1', $to_sor)->where('transaction_type', 1)->whereIn('returns_header.stores_id', $storeList)->orderBy('id', 'asc'); 
 					$sub_query->orwhere('returns_status_1', $to_sor)->where('transaction_type', 3)->whereIn('returns_header.stores_id', $storeList)->orderBy('id', 'asc'); 
 
+					$sub_query->orwhere('returns_status_1', $to_sor)->whereIn('transaction_type', [1,3])->whereIn('returns_header.sc_location_id', $storeList)->orderBy('id', 'asc'); 
 	            });
         			
 
@@ -397,7 +444,7 @@ use PHPExcel_Style_Fill;
 			$to_print_crf = 			ReturnsStatus::where('id','7')->value('warranty_status');
 			$to_sor = 					ReturnsStatus::where('id','9')->value('warranty_status');
 
-			if($column_index == 1){
+			if($column_index == 3){
 				if($column_value == $requested){
 					$column_value = '<span class="label label-warning">'.$requested.'</span>';
 			
@@ -708,6 +755,8 @@ use PHPExcel_Style_Fill;
 			$channels = Channel::where('channel_name', 'ONLINE')->first();
 
 			$data['store_list'] = Stores::where('channels_id',$channels->id)->get();
+
+			$data['comments_data'] = (new ChatController)->getCommentsEcomm($id);
 			
 			$this->cbView("returns.edit_sor", $data);
 		}
@@ -949,123 +998,247 @@ use PHPExcel_Style_Fill;
             						}
     						
     						}
+    						if (CRUDBooster::myPrivilegeName() == "Service Center") {
+								$orderItems[] = array(
+									//is_null($orderRow->approved_at) ? "" : Carbon::parse($orderRow->approved_at)->toDateString(),	//'APPROVED DATE',
+									//is_null($orderRow->approved_at) ? "" : Carbon::parse($orderRow->approved_at)->toTimeString(), //'APPROVED TIME',
+									$orderRow->warranty_status, 		
+									$orderRow->diagnose, 	
+									$orderRow->created_at,				
+									$orderRow->return_reference_no,					
+									$orderRow->purchase_location,				
+									$orderRow->customer_last_name,		
+									$orderRow->customer_first_name,	
+									$orderRow->address,		            
+									$orderRow->email_address,      
+									$orderRow->contact_no,    
+									$orderRow->order_no,		
+									$orderRow->purchase_date,			
+									$orderRow->mode_of_payment,		
+									//$orderRow->mode_of_refund,	
+									//$orderRow->bank_name,                  
+									//$orderRow->bank_account_no,                   
+									//$orderRow->bank_account_name,		
+									$orderRow->items_included,                      
+									$orderRow->items_included_others, 
+									$orderRow->verified_items_included,                      
+									$orderRow->verified_items_included_others, 
+									$orderRow->customer_location,  
+									$orderRow->deliver_to,                 
+									 $orderRow->return_schedule,                     
+									$orderRow->pickup_schedule,   
+									$orderRow->refunded_date,  
+									$orderRow->sor_number,      
+									 $orderRow->digits_code,               
+									 $orderRow->upc_code,                 
+									 $orderRow->item_description,            
+									 $orderRow->cost,          
+									$orderRow->brand,
+									$serial_no->serial_number,
+									$orderRow->problem_details,
+									 $orderRow->problem_details_other,                
+									$orderRow->quantity,
+									$orderRow->warranty_status,
+									$orderRow->ship_back_status,
+									$orderRow->claimed_status,
+									$orderRow->credit_memo_number,
+									$orderRow->verified_by,
+									$orderRow->level1_personnel_edited,
+									$scheduled_by,
+									$scheduled_date,
+									$orderRow->diagnosed_by,
+									$orderRow->level3_personnel_edited,
+									$orderRow->printed_by,
+									$orderRow->level4_personnel_edited,
+									$transacted_personnel,							
+									$transacted_date,
+									$closed_personnel,
+									$closed_date,
+									$orderRow->comments,
+									$orderRow->diagnose_comments
+								);
+
+								$headings = array(
+									'RETURN STATUS',
+									'DIAGNOSE',
+									'CREATED DATE',
+									'RETURN REFERENCE#',
+									'PURCHASE LOCATION',
+									'CUSTOMER LAST NAME',
+									'CUSTOMER FIRST NAME',
+									'ADDRESS',
+									'EMAIL ADDRESS',
+									'CONTACT#',
+									'ORDER#',
+									'PURCHASE DATE',
+									'ORIGINAL MODE OF PAYMENT',
+									//'MODE OF REFUND',
+									//'BANK NAME',    //yellow
+									//'BANK ACCOUNT#',      //red
+									//'BANK ACCOUNT NAME',         //red
+									'ITEMS INCLUDED',         //red
+									'ITEMS INCLUDED OTHERS',//green
+									'VERIFIED ITEMS INCLUDED',         //red
+									'VERIFIED ITEMS INCLUDED OTHERS',//green
+									'CUSTOMER LOCATION',               //green
+									'DELIVER TO',               //green
+									'RETURN SCHEDULE',               //green
+									'PICKUP SCHEDULE',               //green
+									'REFUNDED DATE',               //green
+									'SOR#',               //green
+									'DIGITS CODE',                 //green
+									'UPC CODE',      //blue
+									'ITEM DESCRIPTION',               //blue
+									'COST',                 //bue
+									'BRAND',              //blue  //additional code 20200121
+									'SERIAL#',                //bue   //additional code 20200121
+									'PROBLEM DETAILS',       //additional code 20200207
+									'PROBLEM DETAILS OTHERS',       //additional code 20200207
+									'QUANTITY',           //blue  //additional code 20200205
+									'WARRANTY STATUS',
+									'SHIP BACK STATUS',           //blue  //additional code 20200205
+									'CLAIMED STATUS',           //blue  //additional code 20200205
+									'CREDIT MEMO#',           //blue  //additional code 20200205
+									'VERIFIED BY',           //blue  //additional code 20200205
+									'VERIFIED DATE',           //blue  //additional code 20200205
+									'SCHEDULED BY',           //blue  //additional code 20200205
+									'SCHEDULED DATE',           //blue  //additional code 20200205
+									'DIAGNOSED BY',           //blue  //additional code 20200205
+									'DIAGNOSED DATE',           //blue  //additional code 20200205
+									'PRINTED BY',           //blue  //additional code 20200205
+									'PRINTED DATE',           //blue  //additional code 20200205
+									'SOR BY',           //blue  //additional code 20200205
+									'SOR DATE',           //blue  //additional code 20200205
+									'CLOSED BY',           //blue  //additional code 20200205
+									'CLOSED DATE',           //blue  //additional code 20200205
+									'COMMENTS',
+									'DIAGNOSED COMMENTS'
+								);		
+							}else {
+								$orderItems[] = array(
+									//is_null($orderRow->approved_at) ? "" : Carbon::parse($orderRow->approved_at)->toDateString(),	//'APPROVED DATE',
+									//is_null($orderRow->approved_at) ? "" : Carbon::parse($orderRow->approved_at)->toTimeString(), //'APPROVED TIME',
+									$orderRow->warranty_status, 		
+									$orderRow->diagnose, 	
+									$orderRow->created_at,				
+									$orderRow->return_reference_no,	
+									$orderRow->inc_number,			
+									$orderRow->rma_number,					
+									$orderRow->purchase_location,				
+									$orderRow->customer_last_name,		
+									$orderRow->customer_first_name,	
+									$orderRow->address,		            
+									$orderRow->email_address,      
+									$orderRow->contact_no,    
+									$orderRow->order_no,		
+									$orderRow->purchase_date,			
+									$orderRow->mode_of_payment,		
+									//$orderRow->mode_of_refund,	
+									//$orderRow->bank_name,                  
+									//$orderRow->bank_account_no,                   
+									//$orderRow->bank_account_name,		
+									$orderRow->items_included,                      
+									$orderRow->items_included_others, 
+									$orderRow->verified_items_included,                      
+									$orderRow->verified_items_included_others, 
+									$orderRow->customer_location,  
+									$orderRow->deliver_to,                 
+									 $orderRow->return_schedule,                     
+									$orderRow->pickup_schedule,   
+									$orderRow->refunded_date,  
+									$orderRow->sor_number,      
+									 $orderRow->digits_code,               
+									 $orderRow->upc_code,                 
+									 $orderRow->item_description,            
+									 $orderRow->cost,          
+									$orderRow->brand,
+									$serial_no->serial_number,
+									$orderRow->problem_details,
+									 $orderRow->problem_details_other,                
+									$orderRow->quantity,
+									$orderRow->warranty_status,
+									$orderRow->ship_back_status,
+									$orderRow->claimed_status,
+									$orderRow->credit_memo_number,
+									$orderRow->verified_by,
+									$orderRow->level1_personnel_edited,
+									$scheduled_by,
+									$scheduled_date,
+									$orderRow->diagnosed_by,
+									$orderRow->level3_personnel_edited,
+									$orderRow->printed_by,
+									$orderRow->level4_personnel_edited,
+									$transacted_personnel,							
+									$transacted_date,
+									$closed_personnel,
+									$closed_date,
+									$orderRow->comments,
+									$orderRow->diagnose_comments
+								);
+
+								$headings = array(
+									'RETURN STATUS',
+									'DIAGNOSE',
+									'CREATED DATE',
+									'RETURN REFERENCE#',
+									'INC#',
+									'RMA#',
+									'PURCHASE LOCATION',
+									'CUSTOMER LAST NAME',
+									'CUSTOMER FIRST NAME',
+									'ADDRESS',
+									'EMAIL ADDRESS',
+									'CONTACT#',
+									'ORDER#',
+									'PURCHASE DATE',
+									'ORIGINAL MODE OF PAYMENT',
+									//'MODE OF REFUND',
+									//'BANK NAME',    //yellow
+									//'BANK ACCOUNT#',      //red
+									//'BANK ACCOUNT NAME',         //red
+									'ITEMS INCLUDED',         //red
+									'ITEMS INCLUDED OTHERS',//green
+									'VERIFIED ITEMS INCLUDED',         //red
+									'VERIFIED ITEMS INCLUDED OTHERS',//green
+									'CUSTOMER LOCATION',               //green
+									'DELIVER TO',               //green
+									'RETURN SCHEDULE',               //green
+									'PICKUP SCHEDULE',               //green
+									'REFUNDED DATE',               //green
+									'SOR#',               //green
+									'DIGITS CODE',                 //green
+									'UPC CODE',      //blue
+									'ITEM DESCRIPTION',               //blue
+									'COST',                 //bue
+									'BRAND',              //blue  //additional code 20200121
+									'SERIAL#',                //bue   //additional code 20200121
+									'PROBLEM DETAILS',       //additional code 20200207
+									'PROBLEM DETAILS OTHERS',       //additional code 20200207
+									'QUANTITY',           //blue  //additional code 20200205
+									'WARRANTY STATUS',
+									'SHIP BACK STATUS',           //blue  //additional code 20200205
+									'CLAIMED STATUS',           //blue  //additional code 20200205
+									'CREDIT MEMO#',           //blue  //additional code 20200205
+									'VERIFIED BY',           //blue  //additional code 20200205
+									'VERIFIED DATE',           //blue  //additional code 20200205
+									'SCHEDULED BY',           //blue  //additional code 20200205
+									'SCHEDULED DATE',           //blue  //additional code 20200205
+									'DIAGNOSED BY',           //blue  //additional code 20200205
+									'DIAGNOSED DATE',           //blue  //additional code 20200205
+									'PRINTED BY',           //blue  //additional code 20200205
+									'PRINTED DATE',           //blue  //additional code 20200205
+									'SOR BY',           //blue  //additional code 20200205
+									'SOR DATE',           //blue  //additional code 20200205
+									'CLOSED BY',           //blue  //additional code 20200205
+									'CLOSED DATE',           //blue  //additional code 20200205
+									'COMMENTS',
+									'DIAGNOSED COMMENTS'
+								);	
+							}
     						
-    						$orderItems[] = array(
-    							//is_null($orderRow->approved_at) ? "" : Carbon::parse($orderRow->approved_at)->toDateString(),	//'APPROVED DATE',
-    							//is_null($orderRow->approved_at) ? "" : Carbon::parse($orderRow->approved_at)->toTimeString(), //'APPROVED TIME',
-    							$orderRow->warranty_status, 		
-    							$orderRow->diagnose, 	
-    							$orderRow->created_at,				
-    							$orderRow->return_reference_no,					
-    							$orderRow->purchase_location,				
-    							$orderRow->customer_last_name,		
-    							$orderRow->customer_first_name,	
-    							$orderRow->address,		            
-    							$orderRow->email_address,      
-    							$orderRow->contact_no,    
-    							$orderRow->order_no,		
-    							$orderRow->purchase_date,			
-    							$orderRow->mode_of_payment,		
-    							//$orderRow->mode_of_refund,	
-    							//$orderRow->bank_name,                  
-    							//$orderRow->bank_account_no,                   
-    							//$orderRow->bank_account_name,		
-    							$orderRow->items_included,                      
-    							$orderRow->items_included_others, 
-    							$orderRow->verified_items_included,                      
-    							$orderRow->verified_items_included_others, 
-    							$orderRow->customer_location,  
-    							$orderRow->deliver_to,                 
-    				 			$orderRow->return_schedule,                     
-    							$orderRow->pickup_schedule,   
-    							$orderRow->refunded_date,  
-    							$orderRow->sor_number,      
-    				 			$orderRow->digits_code,               
-    				 			$orderRow->upc_code,                 
-    				 			$orderRow->item_description,            
-    				 			$orderRow->cost,          
-    							$orderRow->brand,
-    							$serial_no->serial_number,
-    							$orderRow->problem_details,
-    				 			$orderRow->problem_details_other,                
-    							$orderRow->quantity,
-    							$orderRow->warranty_status,
-    							$orderRow->ship_back_status,
-    							$orderRow->claimed_status,
-    							$orderRow->credit_memo_number,
-    							$orderRow->verified_by,
-    							$orderRow->level1_personnel_edited,
-    							$scheduled_by,
-    							$scheduled_date,
-    							$orderRow->diagnosed_by,
-    							$orderRow->level3_personnel_edited,
-    							$orderRow->printed_by,
-    							$orderRow->level4_personnel_edited,
-    							$transacted_personnel,							
-    							$transacted_date,
-    							$closed_personnel,
-    							$closed_date,
-    							$orderRow->comments,
-    							$orderRow->diagnose_comments
-    						);
     					}
     
-    					$headings = array(
-    						'RETURN STATUS',
-    						'DIAGNOSE',
-    						'CREATED DATE',
-    						'RETURN REFERENCE#',
-    						'PURCHASE LOCATION',
-    						'CUSTOMER LAST NAME',
-    						'CUSTOMER FIRST NAME',
-    						'ADDRESS',
-    						'EMAIL ADDRESS',
-    						'CONTACT#',
-    						'ORDER#',
-    						'PURCHASE DATE',
-    						'ORIGINAL MODE OF PAYMENT',
-    						//'MODE OF REFUND',
-    						//'BANK NAME',    //yellow
-    						//'BANK ACCOUNT#',      //red
-    						//'BANK ACCOUNT NAME',         //red
-    						'ITEMS INCLUDED',         //red
-    						'ITEMS INCLUDED OTHERS',//green
-    						'VERIFIED ITEMS INCLUDED',         //red
-    						'VERIFIED ITEMS INCLUDED OTHERS',//green
-    						'CUSTOMER LOCATION',               //green
-    						'DELIVER TO',               //green
-    						'RETURN SCHEDULE',               //green
-    						'PICKUP SCHEDULE',               //green
-    						'REFUNDED DATE',               //green
-    						'SOR#',               //green
-    						'DIGITS CODE',                 //green
-    						'UPC CODE',      //blue
-    						'ITEM DESCRIPTION',               //blue
-    						'COST',                 //bue
-    						'BRAND',              //blue  //additional code 20200121
-                            'SERIAL#',                //bue   //additional code 20200121
-    						'PROBLEM DETAILS',       //additional code 20200207
-    						'PROBLEM DETAILS OTHERS',       //additional code 20200207
-    						'QUANTITY',           //blue  //additional code 20200205
-    						'WARRANTY STATUS',
-    						'SHIP BACK STATUS',           //blue  //additional code 20200205
-    						'CLAIMED STATUS',           //blue  //additional code 20200205
-    						'CREDIT MEMO#',           //blue  //additional code 20200205
-    						'VERIFIED BY',           //blue  //additional code 20200205
-    						'VERIFIED DATE',           //blue  //additional code 20200205
-    						'SCHEDULED BY',           //blue  //additional code 20200205
-    						'SCHEDULED DATE',           //blue  //additional code 20200205
-    						'DIAGNOSED BY',           //blue  //additional code 20200205
-    						'DIAGNOSED DATE',           //blue  //additional code 20200205
-    						'PRINTED BY',           //blue  //additional code 20200205
-    						'PRINTED DATE',           //blue  //additional code 20200205
-    						'SOR BY',           //blue  //additional code 20200205
-    						'SOR DATE',           //blue  //additional code 20200205
-    						'CLOSED BY',           //blue  //additional code 20200205
-    						'CLOSED DATE',           //blue  //additional code 20200205
-    						'COMMENTS',
-    						'DIAGNOSED COMMENTS'
-    					);		
+    					
 
 					$sheet->fromArray($orderItems, null, 'A1', false, false);
 					$sheet->prependRow(1, $headings);

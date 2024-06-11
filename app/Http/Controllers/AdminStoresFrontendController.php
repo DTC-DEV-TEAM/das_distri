@@ -60,7 +60,7 @@
 			//$this->form[] = ['label'=>'POS Store Name','name'=>'store_pos_name','type'=>'text','validation'=>'min:1|max:150','width'=>'col-sm-5','help'=>'*Please fill out bill to if franchise store.'];
 			//$this->form[] = ['label'=>'Bill To','name'=>'store_bill_to','type'=>'text','validation'=>'max:150','width'=>'col-sm-5'];
 			//$this->form[] = ['label'=>'Store Location','name'=>'store_location','type'=>'select','width'=>'col-sm-5','dataenum'=>'STORE;WAREHOUSE'];
-			//$this->form[] = ['label'=>'Store Type','name'=>'store_types_id','type'=>'select','validation'=>'required','width'=>'col-sm-5','datatable'=>'store_types,store_type'];
+			$this->form[] = ['label'=>'Store Type','name'=>'store_types_id','type'=>'select','validation'=>'required','width'=>'col-sm-5','datatable'=>'mode_of_returns,name'];
 			
 			if(CRUDBooster::getCurrentMethod() == 'getEdit' || CRUDBooster::getCurrentMethod() == 'postEditSave' || CRUDBooster::getCurrentMethod() == 'getDetail') {
 				$this->form[] = ['label'=>'Status','name'=>'store_status','type'=>'select','validation'=>'required','width'=>'col-sm-5','dataenum'=>'ACTIVE;INACTIVE'];
@@ -193,9 +193,22 @@
 	        */
 	        $this->script_js = NULL;
 			$this->script_js = "
+				$('#form-group-store_types_id').hide();
+				$('#form-group-store_types_id').attr('disabled', true);
+
 				$('#alerts_msg').fadeTo(1500, 500).slideUp(500, function(){
 					$('#alerts_msg').slideUp(500);
 				});
+
+				$('#channels_id').on('change', function(){
+					if ($(this).val() == 7){
+						$('#form-group-store_types_id').show();
+						$('#form-group-store_types_id').attr('disabled', false);
+					}else{
+						$('#form-group-store_types_id').hide();
+						$('#form-group-store_types_id').attr('disabled', true);
+					}
+				})
 			";
 
             /*
@@ -322,7 +335,7 @@
 			$postdata['created_by']=CRUDBooster::myId();
 
 
-			/*DB::connection('mysql_front_end')
+			DB::connection('mysql_front_end')
 			->statement('insert into stores (channels_id, store_name, created_by, created_at) values (?, ?, ?, ?)', 
 			[	$postdata['channels_id'], 
 			 	$postdata['store_name'],
@@ -330,7 +343,7 @@
 				date('Y-m-d H:i:s')
 			]);
 
-			DB::disconnect('mysql_front_end');*/
+			DB::disconnect('mysql_front_end');
 	    }
 
 	    /* 

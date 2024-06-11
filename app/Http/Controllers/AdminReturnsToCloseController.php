@@ -57,9 +57,33 @@ use App\StoresFrontEnd;
 			# START COLUMNS DO NOT REMOVE THIS LINE
 			$this->col = [];
 			$this->col[] = ["label"=>"Status","name"=>"returns_status_1","join"=>"warranty_statuses,warranty_status"];
+			$this->col[] = ["label"=>"Last Chat", "name"=>"id", 'callback'=>function($row){
+				$img_url = asset("chat_img/$row->last_image");
+				;
+				$str = '';
+				
+				$str .= "<div class='sender_name'>$row->sender_name</div>";
+				$str .= "<div class='time_ago' datetime='$row->date_send'>$row->date_send</div>";
+				
+				if ($row->last_message) {
+					// Truncate the message if it's longer than 150 characters
+					$truncatedMessage = strlen($row->last_message) > 41 ? substr($row->last_message, 0, 41) . '...' : $row->last_message;
+					$str .= "<div class='text-msg'>$truncatedMessage</div>";
+				}
+				if($row->last_image){
+					$str .= "<div class='last_msg'><img src='$img_url'></div>";
+				}
+				if($row->sender_name){
+					return $str;
+				}else{
+					return '<div class="no-message">No messages available at the moment.</div>';
+				}
+			}];
 			$this->col[] = ["label"=>"Created Date","name"=>"created_at"];
 			//$this->col[] = ["label"=>"Pickup Schedule","name"=>"return_schedule"];
 			$this->col[] = ["label"=>"Return Reference#","name"=>"return_reference_no"];
+			$this->col[] = ["label"=>"INC#","name"=>"inc_number"];
+			$this->col[] = ["label"=>"RMA#","name"=>"rma_number"];
 			$this->col[] = ["label"=>"Order#","name"=>"order_no"];
 			$this->col[] = ["label"=>"Customer Location","name"=>"customer_location"];
 			$this->col[] = ["label"=>"Mode Of Return","name"=>"mode_of_return"];
@@ -242,13 +266,13 @@ use App\StoresFrontEnd;
 			//$this->addaction[] = ['title'=>'Edit','url'=>CRUDBooster::mainpath('ReturnsSchedulingEdit/[id]'),'icon'=>'fa fa-pencil', "showIf"=>"[returns_status_1] == $to_schedule_aftersales or [returns_status_1] == $to_schedule_logistics"];
 			if(CRUDBooster::myPrivilegeName() == "Ecomm Ops"){
 		        
-		        $this->addaction[] = ['title'=>'Detail','url'=>CRUDBooster::mainpath('ReturnsDetailClose/[id]'),'icon'=>'fa fa-eye'];
+		        $this->addaction[] = ['title'=>'Detail','url'=>CRUDBooster::mainpath('ReturnsDetailClose/[id]'),'color'=>'none','icon'=>'fa fa-eye'];
 			    
 			}else{
 			
-			    $this->addaction[] = ['title'=>'Edit','url'=>CRUDBooster::mainpath('ReturnsCloseRejectEdit/[id]'),'icon'=>'fa fa-pencil', "showIf"=>"[returns_status_1] == $to_ship_back"];
+			    $this->addaction[] = ['title'=>'Edit','url'=>CRUDBooster::mainpath('ReturnsCloseRejectEdit/[id]'),'color'=>'none','icon'=>'fa fa-pencil', "showIf"=>"[returns_status_1] == $to_ship_back"];
 			    
-			    $this->addaction[] = ['title'=>'Edit','url'=>CRUDBooster::mainpath('ReturnsClosingEdit/[id]'),'icon'=>'fa fa-pencil', "showIf"=>"[returns_status_1] == $for_replacement"];
+			    $this->addaction[] = ['title'=>'Edit','url'=>CRUDBooster::mainpath('ReturnsClosingEdit/[id]'),'color'=>'none','icon'=>'fa fa-pencil', "showIf"=>"[returns_status_1] == $for_replacement"];
 			
 			}
 			//$this->addaction[] = ['title'=>'Print','url'=>CRUDBooster::mainpath('ReturnsPulloutPrint/[id]'),'icon'=>'fa fa-print', "showIf"=>"[returns_status_1] == $pending"];
@@ -362,7 +386,8 @@ use App\StoresFrontEnd;
 	        |
 	        */
 	        $this->load_js = array();
-	        
+			$this->load_js[] = "https://unpkg.com/timeago.js/dist/timeago.min.js";
+			$this->load_js[] = asset("js/time_ago.js");
 	        
 	        
 	        /*
@@ -386,7 +411,8 @@ use App\StoresFrontEnd;
 	        |
 	        */
 	        $this->load_css = array();
-	        
+			$this->load_css[] = asset('css/last_message.css');
+
 	        
 	    }
 
@@ -414,7 +440,17 @@ use App\StoresFrontEnd;
 	    */
 	    public function hook_query_index(&$query) {
 	        //Your code here
-	    
+			
+			// Chatbox
+			$query->leftJoin('ecomm_last_comments', 'ecomm_last_comments.returns_header_id', 'returns_header.id')
+			->leftJoin('chat_ecomms', 'chat_ecomms.id', 'ecomm_last_comments.chats_id')
+			->leftJoin('cms_users as sender', 'sender.id', 'chat_ecomms.created_by')
+			->addSelect('chat_ecomms.message as last_message',
+				'chat_ecomms.file_name as last_image',
+				'sender.name as sender_name',
+				'chat_ecomms.created_at as date_send'
+			);
+
 	        if(CRUDBooster::myPrivilegeName() == "Store Ops"){
 	            
 	            $query->where(function($sub_query){
@@ -503,7 +539,7 @@ use App\StoresFrontEnd;
 			$for_replacement = 	  		ReturnsStatus::where('id','20')->value('warranty_status');
 			
 			$pending = ReturnsStatus::where('id','19')->value('warranty_status');
-			if($column_index == 1){
+			if($column_index == 2){
 				if($column_value == $requested){
 					$column_value = '<span class="label label-warning">'.$requested.'</span>';
 			
@@ -803,6 +839,8 @@ use App\StoresFrontEnd;
 			$channels = Channel::where('channel_name', 'ONLINE')->first();
 
 			$data['store_list'] = Stores::where('channels_id',$channels->id)->get();
+
+			$data['comments_data'] = (new ChatController)->getCommentsEcomm($id);
 			
 			$this->cbView("returns.edit_closing_reject", $data);
 		}
@@ -2229,11 +2267,14 @@ use App\StoresFrontEnd;
 			$channels = Channel::where('channel_name', 'ONLINE')->first();
 
 			$data['store_list'] = Stores::where('channels_id',$channels->id)->get();
+
+			$data['comments_data'] = (new ChatController)->getCommentsEcomm($id);
 			
 			if(CRUDBooster::myPrivilegeName() == "SDM"){
 				$this->cbView("returns.edit_closing_retail_sdm", $data);
 			}else{
-				$this->cbView("returns.edit_closing_ops", $data);
+				// $this->cbView("returns.edit_closing_ops", $data);
+				$this->cbView("components.ecomm.replacement_ops", $data);
 			}
 		}
 

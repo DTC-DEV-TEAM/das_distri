@@ -236,7 +236,7 @@ use App\StoresFrontEnd;
 	        | 
 	        */
 	        $this->addaction = array();
-			$this->addaction[] = ['title'=>'Print','url'=>CRUDBooster::mainpath('ReturnsReturnFormPrint/[id]'),'icon'=>'fa fa-print'];
+			$this->addaction[] = ['title'=>'Print','url'=>CRUDBooster::mainpath('ReturnsReturnFormPrint/[id]'),'color'=>'none','icon'=>'fa fa-print'];
 
 	        /* 
 	        | ---------------------------------------------------------------------- 
@@ -429,7 +429,7 @@ use App\StoresFrontEnd;
             $received = 	            ReturnsStatus::where('id','31')->value('warranty_status');
             $to_receive  = 	            ReturnsStatus::where('id','29')->value('warranty_status');      
                       
-			if($column_index == 1){
+			if($column_index == 2){
 				if($column_value == $requested){
 					$column_value = '<span class="label label-warning">'.$requested.'</span>';
 			

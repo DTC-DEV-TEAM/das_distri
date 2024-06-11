@@ -5,6 +5,7 @@ use Session;
 use DB;
 use CRUDBooster;
 use App\ReturnsStatus;
+use App\CaseStatus;
 use App\ReturnsHeaderRTL;
 use App\ReturnsBodyRTL;
 use App\ReturnsSerialsRTL;
@@ -13,6 +14,7 @@ use App\Stores;
 use App\Channel;
 use App\ItemsIncluded;
 use App\DiagnoseWarranty;
+use App\ReferenceCounter;
 use App\StoresFrontEnd;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Input;
@@ -54,11 +56,41 @@ use PHPExcel_Style_Fill;
 
 			# START COLUMNS DO NOT REMOVE THIS LINE
 			$this->col = [];
+			$this->col[] = ["label"=>"Brand","name"=>"id", 'callback'=>function($row){
+				
+				$id = $row->id;
+
+				$brand = DB::table('returns_body_item_retail')->where('returns_header_id', $id)->orderBy('id', 'desc')->first()->brand;
+				
+				return $brand;
+			}];			
+			$this->col[] = ["label"=>"Status","name"=>"returns_status_1","join"=>"warranty_statuses,warranty_status"];
+			$this->col[] = ["label"=>"Last Chat", "name"=>"id", 'callback'=>function($row){
+				$img_url = asset("chat_img/$row->last_image");
+				;
+				$str = '';
+				
+				$str .= "<div class='sender_name'>$row->sender_name</div>";
+				$str .= "<div class='time_ago' datetime='$row->date_send'>$row->date_send</div>";
+				
+				if ($row->last_message) {
+					// Truncate the message if it's longer than 150 characters
+					$truncatedMessage = strlen($row->last_message) > 41 ? substr($row->last_message, 0, 41) . '...' : $row->last_message;
+					$str .= "<div class='text-msg'>$truncatedMessage</div>";
+				}
+				if($row->last_image){
+					$str .= "<div class='last_msg'><img src='$img_url'></div>";
+				}
+				if($row->sender_name){
+					return $str;
+				}else{
+					return '<div class="no-message">No messages available at the moment.</div>';
+				}
+			}];
+			$this->col[] = ["label"=>"Return Reference#","name"=>"return_reference_no"];
 			if(CRUDBooster::myPrivilegeName() == "Service Center"){ 
-				$this->col[] = ["label"=>"Status","name"=>"returns_status_1","join"=>"warranty_statuses,warranty_status"];
 				$this->col[] = ["label"=>"Created Date","name"=>"created_at"];
 				$this->col[] = ["label"=>"Pickup Schedule","name"=>"return_schedule"];
-				$this->col[] = ["label"=>"Return Reference#","name"=>"return_reference_no"];
 				$this->col[] = ["label"=>"Order#","name"=>"order_no"];
 				//$this->col[] = ["label"=>"Customer Location","name"=>"customer_location"];
 				$this->col[] = ["label"=>"Customer Location","name"=>"customer_location"];
@@ -72,10 +104,9 @@ use PHPExcel_Style_Fill;
 				$this->col[] = ["label"=>"Diagnose","name"=>"diagnose","visible"=>false];
 				$this->col[] = ["label"=>"Level3 Personnel","name"=>"level3_personnel","visible"=>false];
 			}else{
-				$this->col[] = ["label"=>"Status","name"=>"returns_status_1","join"=>"warranty_statuses,warranty_status"];
 				$this->col[] = ["label"=>"Created Date","name"=>"created_at"];
 				$this->col[] = ["label"=>"Pickup Schedule","name"=>"return_schedule"];
-				$this->col[] = ["label"=>"Return Reference#","name"=>"return_reference_no"];
+				$this->col[] = ["label"=>"INC#","name"=>"inc_number"];
 				$this->col[] = ["label"=>"Order#","name"=>"order_no"];
 				//$this->col[] = ["label"=>"Customer Location","name"=>"customer_location"];
 				$this->col[] = ["label"=>"Customer Location","name"=>"customer_location"];
@@ -212,11 +243,24 @@ use PHPExcel_Style_Fill;
 	        */
 			$this->addaction = array();
 			$to_diagnose = ReturnsStatus::where('id','5')->value('id');
+			$to_for_action = ReturnsStatus::where('id','38')->value('id');
 			$to_print_return_form = ReturnsStatus::where('id','13')->value('id');
 			$requested = ReturnsStatus::where('id','1')->value('id');
+			$to_assign_inc = ReturnsStatus::where('id','39')->value('id');
+			$to_ongoing_testing = ReturnsStatus::where('id','40')->value('id');
 
-				$this->addaction[] = ['title'=>'Edit','url'=>CRUDBooster::mainpath('ReturnsDiagnosingRTLEdit/[id]'),'icon'=>'fa fa-pencil', "showIf"=>"[returns_status_1] == $to_diagnose"];
-				$this->addaction[] = ['title'=>'Print','url'=>CRUDBooster::mainpath('ReturnsReturnFormPrintRTL/[id]'),'icon'=>'fa fa-print', "showIf"=>"[returns_status_1] == $to_print_return_form"];
+				if(CRUDBooster::myPrivilegeName() == "Tech Lead") {
+					$this->addaction[] = ['title'=>'Edit','url'=>CRUDBooster::mainpath('TechLeadRTL/[id]'),'color'=>'none','icon'=>'fa fa-pencil', "showIf"=>"[returns_status_1] == $to_assign_inc"];
+					$this->addaction[] = ['title'=>'Edit','url'=>CRUDBooster::mainpath('TechLeadRTL/[id]'),'color'=>'none','icon'=>'fa fa-pencil', "showIf"=>"[returns_status_1] == $to_ongoing_testing"];
+					$this->addaction[] = ['title'=>'Edit','url'=>CRUDBooster::mainpath('ReturnsDiagnosingRTLEdit/[id]'),'color'=>'none','icon'=>'fa fa-pencil', "showIf"=>"[returns_status_1] == $to_diagnose "];
+				}
+				else {
+					$this->addaction[] = ['title'=>'Edit','url'=>CRUDBooster::mainpath('TechLeadRTL/[id]'),'color'=>'none','icon'=>'fa fa-pencil', "showIf"=>"[returns_status_1] == $to_ongoing_testing"];
+					$this->addaction[] = ['title'=>'Edit','url'=>CRUDBooster::mainpath('ReturnsDiagnosingRTLEdit/[id]'),'color'=>'none','icon'=>'fa fa-pencil', "showIf"=>"[returns_status_1] == $to_diagnose"];
+					$this->addaction[] = ['title'=>'Edit','url'=>CRUDBooster::mainpath('ReturnsDiagnosingRTLEdit/[id]'),'color'=>'none','icon'=>'fa fa-pencil', "showIf"=>"[returns_status_1] == $to_for_action"];
+					$this->addaction[] = ['title'=>'Edit','url'=>CRUDBooster::mainpath('TechLeadRTL/[id]'),'color'=>'none','icon'=>'fa fa-pencil', "showIf"=>"[returns_status_1] == $to_assign_inc"];
+					$this->addaction[] = ['title'=>'Print','url'=>CRUDBooster::mainpath('ReturnsReturnFormPrintRTL/[id]'),'color'=>'none','icon'=>'fa fa-print', "showIf"=>"[returns_status_1] == $to_print_return_form"];
+				}
 	        
 				/* 
 	        | ---------------------------------------------------------------------- 
@@ -335,7 +379,8 @@ use PHPExcel_Style_Fill;
 	        |
 	        */
 	        $this->load_js = array();
-	        
+			$this->load_js[] = "https://unpkg.com/timeago.js/dist/timeago.min.js";
+			$this->load_js[] = asset("js/time_ago.js");
 	        
 	        
 	        /*
@@ -359,6 +404,7 @@ use PHPExcel_Style_Fill;
 	        |
 	        */
 	        $this->load_css = array();
+			$this->load_css[] = asset('css/last_message.css');
 	        
 	        
 	    }
@@ -386,7 +432,19 @@ use PHPExcel_Style_Fill;
 	    |
 	    */
 	    public function hook_query_index(&$query) {
+			
 	        //Your code here
+
+			$query->leftJoin('retail_last_comments', 'retail_last_comments.returns_header_retail_id', 'returns_header_retail.id')
+			->leftJoin('chats', 'chats.id', 'retail_last_comments.chats_id')
+			->leftJoin('cms_users as sender', 'sender.id', 'chats.created_by')
+			->addSelect('chats.message as last_message',
+				'chats.file_name as last_image',
+				'sender.name as sender_name',
+				'chats.created_at as date_send'
+			);
+
+			// $query->whereNotNull('returns_body_item_retail.category');
 
 			if(CRUDBooster::myPrivilegeName() == "Service Center"){ 
 				$query->where(function($sub_query){
@@ -405,18 +463,52 @@ use PHPExcel_Style_Fill;
 					$sub_query->where('returns_status_1', $to_diagnose)->where('transaction_type', 1)->whereIn('returns_header_retail.stores_id', $storeList)->orderBy('id', 'asc');  
 					$sub_query->orWhere('returns_status_1', $to_diagnose)->where('transaction_type', 3)->whereIn('returns_header_retail.stores_id', $storeList)->orderBy('id', 'asc'); 
 					$sub_query->orWhere('returns_status_1', $to_print_return_form)->where('transaction_type', 1)->whereIn('returns_header_retail.stores_id', $storeList)->orderBy('id', 'asc');
+
+					$sub_query->orWhere('returns_status_1', $to_diagnose)->whereIn('transaction_type', [1,3])->whereIn('returns_header_retail.sc_location_id', $storeList)->orderBy('id', 'asc');
 				});
 
-			}else{
-
+			}else if (CRUDBooster::myPrivilegeName() == "Tech Lead") {
 				$query->where(function($sub_query){
-					$to_diagnose = ReturnsStatus::where('id','5')->value('id');
-					$to_print_return_form = ReturnsStatus::where('id','13')->value('id');
-					$sub_query->where('returns_status_1', $to_diagnose)->where('transaction_type', 0)->orderBy('id', 'asc');  
-					$sub_query->orWhere('returns_status_1', $to_print_return_form)->where('transaction_type', 0)->orderBy('id', 'asc');
+					$to_assign_inc = 39;
+					$to_diagnose = 5;
+					$to_ongoing_testing = 40;
+					$sub_query->whereIn('returns_status_1', [$to_assign_inc])->where('transaction_type', 0)->orderBy('id', 'desc');
+					$sub_query->orWhereIn('returns_status_1', [$to_diagnose])->where('transaction_type', 0)->orderBy('id', 'desc');
+					$sub_query->orWhereIn('returns_status_1', [$to_ongoing_testing])->where('transaction_type', 0)->orderBy('id', 'desc');
 
 				});
+			}else if (CRUDBooster::myPrivilegeName() == "RMA Technician") {
+				$query->where(function($sub_query){
+					$to_diagnose = 5;
+					$to_ongoing_testing = 40;
+					$sub_query->whereIn('returns_status_1', [$to_diagnose])->where('level2_personnel', CRUDBooster::myId())->where('transaction_type', 0)->orderBy('id', 'desc');
+					$sub_query->orWhereIn('returns_status_1', [$to_ongoing_testing])->where('level2_personnel', CRUDBooster::myId())->where('transaction_type', 0)->orderBy('id', 'desc');
 
+
+				});
+			}else if (CRUDBooster::myPrivilegeName() == "RMA Specialist") {
+				$query->where(function($sub_query){
+					$to_for_action = 38;
+					$to_print_return_form = 13;
+					$sub_query->whereIn('returns_status_1', [$to_for_action, $to_print_return_form])->where('transaction_type', 0)->orderBy('id', 'desc');
+				});
+			}else if (CRUDBooster::myPrivilegeName() == "Super Administrator") {
+				$query->where(function($sub_query){
+					$to_diagnose = 5;
+					$to_assign_inc = 39;
+					$to_for_action = 38;
+					$to_print_return_form = 13;
+					$sub_query->whereIn('returns_status_1', [$to_diagnose, $to_for_action, $to_print_return_form,$to_assign_inc])->orderBy('id', 'desc');
+				});
+			}else{
+				$query->where(function($sub_query){
+					$to_diagnose = 5;
+					$to_assign_inc = 39;
+					$to_ongoing_testing = 40;
+					$to_for_action = 38;
+					$to_print_return_form = 13;
+					$sub_query->whereIn('returns_status_1', [$to_diagnose, $to_for_action, $to_print_return_form,$to_assign_inc,$to_ongoing_testing])->where('transaction_type', 0)->orderBy('id', 'desc');
+				});
 			}
 	    }
 
@@ -431,23 +523,38 @@ use PHPExcel_Style_Fill;
 			$to_schedule = 	ReturnsStatus::where('id','18')->value('warranty_status');
 			$pending = ReturnsStatus::where('id','19')->value('warranty_status');
 			$to_diagnose = ReturnsStatus::where('id','5')->value('warranty_status');
+			$to_for_action = ReturnsStatus::where('id','38')->value('warranty_status');
+			$to_assign_inc = ReturnsStatus::where('id','39')->value('warranty_status');
+			$to_ongoing_testing = ReturnsStatus::where('id','40')->value('warranty_status');
 			$to_print_return_form = ReturnsStatus::where('id','13')->value('warranty_status');
 			$requested = 				ReturnsStatus::where('id','1')->value('warranty_status');
-			if($column_value == $to_schedule){
-				$column_value = '<span class="label label-warning">'.$to_schedule.'</span>';
-		
-			}elseif($column_value == $pending){
-				$column_value = '<span class="label label-warning">'.$pending.'</span>';
-		
-			}elseif($column_value == $requested){
-				$column_value = '<span class="label label-warning">'.$requested.'</span>';
-		
-			}elseif($column_value == $to_diagnose){
-				$column_value = '<span class="label label-warning">'.$to_diagnose.'</span>';
-		
-			}elseif($column_value == $to_print_return_form){
-				$column_value = '<span class="label label-warning">'.$to_print_return_form.'</span>';
-		
+
+			if($column_index == 3){
+
+				if($column_value == $to_schedule){
+					$column_value = '<span class="label label-warning">'.$to_schedule.'</span>';
+			
+				}elseif($column_value == $pending){
+					$column_value = '<span class="label label-warning">'.$pending.'</span>';
+			
+				}elseif($column_value == $requested){
+					$column_value = '<span class="label label-warning">'.$requested.'</span>';
+			
+				}elseif($column_value == $to_diagnose){
+					$column_value = '<span class="label label-warning">'.$to_diagnose.'</span>';
+			
+				}elseif($column_value == $to_for_action){
+					$column_value = '<span class="label label-warning">'.$to_for_action.'</span>';
+			
+				}elseif($column_value == $to_assign_inc){
+					$column_value = '<span class="label label-warning">'.$to_assign_inc.'</span>';
+				}
+				elseif($column_value == $to_print_return_form){
+					$column_value = '<span class="label label-warning">'.$to_print_return_form.'</span>';
+				}
+				elseif($column_value == $to_ongoing_testing){
+					$column_value = '<span class="label label-warning">'.$to_ongoing_testing.'</span>';
+				}
 			}
 		
 	    }
@@ -487,218 +594,324 @@ use PHPExcel_Style_Fill;
 	    public function hook_before_edit(&$postdata,$id) {        
 			//Your code here
 			$ReturnRequest = ReturnsHeaderRTL::where('id',$id)->first();
-
-
-			$returns_fields = Input::all();
-			$field_1 		= $returns_fields['diagnose'];
-			$field_2 		= $returns_fields['diagnose_comments'];
-
-
-			$store_id =     StoresFrontEnd::where('store_name', $ReturnRequest->store_dropoff )->where('channels_id', 6 )->first();
-
-			$customer_location = Stores::where('stores_frontend_id',  $store_id->id )->where('branch_id',$ReturnRequest->branch_dropoff)->where('store_dropoff_privilege', 'YES')->first();
-
-			$problem_details_lines = array();
-			$items_included_lines = array();
-
-			$problem_details 		= $returns_fields['problem_details'];
-			$problem_details_other	= $returns_fields['problem_details_other'];
-
-			for($xx=0; $xx < count((array)$problem_details); $xx++) {
-				array_push($problem_details_lines,$problem_details[$xx]); 
-
+			$to_assign_inc = ReturnsStatus::where('id','39')->value('id');
+			$to_ongoing_testing = ReturnsStatus::where('id','40')->value('id');
+			$to_diagnose = ReturnsStatus::where('id','5')->value('id');
 			
+			if($ReturnRequest->returns_status_1 == $to_assign_inc || CRUDBooster::myPrivilegeName() == 'Super Administrator') {
+
+				$returns_fields = Input::all();
+				$postdata['level2_personnel'] = 					$returns_fields['technician'];
+				$postdata['returns_status_1'] = 					$to_ongoing_testing;
+				$postdata['assigned_by_tech_lead_id'] = 			CRUDBooster::myId();
+				$postdata['assigned_date_by_tech_lead']=			date('Y-m-d H:i:s');
+
+			}else if ($ReturnRequest->returns_status_1 == $to_ongoing_testing) {
+				
+				$postdata['returns_status_1'] = 					$to_diagnose;
+				$postdata['ongoing_testing_date']=					date('Y-m-d H:i:s');
+				
 			}
-			$problem_details_lines = $problem_details_lines;
-
-
-			$items_included 		= $returns_fields['verified_items_included'];
-			$items_included_others	= $returns_fields['verified_items_included_others'];
-			$warranty_status 		= $returns_fields['warranty_status_val'];
-
-			for($xxx=0; $xxx < count((array)$items_included); $xxx++) {
-				array_push($items_included_lines,$items_included[$xxx]); 
-			}
-
-			$items_included_lines = $items_included_lines;
-			
-            
-				if($field_1 == "Replace"){
-
-					$for_replacement = 	  		ReturnsStatus::where('id','20')->value('id');
-					$for_replacement_frontend =	ReturnsStatus::where('id','27')->value('id');
-					
-					$to_sor = 				ReturnsStatus::where('id','9')->value('id');
+			else {
+				$returns_fields = Input::all();
+				$field_1 		= $returns_fields['diagnose'];
+				$field_2 		= $returns_fields['diagnose_comments'];
+				$case_status 	= $returns_fields['case_status'];
+				$store_id =     StoresFrontEnd::where('store_name', $ReturnRequest->store_dropoff )->where('channels_id', 6 )->first();
+				$customer_location = Stores::where('stores_frontend_id',  $store_id->id )->where('branch_id',$ReturnRequest->branch_dropoff)->where('store_dropoff_privilege', 'YES')->first();
 	
-					$diagnose_value = "REPLACE";
+				$problem_details_lines = array();
+				$items_included_lines = array();
 	
-					DB::beginTransaction();
+				$problem_details 		= $returns_fields['problem_details'];
+				$problem_details_other	= $returns_fields['problem_details_other'];
 	
-					try {
+				for($xx=0; $xx < count((array)$problem_details); $xx++) {
+					array_push($problem_details_lines,$problem_details[$xx]); 
+	
+				
+				}
+				$problem_details_lines = $problem_details_lines;
+	
+	
+				$items_included 		= $returns_fields['verified_items_included'];
+				$items_included_others	= $returns_fields['verified_items_included_others'];
+				$warranty_status 		= $returns_fields['warranty_status_val'];
+	
+				for($xxx=0; $xxx < count((array)$items_included); $xxx++) {
+					array_push($items_included_lines,$items_included[$xxx]); 
+				}
+	
+				$items_included_lines = $items_included_lines;
+				
+					if ($field_1 == 'Save' && CRUDBooster::myPrivilegeName() == "RMA Specialist") {
+	
+						$postdata['case_status'] =  $case_status;
+						
+					}else if($field_1 == 'Save'){
+						try {
+							
+								$postdata['case_status'] =  $case_status;
+								$postdata['diagnose_comments'] = $field_2;
+								$postdata['warranty_status'] = $warranty_status;
+	
+								$postdata['verified_items_included'] = implode(", ",$items_included_lines);
+								$postdata['verified_items_included_others'] = $items_included_others;
 		
-						DB::connection('mysql_front_end')
-						->statement('insert into returns_tracking_status (return_reference_no, returns_status, 	created_at) values (?, ?, ?)', 
-						[$ReturnRequest->return_reference_no, 
-						$for_replacement_frontend,
-						date('Y-m-d H:i:s')
-						]);
-			
-							$postdata['level2_personnel'] = 					CRUDBooster::myId();
-							$postdata['level2_personnel_edited']=				date('Y-m-d H:i:s');
-							$postdata['returns_status'] = 						$for_replacement_frontend;
-							$postdata['returns_status_1'] = 					$to_sor;
-							$postdata['diagnose_comments'] = 					$field_2;
-							$postdata['diagnose'] = 							$diagnose_value;
-							$postdata['verified_items_included'] = 				implode(", ",$items_included_lines);
-							$postdata['verified_items_included_others'] = 		$items_included_others;
-							$postdata['warranty_status'] = 						$warranty_status;
-	
-							ReturnsBodyRTL::where('returns_header_id',$ReturnRequest->id)->whereNotNull('brand')
-							->update([		
-								'problem_details'=> implode(", ",$problem_details_lines),
-								'problem_details_other'=> $problem_details_other
-							]);
-	
-		
-						DB::commit();
-		
-					}catch (\Exception $e) {
-						DB::rollback();
-						CRUDBooster::redirect(CRUDBooster::mainpath(), trans("crudbooster.alert_database_error",['database_error'=>$e]), 'danger');
-					}
-		
-					DB::disconnect('mysql_front_end');
-					
-				}else if($field_1 == "Repair"){
-					
-					$repair_approved = 	  ReturnsStatus::where('id','16')->value('id');
-					$to_print_return_form = ReturnsStatus::where('id','13')->value('id');
-	
-					DB::beginTransaction();
-	
-					try {
-		
-						DB::connection('mysql_front_end')
-						->statement('insert into returns_tracking_status (return_reference_no, returns_status, 	created_at) values (?, ?, ?)', 
-						[$ReturnRequest->return_reference_no, 
-						$repair_approved,
-						date('Y-m-d H:i:s')
-						]);
-			
-							$postdata['level2_personnel'] = 					CRUDBooster::myId();
-							$postdata['level2_personnel_edited']=				date('Y-m-d H:i:s');
-							$postdata['returns_status'] = 						$repair_approved;
-							$postdata['returns_status_1'] = 					$to_print_return_form;
-							$postdata['diagnose_comments'] = 					$field_2;
-							$postdata['diagnose'] = 							"REPAIR";
-							$postdata['verified_items_included'] = 				implode(", ",$items_included_lines);
-							$postdata['verified_items_included_others'] = 		$items_included_others;
-							$postdata['warranty_status'] = 						$warranty_status;
-	
-							ReturnsBodyRTL::where('returns_header_id',$ReturnRequest->id)->whereNotNull('brand')
-							->update([		
-								'problem_details'=> implode(", ",$problem_details_lines),
-								'problem_details_other'=> $problem_details_other
-							]);
-	
-		
-						DB::commit();
-		
-					}catch (\Exception $e) {
-						DB::rollback();
-						CRUDBooster::redirect(CRUDBooster::mainpath(), trans("crudbooster.alert_database_error",['database_error'=>$e]), 'danger');
-					}
-		
-					DB::disconnect('mysql_front_end');
-	
-				}else if($field_1 == "Reject"){
-	
-					$return_rejected = 	  ReturnsStatus::where('id','12')->value('id');
-					$to_print_return_form = ReturnsStatus::where('id','13')->value('id');
-		
-					DB::beginTransaction();
-	
-					try {
-		
-						DB::connection('mysql_front_end')
-						->statement('insert into returns_tracking_status (return_reference_no, returns_status, 	created_at) values (?, ?, ?)', 
-						[$ReturnRequest->return_reference_no, 
-						$return_rejected,
-						date('Y-m-d H:i:s')
-						]);
-			
-							$postdata['level2_personnel'] = 					CRUDBooster::myId();
-							$postdata['level2_personnel_edited']=				date('Y-m-d H:i:s');
-							$postdata['returns_status'] = 						$return_rejected;
-							$postdata['returns_status_1'] = 					$to_print_return_form;
-							$postdata['diagnose_comments'] = 					$field_2;
-							$postdata['diagnose'] = 							"REJECT";
-							$postdata['verified_items_included'] = 				implode(", ",$items_included_lines);
-							$postdata['verified_items_included_others'] = 		$items_included_others;
-							$postdata['warranty_status'] = 						$warranty_status;
-	
-							ReturnsBodyRTL::where('returns_header_id',$ReturnRequest->id)->whereNotNull('brand')
-							->update([		
-								'problem_details'=> implode(", ",$problem_details_lines),
-								'problem_details_other'=> $problem_details_other
-							]);
-	
-		
-						DB::commit();
-		
-					}catch (\Exception $e) {
-						DB::rollback();
-						CRUDBooster::redirect(CRUDBooster::mainpath(), trans("crudbooster.alert_database_error",['database_error'=>$e]), 'danger');
-					}
-		
-					DB::disconnect('mysql_front_end');
-					
-				}else if($field_1 == "Refund"){
-	
-					$to_refund_approved = 	ReturnsStatus::where('id','6')->value('id');
-					$to_print_crf = 		ReturnsStatus::where('id','7')->value('id');
-					$to_create_crf = 		ReturnsStatus::where('id','25')->value('id');
-	
-					DB::beginTransaction();
-	
-					try {
-		
-						DB::connection('mysql_front_end')
-						->statement('insert into returns_tracking_status (return_reference_no, returns_status, 	created_at) values (?, ?, ?)', 
-						[$ReturnRequest->return_reference_no, 
-						$to_refund_approved,
-						date('Y-m-d H:i:s')
-						]);
-			
-								$postdata['level2_personnel'] = 					CRUDBooster::myId();
-								$postdata['level2_personnel_edited']=				date('Y-m-d H:i:s');
-								$postdata['returns_status'] = 						$to_refund_approved;
-								$postdata['returns_status_1'] = 					$to_create_crf;
-								$postdata['diagnose_comments'] = 					$field_2;
-								$postdata['diagnose'] = 							"REFUND";
-								$postdata['verified_items_included'] = 				implode(", ",$items_included_lines);
-								$postdata['verified_items_included_others'] = 		$items_included_others;
-								$postdata['warranty_status'] = 						$warranty_status;
-	
 								ReturnsBodyRTL::where('returns_header_id',$ReturnRequest->id)->whereNotNull('brand')
 								->update([		
 									'problem_details'=> implode(", ",$problem_details_lines),
 									'problem_details_other'=> $problem_details_other
 								]);
-		
-		
-						DB::commit();
-		
-					}catch (\Exception $e) {
-						DB::rollback();
-						CRUDBooster::redirect(CRUDBooster::mainpath(), trans("crudbooster.alert_database_error",['database_error'=>$e]), 'danger');
+						}catch (\Exception $e) {
+							DB::rollback();
+							CRUDBooster::redirect(CRUDBooster::mainpath(), trans("crudbooster.alert_database_error",['database_error'=>$e]), 'danger');
+						}
 					}
-		
-					DB::disconnect('mysql_front_end');
+					else if($field_1 == 'PrintSSR'){
 	
-				}
-			
+						$postdata['case_status'] =  						$case_status;
+						$postdata['diagnose'] = 							"Service Center Repair";
+						$postdata['rma_specialist_id'] = 					CRUDBooster::myId();
+						$postdata['rma_specialist_date_received']=			date('Y-m-d H:i:s');
+						// $postdata['level2_personnel'] = 					CRUDBooster::myId();
+						// $postdata['level2_personnel_edited']=				date('Y-m-d H:i:s');
+						return redirect()->action('AdminRetailReturnDiagnosingController@ReturnsReturnFormPrintRTL',['id'=>$ReturnRequest->id])->send();
+					}
+					else if ($field_1 == 'Test Done') {
+						if(in_array(CRUDBooster::myPrivilegeName(), ['Tech Lead', 'RMA Technician', 'SuperAdministrator'])){
 
+							$to_for_action = ReturnsStatus::where('id','38')->value('id');
+			
+							$postdata['case_status'] =  						$case_status;
+							$postdata['returns_status_1'] = 					$to_for_action;
+							$postdata['diagnose_comments'] = 					$field_2;
+							$postdata['warranty_status'] = 						$warranty_status;
+							$postdata['diagnose'] = 							"Test Done";
+	
+							// $postdata['rma_specialist_id'] = 					CRUDBooster::myId();
+							// $postdata['rma_specialist_date_received']=			date('Y-m-d H:i:s');
+							$postdata['level2_personnel'] = 					CRUDBooster::myId();
+							$postdata['level2_personnel_edited']=				date('Y-m-d H:i:s');
+		
+							$postdata['verified_items_included'] = implode(", ",$items_included_lines);
+							$postdata['verified_items_included_others'] = $items_included_others;
+		
+							ReturnsBodyRTL::where('returns_header_id',$ReturnRequest->id)->whereNotNull('brand')
+							->update([		
+								'problem_details'=> implode(", ",$problem_details_lines),
+								'problem_details_other'=> $problem_details_other
+							]);
+		
+						}
+					}
+					
+					else if($field_1 == "Replace"){
+	
+						$for_replacement = 	  		ReturnsStatus::where('id','20')->value('id');
+						$for_replacement_frontend =	ReturnsStatus::where('id','27')->value('id');
+						
+						$to_sor = 				ReturnsStatus::where('id','9')->value('id');
+		
+						$diagnose_value = "REPLACE";
+		
+						DB::beginTransaction();
+		
+						try {
+			
+							DB::connection('mysql_front_end')
+							->statement('insert into returns_tracking_status (return_reference_no, returns_status, 	created_at) values (?, ?, ?)', 
+							[$ReturnRequest->return_reference_no, 
+							$for_replacement_frontend,
+							date('Y-m-d H:i:s')
+							]);
+							
+								if(CRUDBooster::myPrivilegeName() == "Service Center") {
+									$postdata['level2_personnel'] = 					CRUDBooster::myId();
+									$postdata['level2_personnel_edited']=				date('Y-m-d H:i:s');
+									$postdata['diagnose_comments'] = 					$field_2;
+									$postdata['warranty_status'] = 						$warranty_status;
+									$postdata['verified_items_included'] = 				implode(", ",$items_included_lines);
+									$postdata['verified_items_included_others'] = 		$items_included_others;
+									
+									ReturnsBodyRTL::where('returns_header_id',$ReturnRequest->id)->whereNotNull('brand')
+									->update([		
+										'problem_details'=> implode(", ",$problem_details_lines),
+										'problem_details_other'=> $problem_details_other
+									]);
+		
+								} else {
+									$postdata['rma_specialist_id'] = 					CRUDBooster::myId();
+									$postdata['rma_specialist_date_received']=			date('Y-m-d H:i:s');
+								}
+								$postdata['returns_status'] = 						$for_replacement_frontend;
+								$postdata['returns_status_1'] = 					$to_sor;
+								$postdata['diagnose'] = 							$diagnose_value;
+								$postdata['case_status'] =  						$case_status;
+		
+			
+							DB::commit();
+			
+						}catch (\Exception $e) {
+							DB::rollback();
+							CRUDBooster::redirect(CRUDBooster::mainpath(), trans("crudbooster.alert_database_error",['database_error'=>$e]), 'danger');
+						}
+			
+						DB::disconnect('mysql_front_end');
+						
+					}else if($field_1 == "Repair"){
+						
+						$repair_approved = 	  ReturnsStatus::where('id','16')->value('id');
+						$to_print_return_form = ReturnsStatus::where('id','13')->value('id');
+		
+						DB::beginTransaction();
+		
+						try {
+			
+							DB::connection('mysql_front_end')
+							->statement('insert into returns_tracking_status (return_reference_no, returns_status, 	created_at) values (?, ?, ?)', 
+							[$ReturnRequest->return_reference_no, 
+							$repair_approved,
+							date('Y-m-d H:i:s')
+							]);
+				
+									
+								if(CRUDBooster::myPrivilegeName() == "Service Center") {
+									$postdata['level2_personnel'] = 					CRUDBooster::myId();
+									$postdata['level2_personnel_edited']=				date('Y-m-d H:i:s');
+									$postdata['diagnose_comments'] = 					$field_2;
+									$postdata['verified_items_included'] = 				implode(", ",$items_included_lines);
+									$postdata['verified_items_included_others'] = 		$items_included_others;
+									$postdata['warranty_status'] = 						$warranty_status;
+												
+								ReturnsBodyRTL::where('returns_header_id',$ReturnRequest->id)->whereNotNull('brand')
+								->update([		
+									'problem_details'=> implode(", ",$problem_details_lines),
+									'problem_details_other'=> $problem_details_other
+								]);
+								
+								} else {
+									$postdata['rma_specialist_id'] = 					CRUDBooster::myId();
+									$postdata['rma_specialist_date_received']=			date('Y-m-d H:i:s');
+								}
+								$postdata['returns_status'] = 						$repair_approved;
+								$postdata['returns_status_1'] = 					$to_print_return_form;
+								$postdata['diagnose'] = 							"REPAIR";
+								$postdata['case_status'] =  						$case_status;
+					
+							DB::commit();
+			
+						}catch (\Exception $e) {
+							DB::rollback();
+							CRUDBooster::redirect(CRUDBooster::mainpath(), trans("crudbooster.alert_database_error",['database_error'=>$e]), 'danger');
+						}
+			
+						DB::disconnect('mysql_front_end');
+		
+					}else if($field_1 == "Reject"){
+		
+						$return_rejected = 	  ReturnsStatus::where('id','12')->value('id');
+						$to_print_return_form = ReturnsStatus::where('id','13')->value('id');
+			
+						DB::beginTransaction();
+		
+						try {
+			
+							DB::connection('mysql_front_end')
+							->statement('insert into returns_tracking_status (return_reference_no, returns_status, 	created_at) values (?, ?, ?)', 
+							[$ReturnRequest->return_reference_no, 
+							$return_rejected,
+							date('Y-m-d H:i:s')
+							]);
+				
+									
+								if(CRUDBooster::myPrivilegeName() == "Service Center") {
+									$postdata['level2_personnel'] = 					CRUDBooster::myId();
+									$postdata['level2_personnel_edited']=				date('Y-m-d H:i:s');
+									$postdata['diagnose_comments'] = 					$field_2;
+									$postdata['verified_items_included'] = 				implode(", ",$items_included_lines);
+									$postdata['verified_items_included_others'] = 		$items_included_others;
+									$postdata['warranty_status'] = 						$warranty_status;
+									
+								ReturnsBodyRTL::where('returns_header_id',$ReturnRequest->id)->whereNotNull('brand')
+								->update([		
+									'problem_details'=> implode(", ",$problem_details_lines),
+									'problem_details_other'=> $problem_details_other
+								]);
+								} else {
+									$postdata['rma_specialist_id'] = 					CRUDBooster::myId();
+									$postdata['rma_specialist_date_received']=			date('Y-m-d H:i:s');
+								}
+								$postdata['returns_status'] = 						$return_rejected;
+								$postdata['returns_status_1'] = 					$to_print_return_form;
+								$postdata['diagnose'] = 							"REJECT";
+								$postdata['case_status'] =  						$case_status;
+		
+		
+			
+							DB::commit();
+			
+						}catch (\Exception $e) {
+							DB::rollback();
+							CRUDBooster::redirect(CRUDBooster::mainpath(), trans("crudbooster.alert_database_error",['database_error'=>$e]), 'danger');
+						}
+			
+						DB::disconnect('mysql_front_end');
+						
+					}else if($field_1 == "Refund"){
+		
+						$to_refund_approved = 	ReturnsStatus::where('id','6')->value('id');
+						$to_print_crf = 		ReturnsStatus::where('id','7')->value('id');
+						$to_create_crf = 		ReturnsStatus::where('id','25')->value('id');
+		
+						DB::beginTransaction();
+		
+						try {
+			
+							DB::connection('mysql_front_end')
+							->statement('insert into returns_tracking_status (return_reference_no, returns_status, 	created_at) values (?, ?, ?)', 
+							[$ReturnRequest->return_reference_no, 
+							$to_refund_approved,
+							date('Y-m-d H:i:s')
+							]);
+				
+									
+								if(CRUDBooster::myPrivilegeName() == "Service Center") {
+									$postdata['level2_personnel'] = 					CRUDBooster::myId();
+									$postdata['level2_personnel_edited']=				date('Y-m-d H:i:s');
+									$postdata['diagnose_comments'] = 					$field_2;
+									$postdata['verified_items_included'] = 				implode(", ",$items_included_lines);
+									$postdata['verified_items_included_others'] = 		$items_included_others;
+									$postdata['warranty_status'] = 						$warranty_status;
+									
+									ReturnsBodyRTL::where('returns_header_id',$ReturnRequest->id)->whereNotNull('brand')
+									->update([		
+										'problem_details'=> implode(", ",$problem_details_lines),
+										'problem_details_other'=> $problem_details_other
+									]);
+			
+								} else {
+									$postdata['rma_specialist_id'] = 					CRUDBooster::myId();
+									$postdata['rma_specialist_date_received']=			date('Y-m-d H:i:s');
+								}
+									$postdata['returns_status'] = 						$to_refund_approved;
+									$postdata['returns_status_1'] = 					$to_create_crf;
+									$postdata['diagnose'] = 							"REFUND";
+									$postdata['case_status'] =  						$case_status;
+		
+					
+			
+							DB::commit();
+			
+						}catch (\Exception $e) {
+							DB::rollback();
+							CRUDBooster::redirect(CRUDBooster::mainpath(), trans("crudbooster.alert_database_error",['database_error'=>$e]), 'danger');
+						}
+			
+						DB::disconnect('mysql_front_end');
+		
+					}
+			}
 
 	    }
 
@@ -714,7 +927,7 @@ use PHPExcel_Style_Fill;
 			$ReturnRequest = ReturnsHeaderRTL::where('id',$id)->first();
 			$returns_fields = Input::all();
 			$field_1 		= $returns_fields['diagnose'];
-
+			
             
 				if($field_1 == "Replace"){
 					$for_replacement_frontend =	ReturnsStatus::where('id','27')->value('warranty_status');
@@ -796,6 +1009,106 @@ use PHPExcel_Style_Fill;
 
 	    //By the way, you can still create your own method in here... :) 
 
+		public function forWarrantyClaim(Request $request){
+
+			$return_input = $request->all();
+			$transaction_information = DB::table($return_input['table_name'])->where('id', $return_input['id'])->first();
+
+			$to_print_return_form = 13;
+			// Replacement
+			$for_replacement = 20;
+			$for_replacement_frontend =	27;
+			$to_sor = 9;
+			// Repair
+			$repair_approved = 16;
+			// Reject
+			$return_rejected = 12;
+			// Refund
+			$to_refund_approved = 6;
+			$to_print_crf = 7;
+			$to_create_crf = 25;
+
+			$date = date('Y-m-d H:i:s');
+
+			$frontend_to_insert = [$date];
+
+			$return_status = 0;
+			$return_status_1 = 0;
+
+			if($return_input['diagnose'] == 'Replace'){
+				$arr = [$transaction_information->return_reference_no, $for_replacement_frontend];
+				$frontend_to_insert = array_merge($arr, $frontend_to_insert);
+				$return_status = $for_replacement_frontend;
+				$return_status_1 = $to_sor;
+			}elseif($return_input['diagnose'] == 'Repair'){
+				$arr = [$transaction_information->return_reference_no, $repair_approved];
+				$frontend_to_insert = array_merge($arr, $frontend_to_insert);
+				$return_status = $repair_approved;
+				$return_status_1 = $to_print_return_form;
+			}elseif($return_input['diagnose'] == 'Reject'){
+				$arr = [$transaction_information->return_reference_no, $return_rejected];
+				$frontend_to_insert = array_merge($arr, $frontend_to_insert);
+				$return_status = $return_rejected;
+				$return_status_1 = $to_print_return_form;
+			}elseif($return_input['diagnose'] == 'Refund'){
+				$arr = [$transaction_information->return_reference_no, $to_refund_approved];
+				$frontend_to_insert = array_merge($arr, $frontend_to_insert);
+				$return_status = $to_refund_approved;
+				$return_status_1 = $to_create_crf;
+			}
+			if(CRUDBooster::myPrivilegeName() == "RMA Specialist" || CRUDBooster::myPrivilegeName() == "Super Administrator"){
+
+				DB::beginTransaction();
+			
+				try {
+					
+					$counter = new ReferenceCounter();
+					$rma_count_number = $counter->incrementCounter('RMA');
+					$formatted_counter = 'RMA-'.str_pad($rma_count_number, 6, '0', STR_PAD_LEFT);
+					
+					DB::table($return_input['table_name'])->where('id', $return_input['id'])
+						->update([
+							'rma_specialist_id' => CRUDBooster::myId(),
+							'rma_specialist_date_received' => $date,
+							'returns_status' => $return_status,
+							'returns_status_1' => $return_status_1,
+							'diagnose' => strtoupper($return_input['diagnose']),
+							'case_status' => $return_input['case_status'],
+							'rma_number' => $formatted_counter,
+						]);
+
+					DB::connection('mysql_front_end')
+					->statement('insert into returns_tracking_status (return_reference_no, returns_status, 	created_at) values (?, ?, ?)', 
+					$frontend_to_insert);
+
+					DB::commit();
+
+				}catch (\Exception $e) {
+					DB::rollback();
+					CRUDBooster::redirect(CRUDBooster::mainpath(), trans("crudbooster.alert_database_error",['database_error'=>$e]), 'danger');
+				}
+
+				DB::disconnect('mysql_front_end');
+			}
+
+			return response()->json(['success' => $formatted_counter]);
+		}
+
+		public function returnReferenceNumber($id, $diagnose, $ref_number, $module_mainpath){
+			
+			if(($diagnose == 'Repair' || $diagnose == 'Reject') && ($module_mainpath == 'retail_return_diagnosing')){
+				return redirect()->action('AdminRetailReturnDiagnosingController@ReturnsReturnFormPrintRTL',['id'=>$id])->send();
+			}else if(($diagnose == 'Repair' || $diagnose == 'Reject') && ($module_mainpath == 'returns_diagnosing')){
+				return redirect()->action('AdminReturnsDiagnosingController@ReturnsReturnFormPrint',['id'=>$id])->send();
+			}else if(($diagnose == 'Repair' || $diagnose == 'Reject') && ($module_mainpath == 'distri_return_diagnosing')){
+				return redirect()->action('AdminDistriReturnDiagnosingController@ReturnsReturnFormPrintDISTRI',['id'=>$id])->send();
+			}else {
+				CRUDBooster::redirect(CRUDBooster::adminPath()."/{$module_mainpath}", "The return request has been diagnosed as $diagnose successfully! RMA #: $ref_number", 'success');
+			}
+
+			// CRUDBooster::redirect(CRUDBooster::adminPath()."/{$module_mainpath}", "Request submitted successfully RMA #: $ref_number", 'success');
+		}
+
 		public function ReturnsDiagnosingRTLEdit($id)
 		{
 			$this->cbLoader();
@@ -804,26 +1117,29 @@ use PHPExcel_Style_Fill;
 			}
 
 			$data = array();
-			$data['page_title'] = 'Returns For Diagnosing';
 		
 			$data['row'] = ReturnsHeaderRTL::
 			//->leftjoin('stores', 'pullout_headers.pull_out_from', '=', 'stores.id')	
 			leftjoin('cms_users as created', 'returns_header_retail.created_by','=', 'created.id')
 			->leftjoin('cms_users as scheduled', 'returns_header_retail.level1_personnel','=', 'scheduled.id')			
 			//->leftjoin('cms_users as tagged', 'returns_header_retail.level2_personnel','=', 'tagged.id')
+			->leftjoin('cms_users as technician_assigned', 'returns_header_retail.level2_personnel','=', 'technician_assigned.id')				
 			->leftjoin('cms_users as diagnosed', 'returns_header_retail.level2_personnel','=', 'diagnosed.id')				
 			->leftjoin('cms_users as printed', 'returns_header_retail.level4_personnel','=', 'printed.id')																	
 			->leftjoin('cms_users as transacted', 'returns_header_retail.level5_personnel','=', 'transacted.id')
 			->leftjoin('cms_users as received', 'returns_header_retail.level6_personnel','=', 'received.id')
 			->leftjoin('cms_users as closed', 'returns_header_retail.level7_personnel','=', 'closed.id')	
 			->leftjoin('cms_users as received_item', 'returns_header_retail.received_by_rma_sc','=', 'received_item.id')																	
+			->leftjoin('cms_users as turnover_by', 'returns_header_retail.rma_receiver_id','=', 'turnover_by.id')																	
 			->leftjoin('transaction_type', 'returns_header_retail.transaction_type_id', '=', 'transaction_type.id')
 			->select(
 			'returns_header_retail.*',
 			'scheduled.name as scheduled_by',
 			//'tagged.name as tagged_by',	
 			'diagnosed.name as diagnosed_by',
+			'technician_assigned.name as technician_assigned',
 			'received_item.name as received_item_by',
+			'turnover_by.name as turnover_by',
 			'printed.name as printed_by',	
 			'transacted.name as transacted_by',	
 			'received.name as received_by',
@@ -832,11 +1148,12 @@ use PHPExcel_Style_Fill;
 			'created.name as created_by'			
 			)
 			->where('returns_header_retail.id',$id)->first();
-
-			
 			$data['problem_details_list'] = ProblemDetails::all();
-
+			$data['page_title'] = $data['row']->returns_status_1 == 5 ? 'Returns For Diagnosing' : 'Returns For Specialist';
+			$data['case_status'] = CaseStatus::where('status','=','ACTIVE')->pluck('case_status_name');
+			
 			$data['items_included_list'] = ItemsIncluded::orderBy('items_description_included','asc')->get();
+			// dd($data['items_included_list'], $data['problem_details_list']);
 
 			$data['warranty_status'] = DiagnoseWarranty::orderBy('warranty_name','asc')->get();
 			
@@ -852,7 +1169,14 @@ use PHPExcel_Style_Fill;
 
 			$data['store_list'] = Stores::where('channels_id',$channels->id)->get();
 			
-			$this->cbView("returns.edit_diagnosing_retail", $data);
+			// if (CrudBooster::myPrivilegeName() == 'Super Administrator'){
+			// 	$this->cbView("components.edit_diagnosing", $data);
+			// }else{
+			// 	$this->cbView("returns.edit_diagnosing_retail", $data);
+			// }
+			$data['comments_data'] = (new ChatController)->getComments($id);
+
+			$this->cbView("components.edit_diagnosing", $data);
 		}
 
 
@@ -915,7 +1239,7 @@ use PHPExcel_Style_Fill;
 		{
 			$this->cbLoader();
 			if(!CRUDBooster::isUpdate() && $this->global_privilege==FALSE) {    
-				CRUDBooster::redirect(CRUDBooster::adminPath(),trans("crudbooster.denied_access"));
+			CRUDBooster::redirect(CRUDBooster::adminPath(),trans("crudbooster.denied_access"));
 			}
 
 			$data = array();
@@ -945,7 +1269,6 @@ use PHPExcel_Style_Fill;
 			)
 			->where('returns_header_retail.id',$id)->first();
 
-			
 
 
 			$data['resultlist'] = ReturnsBodyRTL::
@@ -1335,9 +1658,17 @@ use PHPExcel_Style_Fill;
 					    'AJ' => '0.00',
 					    'AK' => '0.00',
 					));
-
-					$to_diagnose = ReturnsStatus::where('id','5')->value('id');
-					$to_print_return_form = ReturnsStatus::where('id','13')->value('id');
+					
+					if(CRUDBooster::myPrivilegeName() == "Tech Lead"){
+						$to_assign_inc = ReturnsStatus::where('id','39')->value('id');
+						$to_diagnose = ReturnsStatus::where('id','5')->value('id');
+					}
+					else if(CRUDBooster::myPrivilegeName() == "RMA Technician") {
+						$to_diagnose = ReturnsStatus::where('id','5')->value('id');
+					}else {
+						$to_for_action = ReturnsStatus::where('id','38')->value('id');
+						$to_print_return_form = ReturnsStatus::where('id','13')->value('id');
+					}
 
 						$orderData = DB::table('returns_header_retail')
 						->leftjoin('warranty_statuses', 'returns_header_retail.returns_status_1','=', 'warranty_statuses.id')
@@ -1347,6 +1678,9 @@ use PHPExcel_Style_Fill;
 						->leftjoin('cms_users as printed', 'returns_header_retail.level3_personnel','=', 'printed.id')																	
 						->leftjoin('cms_users as transacted', 'returns_header_retail.level4_personnel','=', 'transacted.id')
 						->leftjoin('cms_users as received', 'returns_header_retail.level6_personnel','=', 'received.id')
+						->leftjoin('cms_users as received1', 'returns_header_retail.received_by_rma_sc','=', 'received1.id')
+						->leftjoin('cms_users as turnover', 'returns_header_retail.rma_receiver_id','=', 'turnover.id')
+						->leftjoin('cms_users as specialist', 'returns_header_retail.rma_specialist_id','=', 'specialist.id')
 						->leftjoin('cms_users as closed', 'returns_header_retail.level5_personnel','=', 'closed.id')	
 						->leftJoin('returns_body_item_retail', 'returns_header_retail.id', '=', 'returns_body_item_retail.returns_header_id')
 						->select( 	'returns_header_retail.*', 
@@ -1358,11 +1692,15 @@ use PHPExcel_Style_Fill;
 									'printed.name as printed_by',	
 									'transacted.name as transacted_by',	
 									'received.name as received_by',
+									'received1.name as received_by1',
+									'turnover.name as turnover_by',
+									'specialist.name as specialist_by',
 									'closed.name as closed_by',
 									'warranty_statuses.*'
-									)->whereNotNull('returns_body_item_retail.category')->where('transaction_type', 0)->where('returns_status_1', $to_diagnose)->groupby('returns_body_item_retail.digits_code')
-									->orwhereNotNull('returns_body_item_retail.category')->where('transaction_type', 0)->where('returns_status_1', $to_print_return_form)->groupby('returns_body_item_retail.digits_code');
-
+									)->whereNotNull('returns_body_item_retail.category')->where('transaction_type', 0)->where('returns_status_1', $to_diagnose)->where('level2_personnel', CRUDBooster::myId())->groupby('returns_body_item_retail.digits_code')
+									->orwhereNotNull('returns_body_item_retail.category')->where('transaction_type', 0)->where('returns_status_1', $to_assign_inc)->groupby('returns_body_item_retail.digits_code')
+									->orwhereNotNull('returns_body_item_retail.category')->where('transaction_type', 0)->where('returns_status_1', $to_print_return_form)->groupby('returns_body_item_retail.digits_code')
+									->orwhereNotNull('returns_body_item_retail.category')->where('transaction_type', 0)->where('returns_status_1', $to_for_action)->groupby('returns_body_item_retail.digits_code');
 										if(\Request::get('filter_column')) {
 
 						$filter_column = \Request::get('filter_column');
@@ -1482,7 +1820,7 @@ use PHPExcel_Style_Fill;
 						    $verified_date = $orderRow->level7_personnel_edited;
 						    
                             $scheduled_by = $orderRow->scheduled_logistics_by;
-                            $scheduled_date = $orderRow->level7_personnel_edited;
+                            $scheduled_date = $orderRow->level1_personnel_edited;
     						if($orderRow->diagnose == "REFUND"){
     								$printed_by = $orderRow->printed_by;
     								$printed_date = $orderRow->level3_personnel_edited;
@@ -1515,6 +1853,7 @@ use PHPExcel_Style_Fill;
 							$orderRow->diagnose, 	
 							$orderRow->created_at,				
 							$orderRow->return_reference_no,					
+							$orderRow->inc_number,					
 							$orderRow->purchase_location,				
 							$orderRow->customer_last_name,		
 							$orderRow->customer_first_name,	
@@ -1555,8 +1894,14 @@ use PHPExcel_Style_Fill;
 							$verified_date,
 							$scheduled_by,
 							$scheduled_date,
+							$orderRow->turnover_by,
+							$orderRow->rma_receiver_date_received,
+							$orderRow->received_by1,
+							$orderRow->received_at_rma_sc,
 							$orderRow->diagnosed_by,
 							$orderRow->level2_personnel_edited,
+							$orderRow->specialist_by,
+							$orderRow->rma_specialist_date_received,
 							$printed_by,
 							$printed_date,
 							$transacted_by,							
@@ -1573,6 +1918,7 @@ use PHPExcel_Style_Fill;
 						'DIAGNOSE',
 						'CREATED DATE',
 						'RETURN REFERENCE#',
+						'INC#',
 						'PURCHASE LOCATION',
 						'CUSTOMER LAST NAME',
 						'CUSTOMER FIRST NAME',
@@ -1613,8 +1959,14 @@ use PHPExcel_Style_Fill;
 						'VERIFIED DATE',           //blue  //additional code 20200205
 						'SCHEDULED BY',           //blue  //additional code 20200205
 						'SCHEDULED DATE',           //blue  //additional code 20200205
+						'RECEIVED BY',
+						'RECEIVED DATE',
+						'TURNOVER BY',
+						'TURNOVER DATE',
 						'DIAGNOSED BY',           //blue  //additional code 20200205
 						'DIAGNOSED DATE',           //blue  //additional code 20200205
+						'PROCESSED BY',           //blue  //additional code 20200205
+						'PROCESSED DATE',  
 						'PRINTED BY',           //blue  //additional code 20200205
 						'PRINTED DATE',           //blue  //additional code 20200205
 						'SOR BY',           //blue  //additional code 20200205
@@ -1819,7 +2171,7 @@ use PHPExcel_Style_Fill;
 						    $verified_date = $orderRow->level7_personnel_edited;
 						    
                             $scheduled_by = $orderRow->scheduled_logistics_by;
-                            $scheduled_date = $orderRow->level7_personnel_edited;
+                            $scheduled_date = $orderRow->level1_personnel_edited;
     						if($orderRow->diagnose == "REFUND"){
     								$printed_by = $orderRow->printed_by;
     								$printed_date = $orderRow->level3_personnel_edited;
@@ -1980,5 +2332,66 @@ use PHPExcel_Style_Fill;
 				});
 			})->export('xlsx');
 			
+		}
+		public function TechLeadRTL($id)
+		{
+			$this->cbLoader();
+			if(!CRUDBooster::isUpdate() && $this->global_privilege==FALSE) {    
+				CRUDBooster::redirect(CRUDBooster::adminPath(),trans("crudbooster.denied_access"));
+			}
+
+			$data = array();
+
+			$data['technicians'] = DB::table('cms_users')->whereIn('id_cms_privileges', ['20', '22'])->where('status', "ACTIVE")->orderBy('id_cms_privileges','desc')->get();
+			
+			$data['problem_details_list'] = ProblemDetails::all();
+
+			$data['items_included_list'] = ItemsIncluded::orderBy('items_description_included','asc')->get();
+
+			$data['warranty_status'] = DiagnoseWarranty::orderBy('warranty_name','asc')->get();
+		
+			$data['row'] = ReturnsHeaderRTL::
+			//->leftjoin('stores', 'pullout_headers.pull_out_from', '=', 'stores.id')	
+			leftjoin('cms_users as scheduled', 'returns_header_retail.level2_personnel','=', 'scheduled.id')			
+			->leftjoin('cms_users as tagged', 'returns_header_retail.level1_personnel','=', 'tagged.id')
+			->leftjoin('cms_users as diagnosed', 'returns_header_retail.level3_personnel','=', 'diagnosed.id')				
+			->leftjoin('cms_users as printed', 'returns_header_retail.level4_personnel','=', 'printed.id')																	
+			->leftjoin('cms_users as transacted', 'returns_header_retail.level5_personnel','=', 'transacted.id')
+			->leftjoin('cms_users as received', 'returns_header_retail.level6_personnel','=', 'received.id')
+			->leftjoin('cms_users as closed', 'returns_header_retail.level7_personnel','=', 'closed.id')	
+			->leftjoin('cms_users as scheduled_logistics', 'returns_header_retail.level8_personnel','=', 'scheduled_logistics.id')																	
+			->leftjoin('transaction_type', 'returns_header_retail.transaction_type_id', '=', 'transaction_type.id')
+			->select(
+			'returns_header_retail.*',
+			'scheduled.name as scheduled_by',
+			'tagged.name as tagged_by',	
+			'tagged.name as diagnosed_by',
+			'printed.name as printed_by',	
+			'transacted.name as transacted_by',	
+			'received.name as received_by',
+			'closed.name as closed_by',
+			'scheduled_logistics.name as scheduled_by_logistics',					
+			'transaction_type.transaction_type_name'
+			)
+			->where('returns_header_retail.id',$id)->first();
+
+
+			$data['resultlist'] = ReturnsBodyRTL::
+			leftjoin('returns_serial_retail', 'returns_body_item_retail.id', '=', 'returns_serial_retail.returns_body_item_id')					
+			->select(
+			'returns_body_item_retail.*',
+			'returns_serial_retail.*'					
+			)
+			->where('returns_body_item_retail.returns_header_id',$data['row']->id)->whereNotNull('returns_body_item_retail.category')->groupby('returns_body_item_retail.digits_code')->get();
+			
+			$channels = Channel::where('channel_name', 'ONLINE')->first();
+
+			$data['store_list'] = Stores::where('channels_id',$channels->id)->get();
+						
+			// $this->cbView("returns.to_receive_retail_rma", $data);
+			$data['comments_data'] = (new ChatController)->getComments($id);
+
+			$this->cbView("components.to_receive_rma", $data);
+
 		}
 	}

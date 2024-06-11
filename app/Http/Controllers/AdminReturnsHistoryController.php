@@ -54,14 +54,41 @@ use App\StoresFrontEnd;
 
 			# START COLUMNS DO NOT REMOVE THIS LINE
 			$this->col = [];
+			$this->col[] = ["label"=>"Brand","name"=>"id", 'callback'=>function($row){
+				
+				$id = $row->id;
 
+				$brand = DB::table('returns_body_item')->where('returns_header_id', $id)->orderBy('id', 'desc')->first()->brand;
 
-
+				return $brand;
+			}];
+			$this->col[] = ["label"=>"Status","name"=>"returns_status_1","join"=>"warranty_statuses,warranty_status"];
+			$this->col[] = ["label"=>"Last Chat", "name"=>"id", 'callback'=>function($row){
+				$img_url = asset("chat_img/$row->last_image");
+				;
+				$str = '';
+				
+				$str .= "<div class='sender_name'>$row->sender_name</div>";
+				$str .= "<div class='time_ago' datetime='$row->date_send'>$row->date_send</div>";
+				
+				if ($row->last_message) {
+					// Truncate the message if it's longer than 150 characters
+					$truncatedMessage = strlen($row->last_message) > 41 ? substr($row->last_message, 0, 41) . '...' : $row->last_message;
+					$str .= "<div class='text-msg'>$truncatedMessage</div>";
+				}
+				if($row->last_image){
+					$str .= "<div class='last_msg'><img src='$img_url'></div>";
+				}
+				if($row->sender_name){
+					return $str;
+				}else{
+					return '<div class="no-message">No messages available at the moment.</div>';
+				}
+			}];
+			$this->col[] = ["label"=>"Return Reference#","name"=>"return_reference_no"];
+			$this->col[] = ["label"=>"Created Date","name"=>"created_at"];
 			if(CRUDBooster::myPrivilegeName() == "Aftersales"){ 
-				$this->col[] = ["label"=>"Status","name"=>"returns_status_1","join"=>"warranty_statuses,warranty_status"];
-				$this->col[] = ["label"=>"Created Date","name"=>"created_at"];
 				$this->col[] = ["label"=>"Return Schedule","name"=>"return_schedule"];
-				$this->col[] = ["label"=>"Return Reference#","name"=>"return_reference_no"];
 				$this->col[] = ["label"=>"Order#","name"=>"order_no"];
 				$this->col[] = ["label"=>"Customer Location","name"=>"customer_location"];
 				$this->col[] = ["label"=>"Purchase Location","name"=>"purchase_location"];
@@ -74,10 +101,7 @@ use App\StoresFrontEnd;
 				$this->col[] = ["label"=>"Diagnose","name"=>"diagnose","visible"=>false];
 				$this->col[] = ["label"=>"Level3 Personnel","name"=>"level3_personnel","visible"=>false];
 			}elseif(CRUDBooster::myPrivilegeName() == "Logistics"){ 
-				$this->col[] = ["label"=>"Status","name"=>"returns_status_1","join"=>"warranty_statuses,warranty_status"];
-				$this->col[] = ["label"=>"Created Date","name"=>"created_at"];
 				$this->col[] = ["label"=>"Return Schedule","name"=>"return_schedule"];
-				$this->col[] = ["label"=>"Return Reference#","name"=>"return_reference_no"];
 				$this->col[] = ["label"=>"Order#","name"=>"order_no"];
 				$this->col[] = ["label"=>"Customer Location","name"=>"customer_location"];
 				$this->col[] = ["label"=>"Purchase Location","name"=>"purchase_location"];
@@ -89,10 +113,7 @@ use App\StoresFrontEnd;
 				$this->col[] = ["label"=>"Diagnose","name"=>"diagnose","visible"=>false];
 				$this->col[] = ["label"=>"Level3 Personnel","name"=>"level3_personnel","visible"=>false];
 			}elseif(CRUDBooster::myPrivilegeName() == "Ecomm Ops"){ 
-				$this->col[] = ["label"=>"Status","name"=>"returns_status_1","join"=>"warranty_statuses,warranty_status"];
-				$this->col[] = ["label"=>"Created Date","name"=>"created_at"];
 				//$this->col[] = ["label"=>"Pickup Schedule","name"=>"return_schedule"];
-				$this->col[] = ["label"=>"Return Reference#","name"=>"return_reference_no"];
 				$this->col[] = ["label"=>"Order#","name"=>"order_no"];
 				$this->col[] = ["label"=>"Customer Customer","name"=>"customer_location"];
 				$this->col[] = ["label"=>"Purchase Location","name"=>"purchase_location"];
@@ -103,11 +124,8 @@ use App\StoresFrontEnd;
 				$this->col[] = ["label"=>"Mode Of Payment","name"=>"mode_of_payment"];
 				$this->col[] = ["label"=>"Diagnose","name"=>"diagnose","visible"=>false];
 				$this->col[] = ["label"=>"Level3 Personnel","name"=>"level3_personnel","visible"=>false];
-			}elseif(CRUDBooster::myPrivilegeName() == "RMA"){ 
-				$this->col[] = ["label"=>"Status","name"=>"returns_status_1","join"=>"warranty_statuses,warranty_status"];
-				$this->col[] = ["label"=>"Created Date","name"=>"created_at"];
+			}elseif(in_array(CRUDBooster::myPrivilegeName(), ['RMA Inbound', 'Tech Lead', 'RMA Technician', 'RMA Specialist'])){ 
 				//$this->col[] = ["label"=>"Return Schedule","name"=>"return_schedule"];
-				$this->col[] = ["label"=>"Return Reference#","name"=>"return_reference_no"];
 				//$this->col[] = ["label"=>"Order#","name"=>"order_no"];
 				$this->col[] = ["label"=>"SOR#","name"=>"sor_number"];
 				$this->col[] = ["label"=>"Customer Location","name"=>"customer_location"];
@@ -125,10 +143,8 @@ use App\StoresFrontEnd;
 
 				$this->col[] = ["label"=>"Level3 Personnel","name"=>"level3_personnel","visible"=>false];
 			}elseif(CRUDBooster::myPrivilegeName() == "Service Center"){ 
-				$this->col[] = ["label"=>"Status","name"=>"returns_status_1","join"=>"warranty_statuses,warranty_status"];
 				$this->col[] = ["label"=>"Created Date","name"=>"created_at"];
 				//$this->col[] = ["label"=>"Return Schedule","name"=>"return_schedule"];
-				$this->col[] = ["label"=>"Return Reference#","name"=>"return_reference_no"];
 				//$this->col[] = ["label"=>"Order#","name"=>"order_no"];
 				//$this->col[] = ["label"=>"SOR#","name"=>"sor_number"];
 				//$this->col[] = ["label"=>"Customer Location","name"=>"customer_location"];
@@ -151,10 +167,7 @@ use App\StoresFrontEnd;
 
 				$this->col[] = ["label"=>"Level3 Personnel","name"=>"level3_personnel","visible"=>false];
 			}elseif(CRUDBooster::myPrivilegeName() == "Accounting"){ 
-				$this->col[] = ["label"=>"Status","name"=>"returns_status_1","join"=>"warranty_statuses,warranty_status"];
-				$this->col[] = ["label"=>"Created Date","name"=>"created_at"];
 				$this->col[] = ["label"=>"Return Schedule","name"=>"return_schedule"];
-				$this->col[] = ["label"=>"Return Reference#","name"=>"return_reference_no"];
 				$this->col[] = ["label"=>"Order#","name"=>"order_no"];
 				$this->col[] = ["label"=>"SOR#","name"=>"sor_number"];
 				$this->col[] = ["label"=>"Customer Location","name"=>"customer_location"];
@@ -171,12 +184,8 @@ use App\StoresFrontEnd;
 
 			}else{
 				$this->col[] = ["label"=>"Id","name"=>"id","visible"=>false];
-				$this->col[] = ["label"=>"Status","name"=>"returns_status_1","join"=>"warranty_statuses,warranty_status"];
-				$this->col[] = ["label"=>"Created Date","name"=>"created_at"];
 				$this->col[] = ["label"=>"Closed Date","name"=>"level5_personnel_edited"];
-
 				$this->col[] = ["label"=>"Return Schedule","name"=>"return_schedule"];
-				$this->col[] = ["label"=>"Return Reference#","name"=>"return_reference_no"];
 				$this->col[] = ["label"=>"Order#","name"=>"order_no"];
 				$this->col[] = ["label"=>"SOR#","name"=>"sor_number"];
 				$this->col[] = ["label"=>"Customer Location","name"=>"customer_location"];
@@ -190,7 +199,6 @@ use App\StoresFrontEnd;
 				$this->col[] = ["label"=>"Diagnose","name"=>"diagnose","visible"=>false];
 				$this->col[] = ["label"=>"Level3 Personnel","name"=>"level3_personnel","visible"=>false];
 			}
-
 
 			
 			# END COLUMNS DO NOT REMOVE THIS LINE
@@ -316,15 +324,18 @@ use App\StoresFrontEnd;
 			$this->addaction[] = ['title'=>'Edit','url'=>CRUDBooster::mainpath('ReturnsHistoryEdit/[id]'),'icon'=>'fa fa-pencil', "showIf"=>"[returns_status_1] == $refund_complete or [returns_status_1] == $return_invalid or [returns_status_1] == $repair_complete"];
 			}
 			
-			
 			if(CRUDBooster::myPrivilegeName() == "Admin Ops"){
 			    $this->addaction[] = ['title'=>'Edit','url'=>CRUDBooster::mainpath('EditHistoryEcomm/[id]'),'icon'=>'fa fa-pencil'];
 			}
 			
-			
-			$this->addaction[] = ['title'=>'Detail','url'=>CRUDBooster::mainpath('ReturnsHistoryDetail/[id]'),'icon'=>'fa fa-eye'];
-			$this->addaction[] = ['title'=>'Print','url'=>CRUDBooster::mainpath('ReturnsReturnFormPrint/[id]'),'icon'=>'fa fa-print', "showIf"=>"[diagnose] != 'REFUND' and [level3_personnel] != null"];
-			$this->addaction[] = ['title'=>'Print','url'=>CRUDBooster::mainpath('ReturnsCRFPrint/[id]'),'icon'=>'fa fa-print', "showIf"=>"[diagnose] == 'REFUND' and [level3_personnel] != null"];
+			$this->addaction[] = ['title'=>'Detail','url'=>CRUDBooster::mainpath('ReturnsHistoryDetail/[id]'),'icon'=>'fa fa-eye', 'color'=>'none'];
+
+			if(CRUDBooster::myPrivilegeName() == 'Super Administrator'){
+				$this->addaction[] = ['title'=>'Edit','url'=>CRUDBooster::mainpath('ReturnsHistoryEditEcomm/[id]'),'icon'=>'fa fa-pencil', 'color'=>'none'];
+			}
+
+			$this->addaction[] = ['title'=>'Print','url'=>CRUDBooster::mainpath('ReturnsReturnFormPrint/[id]'),'icon'=>'fa fa-print', 'color'=>'none', "showIf"=>"[diagnose] != 'REFUND' and [level3_personnel] != null"];
+			$this->addaction[] = ['title'=>'Print','url'=>CRUDBooster::mainpath('ReturnsCRFPrint/[id]'),'icon'=>'fa fa-print', 'color'=>'none', "showIf"=>"[diagnose] == 'REFUND' and [level3_personnel] != null"];
 			/* 
 	        | ---------------------------------------------------------------------- 
 	        | Add More Button Selected
@@ -352,8 +363,7 @@ use App\StoresFrontEnd;
 				    
 			
 				    
-				    if(CRUDBooster::myName() == "Jomark Tamboong" || 
-				       CRUDBooster::myName() == "Aldrin Gerasmio" ||
+				    if(CRUDBooster::myName() == "Joelan Delota" ||
 				       CRUDBooster::myName() == "Jan Franz Josef Sevilla"){
 				        						$this->button_selected[] = ['label'=>'Void',
 													'icon'=>'fa fa-times-circle',
@@ -433,7 +443,6 @@ use App\StoresFrontEnd;
 	        */
 	        $this->script_js = NULL;
 
-
             /*
 	        | ---------------------------------------------------------------------- 
 	        | Include HTML Code before index table 
@@ -467,7 +476,8 @@ use App\StoresFrontEnd;
 	        |
 	        */
 	        $this->load_js = array();
-	        
+			$this->load_js[] = "https://unpkg.com/timeago.js/dist/timeago.min.js";
+			$this->load_js[] = asset("js/time_ago.js");
 	        
 	        
 	        /*
@@ -491,6 +501,7 @@ use App\StoresFrontEnd;
 	        |
 	        */
 	        $this->load_css = array();
+			$this->load_css[] = asset('css/last_message.css');
 	        
 	        
 	    }
@@ -506,6 +517,7 @@ use App\StoresFrontEnd;
 	    */
 	    public function actionButtonSelected($id_selected,$button_name) {
 	        //Your code here
+
 			if($button_name == 'void') {
 
 				ReturnsHeader::whereIn('id',$id_selected)->update([
@@ -545,6 +557,17 @@ use App\StoresFrontEnd;
 	    */
 	    public function hook_query_index(&$query) {
 	        //Your code here
+
+			// Chatbox
+			$query->leftJoin('ecomm_last_comments', 'ecomm_last_comments.returns_header_id', 'returns_header.id')
+			->leftJoin('chat_ecomms', 'chat_ecomms.id', 'ecomm_last_comments.chats_id')
+			->leftJoin('cms_users as sender', 'sender.id', 'chat_ecomms.created_by')
+			->addSelect('chat_ecomms.message as last_message',
+				'chat_ecomms.file_name as last_image',
+				'sender.name as sender_name',
+				'chat_ecomms.created_at as date_send'
+			);
+
 			if(CRUDBooster::myPrivilegeName() == "Aftersales" || CRUDBooster::myPrivilegeName() == "Ecomm Ops"){ 
 				$requested = 		ReturnsStatus::where('id','1')->value('id');
 				$to_ship_back = 	ReturnsStatus::where('id','14')->value('id');
@@ -583,7 +606,7 @@ use App\StoresFrontEnd;
 
 				$query->whereNotNull('received_by')->where('returns_status_1','!=',$print_pf)->where('transaction_type','!=', 2)->whereIn('returns_header.stores_id', $storeList)->orderBy('history_status', 'desc'); 
 				
-			}elseif(CRUDBooster::myPrivilegeName() == "RMA"){ 
+			}elseif(in_array(CRUDBooster::myPrivilegeName(), ['RMA Inbound', 'Tech Lead', 'RMA Technician', 'RMA Specialist'])){ 
 
 				$to_diagnose = ReturnsStatus::where('id','5')->value('id');
 	
@@ -683,14 +706,17 @@ use App\StoresFrontEnd;
 
 			$to_receive_rma = 			ReturnsStatus::where('id','34')->value('warranty_status');
 			$to_receive_sc = 			ReturnsStatus::where('id','35')->value('warranty_status');
-			
+			$to_turnover = 				ReturnsStatus::where('id','37')->value('warranty_status');
+			$to_for_action = 			ReturnsStatus::where('id','38')->value('warranty_status');
+			$to_ongoing_testing = 		ReturnsStatus::where('id','40')->value('warranty_status');
+
 			$to_create_crf = 			ReturnsStatus::where('id','25')->value('warranty_status');
 
 			$closed_date = "";
 
 			//dd($column_index);
 
-			if($column_index == 5){
+			if($column_index == 6){
 				$row_id = ReturnsHeader::where('return_reference_no', $column_value)->first();
 			
 				if($row_id->diagnose == "REFUND"){
@@ -709,7 +735,7 @@ use App\StoresFrontEnd;
 
 
                       
-			if($column_index == 1){
+			if($column_index == 3){
 			
 				if($column_value == $requested){
 					$column_value = '<span class="label label-warning">'.$requested.'</span>';
@@ -791,6 +817,17 @@ use App\StoresFrontEnd;
 			
 				}elseif($column_value == $to_create_crf){
 					$column_value = '<span class="label label-warning">'.$to_create_crf.'</span>';
+			
+				}
+				elseif($column_value == $to_turnover){
+					$column_value = '<span class="label label-warning">'.$to_turnover.'</span>';
+			
+				}
+				elseif($column_value == $to_for_action){
+					$column_value = '<span class="label label-warning">'.$to_for_action.'</span>';
+			
+				}elseif($column_value == $to_ongoing_testing){
+					$column_value = '<span class="label label-warning">'.$to_ongoing_testing.'</span>';
 			
 				}
 			}
@@ -881,6 +918,45 @@ use App\StoresFrontEnd;
 
 	    }
 
+		public function ReturnsHistoryEditEcomm($id)
+		{
+			$data = [];
+			$data['id'] = $id; 
+			$return_statuses = DB::table('warranty_statuses')
+				->orderBy('warranty_status', 'asc')
+				->get();
+			$item = DB::table('returns_header')
+				->where('returns_header.id', $id)
+				->leftJoin('warranty_statuses', 'warranty_statuses.id', '=' , 'returns_header.returns_status_1')
+				->select(
+					'returns_header.*',
+					'warranty_statuses.warranty_status',
+					'returns_header.warranty_status as item_warranty_status'
+				)
+				->get()
+				->first();
+			$data['item'] = $item;
+			$data['return_statuses'] = $return_statuses;
+			$this->cbview('edit_return_ecoms', $data);
+		}
+		public function updateReturnEcoms(Request $request, $id)
+		{
+			DB::table('returns_header')
+				->where('id', $id)
+				->update([
+					'returns_status' => $request->input('return_status'),
+					'returns_status_1' => $request->input('return_status_1'),
+					'pos_replacement_ref' => $request->input('pos_replacement_ref'),
+					'negative_positive_invoice' => $request->input('negative_positive_invoice'),
+					'address' => $request->input('address'),
+					'customer_location' => $request->input('customer_location'),
+					'order_no' => $request->input('order_no'),
+					'diagnose' => $request->input('diagnose'),
+					'warranty_status' => $request->input('item_warranty_status'),
+				]);
+				
+				CRUDBooster::redirect(CRUDBooster::mainpath(), sprintf("Edited Successfully!"),"success");
+		}
 
 
 		//By the way, you can still create your own method in here... :) 
@@ -903,6 +979,8 @@ use App\StoresFrontEnd;
 			->leftjoin('cms_users as transacted', 'returns_header.level5_personnel','=', 'transacted.id')
 			->leftjoin('cms_users as received', 'returns_header.level6_personnel','=', 'received.id')
 			->leftjoin('cms_users as closed', 'returns_header.level7_personnel','=', 'closed.id')																		
+			->leftjoin('transaction_type', 'returns_header.transaction_type_id', '=', 'transaction_type.id')
+			->leftJoin('via', 'returns_header.via_id', 'via.id')
 			->select(
 			'returns_header.*',
 			'scheduled.name as scheduled_by',
@@ -911,11 +989,13 @@ use App\StoresFrontEnd;
 			'printed.name as printed_by',	
 			'transacted.name as transacted_by',	
 			'received.name as received_by',
-			'closed.name as closed_by'						
+			'transaction_type.transaction_type_name',
+			'closed.name as closed_by',
+			'via.via_name as via_id'					
 			)
 			->where('returns_header.id',$id)->first();
 
-
+				
             if($data['row']->returns_status_1 == 1){
      			$data['resultlist'] = ReturnsBody::
     			leftjoin('returns_serial', 'returns_body_item.id', '=', 'returns_serial.returns_body_item_id')					
@@ -938,6 +1018,8 @@ use App\StoresFrontEnd;
 			$channels = Channel::where('channel_name', 'ONLINE')->first();
 
 			$data['store_list'] = Stores::where('channels_id',$channels->id)->get();
+
+			$data['comments_data'] = (new ChatController)->getCommentsEcomm($id);
 			
 			$this->cbView("returns.history_view", $data);
 		}
@@ -1592,6 +1674,8 @@ use App\StoresFrontEnd;
 						->leftjoin('cms_users as received', 'returns_header.level6_personnel','=', 'received.id')
 						->leftjoin('cms_users as closed', 'returns_header.level7_personnel','=', 'closed.id')
 						->leftjoin('cms_users as received1', 'returns_header.received_by_rma_sc','=', 'received1.id')
+						->leftjoin('cms_users as turnover', 'returns_header.rma_receiver_id','=', 'turnover.id')
+						->leftjoin('cms_users as specialist', 'returns_header.rma_specialist_id','=', 'specialist.id')
 						->leftJoin('returns_body_item', 'returns_header.id', '=', 'returns_body_item.returns_header_id')
 						->select(   'returns_header.*', 
 						            'returns_header.created_at as datecreated',
@@ -1604,6 +1688,8 @@ use App\StoresFrontEnd;
 									'printed.name as printed_by',	
 									'transacted.name as transacted_by',	
 									'received.name as received_by',
+									'turnover.name as turnover_by',
+									'specialist.name as specialist_by',
 									'closed.name as closed_by',
 									'received1.name as received_by1',
 									'via.*',
@@ -1725,7 +1811,8 @@ use App\StoresFrontEnd;
     							$orderRow->diagnose, 	
     							$orderRow->datecreated,
     							//Carbon::parse($orderRow->created_at)->toDateString(),				
-    							$orderRow->return_reference_no,			
+    							$orderRow->return_reference_no,	
+
 								$orderRow->via_name,			
     							$orderRow->purchase_location,
 								$orderRow->branch_dropoff,				
@@ -1848,10 +1935,13 @@ use App\StoresFrontEnd;
     						'SCHEDULED DATE',           //blue  //additional code 20200205
     						
     						'RECEIVED BY',
-    						'RECEIVED DATE',
-    						
+                            'RECEIVED DATE',
+							'TURNOVER BY',
+							'TURNOVER DATE',
     						'DIAGNOSED BY',           //blue  //additional code 20200205
     						'DIAGNOSED DATE',           //blue  //additional code 20200205
+							'PROCESSED BY',           //blue  //additional code 20200205
+							'PROCESSED DATE',  
     						'PRINTED BY',           //blue  //additional code 20200205
     						'PRINTED DATE',           //blue  //additional code 20200205
     						'SOR BY',           //blue  //additional code 20200205
@@ -1877,6 +1967,8 @@ use App\StoresFrontEnd;
 						->leftjoin('cms_users as received', 'returns_header.level6_personnel','=', 'received.id')
 						->leftjoin('cms_users as closed', 'returns_header.level7_personnel','=', 'closed.id')	
 						->leftjoin('cms_users as received1', 'returns_header.received_by_rma_sc','=', 'received1.id')
+						->leftjoin('cms_users as turnover', 'returns_header.rma_receiver_id','=', 'turnover.id')
+						->leftjoin('cms_users as specialist', 'returns_header.rma_specialist_id','=', 'specialist.id')
 						->leftJoin('returns_body_item', 'returns_header.id', '=', 'returns_body_item.returns_header_id')
 						->select(   'returns_header.*', 
 						            'returns_header.created_at as datecreated',
@@ -1890,6 +1982,8 @@ use App\StoresFrontEnd;
 									'transacted.name as transacted_by',	
 									'received.name as received_by',
 									'received1.name as received_by1',
+									'turnover.name as turnover_by',
+									'specialist.name as specialist_by',
 									'closed.name as closed_by',
 									'via.*',
 									'warranty_statuses.*'
@@ -2132,9 +2226,12 @@ use App\StoresFrontEnd;
     						
     						'RECEIVED BY',
                             'RECEIVED DATE',
-
+							'TURNOVER BY',
+							'TURNOVER DATE',
     						'DIAGNOSED BY',           //blue  //additional code 20200205
     						'DIAGNOSED DATE',           //blue  //additional code 20200205
+							'PROCESSED BY',           //blue  //additional code 20200205
+							'PROCESSED DATE',  
     						'PRINTED BY',           //blue  //additional code 20200205
     						'PRINTED DATE',           //blue  //additional code 20200205
     						'SOR BY',           //blue  //additional code 20200205
@@ -2161,6 +2258,8 @@ use App\StoresFrontEnd;
 						->leftjoin('cms_users as received', 'returns_header.level6_personnel','=', 'received.id')
 						->leftjoin('cms_users as closed', 'returns_header.level7_personnel','=', 'closed.id')	
 						->leftjoin('cms_users as received1', 'returns_header.received_by_rma_sc','=', 'received1.id')
+						->leftjoin('cms_users as turnover', 'returns_header.rma_receiver_id','=', 'turnover.id')
+						->leftjoin('cms_users as specialist', 'returns_header.rma_specialist_id','=', 'specialist.id')
 						->leftJoin('returns_body_item', 'returns_header.id', '=', 'returns_body_item.returns_header_id')
 						->select(   'returns_header.*', 
 						            'returns_header.created_at as datecreated',
@@ -2173,6 +2272,8 @@ use App\StoresFrontEnd;
 									'printed.name as printed_by',	
 									'transacted.name as transacted_by',	
 									'received.name as received_by',
+									'turnover.name as turnover_by',
+									'specialist.name as specialist_by',
 									'closed.name as closed_by',
 									'received1.name as received_by1',
 									'via.*',
@@ -2416,9 +2517,12 @@ use App\StoresFrontEnd;
     						
     						'RECEIVED BY',
                             'RECEIVED DATE',
-
+							'TURNOVER BY',
+							'TURNOVER DATE',
     						'DIAGNOSED BY',           //blue  //additional code 20200205
     						'DIAGNOSED DATE',           //blue  //additional code 20200205
+							'PROCESSED BY',           //blue  //additional code 20200205
+							'PROCESSED DATE',  
     						'PRINTED BY',           //blue  //additional code 20200205
     						'PRINTED DATE',           //blue  //additional code 20200205
     						'SOR BY',           //blue  //additional code 20200205
@@ -2454,6 +2558,8 @@ use App\StoresFrontEnd;
 							->leftjoin('cms_users as received', 'returns_header.level6_personnel','=', 'received.id')
 							->leftjoin('cms_users as closed', 'returns_header.level7_personnel','=', 'closed.id')	
 							->leftjoin('cms_users as received1', 'returns_header.received_by_rma_sc','=', 'received1.id')
+							->leftjoin('cms_users as turnover', 'returns_header.rma_receiver_id','=', 'turnover.id')
+							->leftjoin('cms_users as specialist', 'returns_header.rma_specialist_id','=', 'specialist.id')
 							->leftJoin('returns_body_item', 'returns_header.id', '=', 'returns_body_item.returns_header_id')
 							->select(   'returns_header.*', 
 							            'returns_header.created_at as datecreated',
@@ -2707,10 +2813,13 @@ use App\StoresFrontEnd;
 								'SCHEDULED DATE',           //blue  //additional code 20200205
 								
 								'RECEIVED BY',
-                                'RECEIVED DATE',
-
+								'RECEIVED DATE',
+								'TURNOVER BY',
+								'TURNOVER DATE',
 								'DIAGNOSED BY',           //blue  //additional code 20200205
 								'DIAGNOSED DATE',           //blue  //additional code 20200205
+								'PROCESSED BY',           //blue  //additional code 20200205
+								'PROCESSED DATE',  
 								'PRINTED BY',           //blue  //additional code 20200205
 								'PRINTED DATE',           //blue  //additional code 20200205
 								'SOR BY',           //blue  //additional code 20200205
@@ -2720,9 +2829,9 @@ use App\StoresFrontEnd;
 								'COMMENTS',
 								'DIAGNOSED COMMENTS'
 							);		
-					}elseif(CRUDBooster::myPrivilegeName() == "RMA"){ 
+					}elseif(in_array(CRUDBooster::myPrivilegeName(), ['RMA Inbound', 'Tech Lead', 'RMA Technician', 'RMA Specialist'])){ 
 		
-						$to_diagnose = ReturnsStatus::where('id','5')->value('id');
+						// $to_diagnose = ReturnsStatus::where('id','5')->value('id');
 			
 						$orderData = DB::table('returns_header')
 						->leftjoin('via', 'returns_header.via_id','=', 'via.id')
@@ -2736,6 +2845,8 @@ use App\StoresFrontEnd;
 						->leftjoin('cms_users as received', 'returns_header.level6_personnel','=', 'received.id')
 						->leftjoin('cms_users as closed', 'returns_header.level7_personnel','=', 'closed.id')	
 						->leftjoin('cms_users as received1', 'returns_header.received_by_rma_sc','=', 'received1.id')
+						->leftjoin('cms_users as turnover', 'returns_header.rma_receiver_id','=', 'turnover.id')
+						->leftjoin('cms_users as specialist', 'returns_header.rma_specialist_id','=', 'specialist.id')
 						->leftJoin('returns_body_item', 'returns_header.id', '=', 'returns_body_item.returns_header_id')
 						->select(   'returns_header.*', 
 						            'returns_header.created_at as datecreated',
@@ -2749,10 +2860,13 @@ use App\StoresFrontEnd;
 									'transacted.name as transacted_by',	
 									'received.name as received_by',
 									'received1.name as received_by1',
+									'turnover.name as turnover_by',
+									'specialist.name as specialist_by',
 									'closed.name as closed_by',
 									'via.*',
 									'warranty_statuses.*'
-						)->where('returns_status_1', 28)->whereNull('returns_body_item.category')->orwhereNotNull('returns_body_item.category')->where('transaction_type', 0)->where('returns_status_1','!=',	$to_diagnose)->whereNotNull('diagnose')->where('returns_status_1','!=', 28)->groupby('returns_header.return_reference_no');
+						)->where('returns_status_1', 28)->whereNull('returns_body_item.category')->orwhereNotNull('returns_body_item.category')->where('transaction_type', 0)->where('returns_status_1','!=', 28)->groupby('returns_header.return_reference_no');
+						// )->where('returns_status_1', 28)->whereNull('returns_body_item.category')->orwhereNotNull('returns_body_item.category')->where('transaction_type', 0)->where('returns_status_1','!=',	$to_diagnose)->whereNotNull('diagnose')->where('returns_status_1','!=', 28)->groupby('returns_header.return_reference_no');
 		
 		    						if(\Request::get('filter_column')) {
     
@@ -2866,7 +2980,9 @@ use App\StoresFrontEnd;
     							$orderRow->warranty_status, 		
     							$orderRow->diagnose, 	
     							$orderRow->datecreated,				
-    							$orderRow->return_reference_no,		
+    							$orderRow->return_reference_no,
+								$orderRow->inc_number,			
+								$orderRow->rma_number,			
 								$orderRow->via_name,			
     							$orderRow->purchase_location,
 								$orderRow->branch_dropoff,								
@@ -2918,11 +3034,15 @@ use App\StoresFrontEnd;
     							$scheduled_by,
     							$scheduled_date,
     							
+								$orderRow->turnover_by,
+								$orderRow->rma_receiver_date_received,
     							$orderRow->received_by1,
                                 $orderRow->received_at_rma_sc,
 
     							$orderRow->diagnosed_by,
     							$orderRow->level3_personnel_edited,
+								$orderRow->specialist_by,
+								$orderRow->rma_specialist_date_received,
     							$orderRow->printed_by,
     							$orderRow->level4_personnel_edited,
     							$transacted_personnel,							
@@ -2939,6 +3059,8 @@ use App\StoresFrontEnd;
     						'DIAGNOSE',
     						'CREATED DATE',
     						'RETURN REFERENCE#',
+							'INC#',
+							'RMA#',
 							'VIA',
     						'PURCHASE LOCATION',
 							'BRANCH DROP-OFF',
@@ -2992,9 +3114,12 @@ use App\StoresFrontEnd;
     						
     						'RECEIVED BY',
                             'RECEIVED DATE',
-
+							'TURNOVER BY',
+							'TURNOVER DATE',
     						'DIAGNOSED BY',           //blue  //additional code 20200205
     						'DIAGNOSED DATE',           //blue  //additional code 20200205
+							'PROCESSED BY',           //blue  //additional code 20200205
+							'PROCESSED DATE',  
     						'PRINTED BY',           //blue  //additional code 20200205
     						'PRINTED DATE',           //blue  //additional code 20200205
     						'SOR BY',           //blue  //additional code 20200205
@@ -3320,6 +3445,8 @@ use App\StoresFrontEnd;
 						->leftjoin('cms_users as received', 'returns_header.level6_personnel','=', 'received.id')
 						->leftjoin('cms_users as closed', 'returns_header.level7_personnel','=', 'closed.id')	
 						->leftjoin('cms_users as received1', 'returns_header.received_by_rma_sc','=', 'received1.id')
+						->leftjoin('cms_users as turnover', 'returns_header.rma_receiver_id','=', 'turnover.id')
+						->leftjoin('cms_users as specialist', 'returns_header.rma_specialist_id','=', 'specialist.id')
 						->leftJoin('returns_body_item', 'returns_header.id', '=', 'returns_body_item.returns_header_id')
 						->select(   'returns_header.*', 
 						            'returns_header.created_at as datecreated',
@@ -3333,6 +3460,8 @@ use App\StoresFrontEnd;
 									'transacted.name as transacted_by',	
 									'received.name as received_by',
 									'received1.name as received_by1',
+									'turnover.name as turnover_by',
+									'specialist.name as specialist_by',
 									'closed.name as closed_by',
 									'via.*',
 									'warranty_statuses.*'
@@ -3499,11 +3628,15 @@ use App\StoresFrontEnd;
     							$scheduled_by,
     							$scheduled_date,
     							
+								$orderRow->turnover_by,
+								$orderRow->rma_receiver_date_received,
     							$orderRow->received_by1,
                                 $orderRow->received_at_rma_sc,
 
     							$orderRow->diagnosed_by,
     							$orderRow->level3_personnel_edited,
+								$orderRow->specialist_by,
+								$orderRow->rma_specialist_date_received,
     							$orderRow->printed_by,
     							$orderRow->level4_personnel_edited,
     							$transacted_personnel,							
@@ -3567,11 +3700,14 @@ use App\StoresFrontEnd;
     						'SCHEDULED BY',           //blue  //additional code 20200205
     						'SCHEDULED DATE',           //blue  //additional code 20200205
     						
-    						'RECEIVED BY',
+							'RECEIVED BY',
                             'RECEIVED DATE',
-
+							'TURNOVER BY',
+							'TURNOVER DATE',
     						'DIAGNOSED BY',           //blue  //additional code 20200205
     						'DIAGNOSED DATE',           //blue  //additional code 20200205
+							'PROCESSED BY',           //blue  //additional code 20200205
+							'PROCESSED DATE',  
     						'PRINTED BY',           //blue  //additional code 20200205
     						'PRINTED DATE',           //blue  //additional code 20200205
     						'SOR BY',           //blue  //additional code 20200205
@@ -3862,6 +3998,8 @@ use App\StoresFrontEnd;
 						->leftjoin('cms_users as received', 'returns_header.level6_personnel','=', 'received.id')
 						->leftjoin('cms_users as closed', 'returns_header.level7_personnel','=', 'closed.id')	
 						->leftjoin('cms_users as received1', 'returns_header.received_by_rma_sc','=', 'received1.id')
+						->leftjoin('cms_users as turnover', 'returns_header.rma_receiver_id','=', 'turnover.id')
+						->leftjoin('cms_users as specialist', 'returns_header.rma_specialist_id','=', 'specialist.id')
 						->leftJoin('returns_body_item', 'returns_header.id', '=', 'returns_body_item.returns_header_id')
 						->select(   'returns_header.*', 
 						            'returns_header.created_at as datecreated',
@@ -3875,6 +4013,8 @@ use App\StoresFrontEnd;
 									'transacted.name as transacted_by',	
 									'received1.name as received_by1',
 									'received.name as received_by',
+									'turnover.name as turnover_by',
+									'specialist.name as specialist_by',
 									'closed.name as closed_by',
 									'via.*',
 									'warranty_statuses.*'
@@ -4044,11 +4184,15 @@ use App\StoresFrontEnd;
     							$scheduled_by,
     							$scheduled_date,
     							
+								$orderRow->turnover_by,
+								$orderRow->rma_receiver_date_received,
     							$orderRow->received_by1,
                                 $orderRow->received_at_rma_sc,
 
     							$orderRow->diagnosed_by,
     							$orderRow->level3_personnel_edited,
+								$orderRow->specialist_by,
+								$orderRow->rma_specialist_date_received,
     							$orderRow->printed_by,
     							$orderRow->level4_personnel_edited,
     							$transacted_personnel,							
@@ -4116,11 +4260,14 @@ use App\StoresFrontEnd;
     						'SCHEDULED BY',           //blue  //additional code 20200205
     						'SCHEDULED DATE',           //blue  //additional code 20200205
     						
-    						'RECEIVED BY',
+							'RECEIVED BY',
                             'RECEIVED DATE',
-
+							'TURNOVER BY',
+							'TURNOVER DATE',
     						'DIAGNOSED BY',           //blue  //additional code 20200205
     						'DIAGNOSED DATE',           //blue  //additional code 20200205
+							'PROCESSED BY',           //blue  //additional code 20200205
+							'PROCESSED DATE',  
     						'PRINTED BY',           //blue  //additional code 20200205
     						'PRINTED DATE',           //blue  //additional code 20200205
     						'SOR BY',           //blue  //additional code 20200205

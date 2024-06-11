@@ -72,6 +72,7 @@ class AdminCmsUsersController extends \crocodicstudio\crudbooster\controllers\CB
     			$this->form[] = array("label"=>"Store Name","name"=>"stores_id","type"=>"check-box","datatable"=>"stores,store_name", 'width'=>'col-sm-5','parent_select'=>'channels_id');
 		    }
 		}
+		$this->form[] = ['label'=>'Status','name'=>'status','type'=>'select','validation'=>'required','width'=>'col-sm-5','dataenum'=>'ACTIVE;INACTIVE','value' => 'ACTIVE'];			
 
 
 		# END FORM DO NOT REMOVE THIS LINE

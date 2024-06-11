@@ -503,7 +503,7 @@
             var data = $('#myform').serialize();
                 $.ajax({
                         type: 'GET',
-                        url: '{{ url('admin/retail_for_verification/ReturnsSRRUpdateRTL') }}',
+                        url: "{{ url('admin/retail_for_verification/ReturnsSRRUpdateRTL') }}",
                         data: data,
                         success: function( response ){
                              
