@@ -1925,6 +1925,8 @@ class AdminToReceiveDistriController extends \crocodicstudio\crudbooster\control
 
 						
 					DB::commit();
+
+					CRUDBooster::redirect(CRUDBooster::mainpath(), 'Success', 'success');
 	
 				}catch (\Exception $e) {
 					DB::rollback();
