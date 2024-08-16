@@ -476,16 +476,16 @@
         </table>
   </div>
   <div class='panel-footer'>
-    <form method='' id="myform" action="">
+    <form method='GET' id="myform" action="{{route('ReturnPulloutUpdateRTL')}}" enctype="multipart/form-data">
         
         <input type="hidden" value="{{$row->id}}" name="return_id">
         <a href="{{ CRUDBooster::mainpath() }}" class="btn btn-default">{{ trans('message.form.cancel') }}</a>
         
         @if( $row->returns_status_1 == 19 )
-                <button class="btn btn-primary pull-right" type="submit" id="printPulloutForm" onclick="printDivision('printableArea')"> <i class="fa fa-print" ></i> Print as PDF</button>
-
+                <button class="btn btn-primary pull-right" type="submit" style="margin-left: 10px" disabled id="btnSubmit" > <i class="fa fa-check" ></i> Proceed</button>
+                <button class="btn btn-primary pull-right" type="button" onclick="printDivision('printableArea', event)" > <i class="fa fa-print"></i> Print as PDF</button>
             @else
-                <button class="btn btn-primary pull-right" type="submit" id="print"    onclick="printDivision('printableArea')"> <i class="fa fa-print" ></i> Print as PDF</button>
+                <button class="btn btn-primary pull-right" type="button" onclick="printDivision('printableArea', event)" > <i class="fa fa-print"></i> Print as PDF</button>
         @endif
        
     </form>
@@ -493,34 +493,55 @@
 @endsection
 @push('bottom')
     <script type="text/javascript">
-        $("#printPulloutForm").on('click',function(){
-        //var strconfirm = confirm("Are you sure you want to approve this pull-out request?");
-            var data = $('#myform').serialize();
-                $.ajax({
-                        type: 'GET',
-                        url: '{{ url('admin/returns_retail_scheduling/ReturnPulloutUpdate') }}',
-                        data: data,
-                        success: function( response ){
-                            console.log( response );              
-                        
-                        },
-                        error: function( e ) {
-                            console.log(e);
-                        }
-                  });
-                  return true;
+        $("#btnSubmit").click(function(event) {
+        if (document.querySelector("#myform").reportValidity()) {
+                event.preventDefault(); 
+                swal({
+                    title: "Are you sure you want to approve this pull-out request?",
+                    type: "warning",
+                    showCancelButton: true,
+                    confirmButtonColor: "#367fa9",
+                    confirmButtonText: "Yes, proceed",
+                    width: 450,
+                    height: 200
+                    }, function () {               
+                        $('#myform').submit();
+                });
+            } else {
+                event.preventDefault(); 
+             }
+
         });
 
 
+        function printDivision(divName ,event) {
+            event.preventDefault();
+            alert('Please print 2 copies!');
+            var generator = window.open(",'printableArea,");
+            var layertext = document.getElementById(divName);
+            generator.document.write(layertext.innerHTML.replace("Print Me"));
+            generator.document.close();
+            generator.print();
+            generator.close();
 
-        function printDivision(divName) {
-         alert('Please print 2 copies!');
-         var generator = window.open(",'printableArea,");
-         var layertext = document.getElementById(divName);
-         generator.document.write(layertext.innerHTML.replace("Print Me"));
-         generator.document.close();
-         generator.print();
-         generator.close();
+            swal({
+            title: "Did you print/save the file?",
+            type: "warning",
+            showCancelButton: true,
+            confirmButtonColor: "#367fa9",
+            confirmButtonText: "Yes",
+            cancelButtonText: "No",
+            closeOnConfirm: true,
+            closeOnCancel: true
+            },
+            function(isConfirm){
+            if (isConfirm) {
+                document.querySelector('.btn-primary[type="submit"]').removeAttribute('disabled');
+            } else {
+                document.querySelector('.btn-primary[type="submit"]').setAttribute('disabled', 'disabled');
+            }
+            });
+            
         }                
     </script>
 @endpush
