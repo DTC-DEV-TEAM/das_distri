@@ -2637,17 +2637,13 @@ use DateTime;
 			    
 		}
 
-
-
 		public function ReturnPulloutUpdateONL(){
 			$data = Input::all();		
 			$request_id = $data['return_id']; 
-			//$comments_variable = $data['comments']; 			
 			
 			$to_diagnose = ReturnsStatus::where('id','5')->value('id');
 
 			$return_request =  ReturnsHeader::where('id',$request_id)->first();
-
 
 			$to_receive_rma = ReturnsStatus::where('id','34')->value('id');
 
@@ -2656,22 +2652,18 @@ use DateTime;
 			//enhancement
 			
 			if($return_request->returns_status_1 != $to_diagnose){
-
-			
-				DB::beginTransaction();
-	
 				try {
-
+					
 					if($return_request->deliver_to == "WAREHOUSE.RMA.DEP"){
 					    
+						DB::beginTransaction();
 						ReturnsHeader::where('id',$request_id)
 						->update([
-							'returns_status_1'=> 		$to_receive_rma
+							'returns_status_1'=> $to_receive_rma
 						]);	
 						
 								$to_receive_sc_frontend = ReturnsStatus::where('id','36')->value('id');
 
-								DB::beginTransaction();
 				
 								try {
 					
@@ -2683,6 +2675,8 @@ use DateTime;
 									]);
 
 									DB::commit();
+
+									CRUDBooster::redirect(CRUDBooster::mainpath(), 'Successful!', 'success');
 					
 								}catch (\Exception $e) {
 									DB::rollback();
@@ -2691,8 +2685,11 @@ use DateTime;
 					
 								DB::disconnect('mysql_front_end');						
 						
-					}else{
+					}
+					
+					else{
 					    
+						DB::beginTransaction();
 						ReturnsHeader::where('id',$request_id)
 						->update([
 							'returns_status_1'=> 		$to_receive_sc
@@ -2700,7 +2697,6 @@ use DateTime;
 						
 								$to_receive_sc_frontend = ReturnsStatus::where('id','36')->value('id');
 
-								DB::beginTransaction();
 				
 								try {
 					
@@ -2712,6 +2708,8 @@ use DateTime;
 									]);
 
 									DB::commit();
+
+									CRUDBooster::redirect(CRUDBooster::mainpath(), 'Successful!', 'success');
 					
 								}catch (\Exception $e) {
 									DB::rollback();
@@ -2721,9 +2719,7 @@ use DateTime;
 								DB::disconnect('mysql_front_end');	
 								
 					}
-	
-						
-					DB::commit();
+				
 	
 				}catch (\Exception $e) {
 					DB::rollback();
@@ -2739,47 +2735,49 @@ use DateTime;
 		public function ReturnPulloutUpdateONLDTD(){
 			$data = Input::all();		
 			$request_id = $data['return_id']; 
-			//$comments_variable = $data['comments']; 			
 			
 			$to_diagnose = ReturnsStatus::where('id','5')->value('id');
 			$return_request =  ReturnsHeader::where('id',$request_id)->first();
-			
-			$to_schedule_logistics = 	ReturnsStatus::where('id','23')->value('id');
+			$to_pickup = ReturnsStatus::where('warranty_status','TO PICKUP')->value('id');
+			$to_schedule_logistics = ReturnsStatus::where('id','23')->value('id');
 
-			
 			if($return_request->returns_status_1 != $to_schedule_logistics){
 			    
-				DB::beginTransaction();
-	
+				
 				try {
-
 
 					if($return_request->via_id == 1){
 
+						DB::beginTransaction();
+
 						ReturnsHeader::where('id',$request_id)
 						->update([
-						'returns_status_1'=> 		$to_schedule_logistics
+						'returns_status_1'=> $to_schedule_logistics
 						]);
 
+						DB::commit();
 
-					}else{
+						CRUDBooster::redirect(CRUDBooster::mainpath(), 'Successful!', 'success');
+
+
+					}
+					else{
 
 						$to_receive_rma = ReturnsStatus::where('id','34')->value('id');
-
+						
 						$to_receive_sc = ReturnsStatus::where('id','35')->value('id');
 
-
 						if($return_request->deliver_to == "WAREHOUSE.RMA.DEP"){
+							
+							DB::beginTransaction();
 
 							ReturnsHeader::where('id',$request_id)
 							->update([
-							'returns_status_1'=> 		$to_receive_rma
+								'returns_status_1'=> $to_receive_rma
 							]);
-							
-							
+														
 								$to_receive_sc_frontend = ReturnsStatus::where('id','36')->value('id');
 
-								DB::beginTransaction();
 				
 								try {
 					
@@ -2791,6 +2789,8 @@ use DateTime;
 									]);
 
 									DB::commit();
+
+									CRUDBooster::redirect(CRUDBooster::mainpath(), 'Successful!', 'success');
 					
 								}catch (\Exception $e) {
 									DB::rollback();
@@ -2802,15 +2802,15 @@ use DateTime;
 
 						}else{
 
+							DB::beginTransaction();
+
 							ReturnsHeader::where('id',$request_id)
 							->update([
-							'returns_status_1'=> 		$to_receive_sc
+								'returns_status_1'=> $to_receive_sc
 							]);
-
 
 								$to_receive_sc_frontend = ReturnsStatus::where('id','36')->value('id');
 
-								DB::beginTransaction();
 				
 								try {
 					
@@ -2822,6 +2822,8 @@ use DateTime;
 									]);
 
 									DB::commit();
+
+									CRUDBooster::redirect(CRUDBooster::mainpath(), 'Successful!', 'success');
 					
 								}catch (\Exception $e) {
 									DB::rollback();
@@ -2830,28 +2832,15 @@ use DateTime;
 					
 								DB::disconnect('mysql_front_end');	
 								
-								
+							
 						}
+
+					
 
 					}
 
-					$fullname = $ReturnRequest->customer_first_name." ".$ReturnRequest->customer_last_name;
-						
-					$data = ['name'=>$fullname,'status_return'=>$to_pickup,'ref_no'=>$ReturnRequest->return_reference_no,'return_schedule'=>$ReturnRequest->return_schedule,'store_name'=>$ReturnRequest->store];
-							
-							
-					//CRUDBooster::sendEmail(['to'=>$ReturnRequest->email_address,'data'=>$data,'template'=>'details_return_pick_up','attachments'=>[]]);
-				
-
-					//logistics
-					//$fullname = $ReturnRequest->customer_first_name." ".$ReturnRequest->customer_last_name;
-					//'name'=>$fullname,
-					$data = ['status_return'=>$to_schedule_logistics,'ref_no'=>$ReturnRequest->return_reference_no,'store_name'=>$ReturnRequest->store];
-									
-					//CRUDBooster::sendEmail(['to'=>'lewieadona@digits.ph','data'=>$data,'template'=>'details_return_update','attachments'=>[]]);
-									
-					DB::commit();
-	
+			
+					
 				}catch (\Exception $e) {
 					DB::rollback();
 					CRUDBooster::redirect(CRUDBooster::mainpath(), trans("crudbooster.alert_database_error",['database_error'=>$e]), 'danger');

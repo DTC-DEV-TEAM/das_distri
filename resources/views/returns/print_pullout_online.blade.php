@@ -408,44 +408,6 @@
                                 <hr color="black" >
                         </td>
                 </tr>
-
-
-
-
-                    <!--
-                    <tr>
-                            <td colspan="4">
-                                    <label class="control-label col-md-12"><strong>FILLED BY CUSTOMER<strong></label>
-                                    <br/>
-                            </td>
-                    </tr>
-                    <tr style="font-size: 13px;">
-                    
-                            <td width="20%">
-                                   
-                                <label class="control-label col-md-12"><strong>Received Date:<strong></label>
-                            </td>
-                            <td width="40%">
-                              
-                                    ____________________
-                            </td>    
-                            
-                            <td width="20%">
-                                
-                                <label class="control-label col-md-12"><strong>Received By:<strong></label>
-                            </td>
-                            <td>
-                            
-                                    ____________________
-                            </td>  
-                    </tr> 
-                  
-                    <tr>
-                    <td colspan="4">
-                            <hr color="black" >
-                    </td>
-                    </tr>
-                    -->
         
             </table> 
         </div>
@@ -461,15 +423,15 @@
         </table>
   </div>
   <div class='panel-footer'>
-    <form method='' id="myform" action="">
-        
+    <form method='GET' id="myform" action="{{route('ReturnPulloutUpdateONL')}}" enctype="multipart/form-data">
         <input type="hidden" value="{{$row->id}}" name="return_id">
         <a href="{{ CRUDBooster::mainpath() }}" class="btn btn-default">{{ trans('message.form.cancel') }}</a>
         
         @if( $row->returns_status_1 == 19 )
-                <button class="btn btn-primary pull-right" type="submit" id="printPulloutForm" onclick="printDivision('printableArea')"> <i class="fa fa-print" ></i> Print as PDF</button>
+            <button class="btn btn-primary pull-right" type="submit" style="margin-left: 10px" disabled id="btnSubmit" > <i class="fa fa-check" ></i> Proceed</button>
+            <button class="btn btn-primary pull-right" type="button" onclick="printDivision('printableArea', event)" > <i class="fa fa-print"></i> Print as PDF</button>
             @else
-                <button class="btn btn-primary pull-right" type="submit" id="print"    onclick="printDivision('printableArea')"> <i class="fa fa-print" ></i> Print as PDF</button>
+            <button class="btn btn-primary pull-right" type="button" onclick="printDivision('printableArea', event)" > <i class="fa fa-print"></i> Print as PDF</button>
         @endif
        
     </form>
@@ -477,34 +439,55 @@
 @endsection
 @push('bottom')
     <script type="text/javascript">
-        $("#printPulloutForm").on('click',function(){
-        //var strconfirm = confirm("Are you sure you want to approve this pull-out request?");
-            var data = $('#myform').serialize();
-                $.ajax({
-                        type: 'GET',
-                        url: '{{ url('admin/scheduling/ReturnPulloutUpdateONL') }}',
-                        data: data,
-                        success: function( response ){
-                            console.log( response );              
-                        
-                        },
-                        error: function( e ) {
-                            console.log(e);
-                        }
-                  });
-                  return true;
+        $("#btnSubmit").click(function(event) {
+        if (document.querySelector("#myform").reportValidity()) {
+                event.preventDefault(); 
+                swal({
+                    title: "Are you sure you want to approve this pull-out request?",
+                    type: "warning",
+                    showCancelButton: true,
+                    confirmButtonColor: "#367fa9",
+                    confirmButtonText: "Yes, proceed",
+                    width: 450,
+                    height: 200
+                    }, function () {               
+                        $('#myform').submit();
+                });
+            } else {
+                event.preventDefault(); 
+             }
+
         });
 
+        
+        function printDivision(divName ,event) {
+            event.preventDefault();
+            alert('Please print 2 copies!');
+            var generator = window.open(",'printableArea,");
+            var layertext = document.getElementById(divName);
+            generator.document.write(layertext.innerHTML.replace("Print Me"));
+            generator.document.close();
+            generator.print();
+            generator.close();
 
-
-        function printDivision(divName) {
-         alert('Please print 2 copies!');
-         var generator = window.open(",'printableArea,");
-         var layertext = document.getElementById(divName);
-         generator.document.write(layertext.innerHTML.replace("Print Me"));
-         generator.document.close();
-         generator.print();
-         generator.close();
-        }                
+            swal({
+            title: "Did you print/save the file?",
+            type: "warning",
+            showCancelButton: true,
+            confirmButtonColor: "#367fa9",
+            confirmButtonText: "Yes",
+            cancelButtonText: "No",
+            closeOnConfirm: true,
+            closeOnCancel: true
+            },
+            function(isConfirm){
+            if (isConfirm) {
+                document.querySelector('.btn-primary[type="submit"]').removeAttribute('disabled');
+            } else {
+                document.querySelector('.btn-primary[type="submit"]').setAttribute('disabled', 'disabled');
+            }
+            });
+            
+        }               
     </script>
 @endpush
