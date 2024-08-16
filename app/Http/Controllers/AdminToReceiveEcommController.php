@@ -1786,6 +1786,8 @@ use PHPExcel_Style_Fill;
 
 						
 					DB::commit();
+
+					CRUDBooster::redirect(CRUDBooster::mainpath(), 'Success', 'success');
 	
 				}catch (\Exception $e) {
 					DB::rollback();
