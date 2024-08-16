@@ -1482,7 +1482,7 @@ use App\TransactionTypeList;
 		}
 		
 	    public function ReturnsSRRUpdateRTL(){
-		    
+
 			$data = Input::all();		
 			$request_id = $data['return_id']; 
 			
@@ -1566,6 +1566,9 @@ use App\TransactionTypeList;
 					}
 
 					DB::commit();
+
+					CRUDBooster::redirect(CRUDBooster::mainpath(), 'Success', 'success');
+
 	
 				}catch (\Exception $e) {
 					DB::rollback();
