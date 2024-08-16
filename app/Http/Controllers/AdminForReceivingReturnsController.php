@@ -1148,6 +1148,8 @@ use App\StoresFrontEnd;
         					
     
         					DB::commit();
+
+							CRUDBooster::redirect(CRUDBooster::mainpath(), 'Success', 'success');
         	
         				}catch (\Exception $e) {
         					DB::rollback();
