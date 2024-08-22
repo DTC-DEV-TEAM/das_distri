@@ -390,7 +390,7 @@ use App\StoresFrontEnd;
 			if(CRUDBooster::getCurrentMethod() == 'getIndex'){
 				$this->index_button[] = ["title"=>"Export Returns",
 				"label"=>"Export Returns",
-				"icon"=>"fa fa-download","url"=>CRUDBooster::mainpath('GetExtractReturnsDISTRI').'?'.urldecode(http_build_query(@$_GET))];
+				"icon"=>"fa fa-download","url"=>CRUDBooster::mainpath('export_return_history_distri').'?'.urldecode(http_build_query(@$_GET))];
 				//$this->index_button[] = ["label"=>"Export Returns","icon"=>"fa fa-download","url"=>CRUDBooster::mainpath('GetExtractReturns'),"color"=>"success"];
 
 				//$this->index_button[] = ['label' => 'Upload', "url" => CRUDBooster::mainpath("import-retail"), "icon" => "fa fa-upload", "color"=>"warning"];
@@ -549,7 +549,69 @@ use App\StoresFrontEnd;
 				'chat_distri.created_at as date_send'
 			);
 
-			$query->whereNotNull('returns_status_1')->orderBy('history_status', 'desc'); 
+			if(CRUDBooster::myPrivilegeName() == "Retail Ops"){
+
+				$query->where('returns_status_1','!=', ReturnsStatus::REQUESTED)
+					->where('transaction_type','!=', 2);
+
+			}elseif(CRUDBooster::myPrivilegeName() == "Distri Store Ops"){
+			    
+				$storeList = self::getStoreList();
+			
+				$query->where('returns_status_1','!=', ReturnsStatus::REQUESTED)
+				->where('transaction_type','!=', 2)
+				->whereIn('returns_header_distribution.stores_id', $storeList);
+
+			}else if(CRUDBooster::myPrivilegeName() == "Logistics"){
+		
+				$query->whereNotIn('returns_status_1',[
+					ReturnsStatus::REQUESTED,
+					ReturnsStatus::TO_SCHEDULE,
+				])
+				->where('transaction_type','!=', 2);
+
+			}else if(in_array(CRUDBooster::myPrivilegeName(), ['RMA Inbound', 'Tech Lead', 'RMA Technician', 'RMA Specialist'])){
+
+                $query->where('transaction_type', 0)
+				->whereNotNull('returns_status_1');
+                
+			}elseif(CRUDBooster::myPrivilegeName() == "Service Center"){ 
+
+				$storeList = self::getStoreList();
+
+				$query->where('returns_status_1','!=', ReturnsStatus::TO_DIAGNOSE)
+				->whereIn('transaction_type',[1,3])
+				->whereNotNull('diagnose')
+				->whereIn('returns_header_distribution.stores_id', $storeList);
+				
+			}else if(CRUDBooster::myPrivilegeName() == "Accounting"){
+
+				$query->where('returns_status_1', '!=', ReturnsStatus::TO_PRINT_CRF)
+				->where('transaction_type','!=', 2)
+				->where('diagnose', "REFUND");
+
+			} else if(CRUDBooster::myPrivilegeName() == "Inventory Control"){
+
+				$query->where('returns_status_1', ReturnsStatus::REPLACEMENT_COMPLETE)
+				->where('transaction_type','!=', 2)
+				->where('diagnose', "REPLACE");
+                    
+			} else if(CRUDBooster::myPrivilegeName() == "Aftersales (Ops)"){
+
+				$query->where('transaction_type','!=', 2);
+                    
+			}else if(CRUDBooster::myPrivilegeName() == "SDM"){
+
+				$query->where('diagnose', "REPLACE")
+				->wherenotnull('level6_personnel')
+				->where('transaction_type','!=', 2);
+
+			} else{
+				$query->whereNotNull('returns_status_1');
+			}
+
+			$query->orderBy('created_at', 'desc'); 
+
 	    }
 
 	    /*
@@ -961,3147 +1023,7 @@ use App\StoresFrontEnd;
 
 			$this->cbView("returns.print_return_form_retail", $data);
 		}
-
-
-		public function GetExtractReturnsDISTRI() {
-
-            $filename = 'Returns Distribution - ' . date("d M Y - h.i.sa");
-			$sheetname = 'Returns Distribution'.date("d-M-Y");
-            ini_set('memory_limit', '512M');
-			Excel::create($filename, function ($excel) {
-				$excel->sheet('orders', function ($sheet) {	
-					// Set auto size for sheet
-					
-					$sheet->setAutoSize(true);
-					$sheet->setColumnFormat(array(
-					    'J' => '@',		//for upc code
-					    'AI' => '0.00',
-					    'AJ' => '0.00',
-					    'AK' => '0.00',
-					));
-
-
-					if(CRUDBooster::myPrivilegeName() == "Retail Ops"){
-						$requested = ReturnsStatus::where('id','1')->value('id');
-
-						$orderData = DB::table('returns_header_distribution')
-						->leftjoin('warranty_statuses', 'returns_header_distribution.returns_status_1','=', 'warranty_statuses.id')
-						->leftjoin('cms_users as verified', 'returns_header_distribution.level7_personnel','=', 'verified.id')
-						->leftjoin('cms_users as scheduled_logistics', 'returns_header_distribution.level1_personnel','=', 'scheduled_logistics.id')		
-						->leftjoin('cms_users as diagnosed', 'returns_header_distribution.level2_personnel','=', 'diagnosed.id')				
-						->leftjoin('cms_users as printed', 'returns_header_distribution.level3_personnel','=', 'printed.id')																	
-						->leftjoin('cms_users as transacted', 'returns_header_distribution.level4_personnel','=', 'transacted.id')
-						->leftjoin('cms_users as received', 'returns_header_distribution.level6_personnel','=', 'received.id')
-						->leftjoin('cms_users as received1', 'returns_header_distribution.received_by_rma_sc','=', 'received1.id')
-						->leftjoin('cms_users as turnover', 'returns_header_distribution.rma_receiver_id','=', 'turnover.id')
-						->leftjoin('cms_users as specialist', 'returns_header_distribution.rma_specialist_id','=', 'specialist.id')
-						->leftjoin('cms_users as closed', 'returns_header_distribution.level5_personnel','=', 'closed.id')	
-						->leftJoin('returns_body_item_distribution', 'returns_header_distribution.id', '=', 'returns_body_item_distribution.returns_header_id')
-						->select(   'returns_header_distribution.*', 
-									'returns_body_item_distribution.*', 
-									'returns_body_item_distribution.id as body_id', 
-									'verified.name as verified_by',	
-									'scheduled_logistics.name as scheduled_logistics_by',
-									'diagnosed.name as diagnosed_by',
-									'printed.name as printed_by',	
-									'transacted.name as transacted_by',	
-									'received.name as received_by',
-									'received1.name as received_by1',
-									'turnover.name as turnover_by',
-									'specialist.name as specialist_by',
-									'closed.name as closed_by',
-									'warranty_statuses.*')
-						->whereNotNull('returns_body_item_distribution.category')->where('transaction_type','!=', 2)->where('returns_status_1','!=', $requested);
-						
-						
-												if(\Request::get('filter_column')) {
-
-						$filter_column = \Request::get('filter_column');
-
-						$orderData->where(function($w) use ($filter_column,$fc) {
-							foreach($filter_column as $key=>$fc) {
-
-								$value = @$fc['value'];
-								$type  = @$fc['type'];
-
-								if($type == 'empty') {
-									$w->whereNull($key)->orWhere($key,'');
-									continue;
-								}
-
-								if($value=='' || $type=='') continue;
-
-								if($type == 'between') continue;
-
-								switch($type) {
-									default:
-										if($key && $type && $value) $w->where($key,$type,$value);
-									break;
-									case 'like':
-									case 'not like':
-										$value = '%'.$value.'%';
-										if($key && $type && $value) $w->where($key,$type,$value);
-									break;
-									case 'in':
-									case 'not in':
-										if($value) {
-											$value = explode(',',$value);
-											if($key && $value) $w->whereIn($key,$value);
-										}
-									break;
-								}
-							}
-						});
-
-						foreach($filter_column as $key=>$fc) {
-							$value = @$fc['value'];
-							$type  = @$fc['type'];
-							$sorting = @$fc['sorting'];
-
-							if($sorting!='') {
-								if($key) {
-									$orderData->orderby($key,$sorting);
-									$filter_is_orderby = true;
-								}
-							}
-
-							if ($type=='between') {
-								if($key && $value) $orderData->whereBetween($key,$value);
-							}
-
-							else {
-								continue;
-							}
-						}
-					}
-
-					$ordeDataLines = $orderData->orderBy('returns_header_distribution.id','asc')->get();
-					$blank_field = '';
-					$store_inv = '';
-					$counter=0;
-					$final_count = count((array)$ordeDataLines) + 1;
-					foreach ($ordeDataLines as $orderRow) {
-					    $counter++;
-						/*$item = Item::where('digits_code', $orderRow->digits_code)->first();
-						$itemBrand = Brand::where('id', $item->brand_id)->first();
-						$itemStoreCategory = StoreCategory::where('id', $item->store_category_id)->first();
-					    $itemCategory = Category::where('id', $item->category_id)->first();
-						$itemWHCategory = WarehouseCategory::where('id', $item->warehouse_category_id)->first();
-						*/
-
-			
-						$serial_no = ReturnsSerialsDISTRI::where('returns_body_item_id', $orderRow->body_id)->first();
-						
-						
-						if($orderRow->transaction_type == 3 ){
-						    
-
-    							
-    							$scheduled_by =  "";
-    							$scheduled_date = "";
-    							$verified = $orderRow->verified_by;
-                                $verified_date = $orderRow->level7_personnel_edited;
-                                
-                                
-                            if($orderRow->diagnose == "REFUND"){
-    								$printed_by = $orderRow->printed_by;
-    								$printed_date = $orderRow->level3_personnel_edited;
-    								$transacted_by = $orderRow->transacted_by;
-    								$transacted_date = $orderRow->level4_personnel_edited;
-    								$closed_by = $orderRow->closed_by;
-    								$closed_date = $orderRow->level5_personnel_edited;
-    						}elseif($orderRow->diagnose == "REPLACE"){
-    							$printed_by = "";
-    							$printed_date = "";
-    							$transacted_by = $orderRow->printed_by;
-    							$transacted_date = $orderRow->level3_personnel_edited;
-    							$closed_by = $orderRow->transacted_by;
-    							$closed_date = $orderRow->level4_personnel_edited;
-    						}else{
-    							$printed_by = $orderRow->printed_by;
-    							$printed_date = $orderRow->level3_personnel_edited;
-    							$transacted_by = "";
-    							$transacted_date = "";
-    							$closed_by = $orderRow->transacted_by;
-    							$closed_date = $orderRow->level4_personnel_edited;	
-    						}
-                                
-                                
-						}else{
-						    
-						    $verified = $orderRow->verified_by;
-						    $verified_date = $orderRow->level7_personnel_edited;
-						    
-                            $scheduled_by = $orderRow->scheduled_logistics_by;
-                            $scheduled_date = $orderRow->level1_personnel_edited;
-    						if($orderRow->diagnose == "REFUND"){
-    								$printed_by = $orderRow->printed_by;
-    								$printed_date = $orderRow->level3_personnel_edited;
-    								$transacted_by = $orderRow->transacted_by;
-    								$transacted_date = $orderRow->level4_personnel_edited;
-    								$closed_by = $orderRow->closed_by;
-    								$closed_date = $orderRow->level5_personnel_edited;
-    						}elseif($orderRow->diagnose == "REPLACE"){
-    							$printed_by = "";
-    							$printed_date = "";
-    							$transacted_by = $orderRow->printed_by;
-    							$transacted_date = $orderRow->level3_personnel_edited;
-    							$closed_by = $orderRow->transacted_by;
-    							$closed_date = $orderRow->level4_personnel_edited;
-    						}else{
-    							$printed_by = $orderRow->printed_by;
-    							$printed_date = $orderRow->level3_personnel_edited;
-    							$transacted_by = "";
-    							$transacted_date = "";
-    							$closed_by = $orderRow->transacted_by;
-    							$closed_date = $orderRow->level4_personnel_edited;	
-    						}
-						}
-						
-			
-						$orderItems[] = array(
-							//is_null($orderRow->approved_at) ? "" : Carbon::parse($orderRow->approved_at)->toDateString(),	//'APPROVED DATE',
-							//is_null($orderRow->approved_at) ? "" : Carbon::parse($orderRow->approved_at)->toTimeString(), //'APPROVED TIME',
-							$orderRow->warranty_status, 		
-							$orderRow->diagnose, 	
-							$orderRow->created_at,				
-							$orderRow->return_reference_no,					
-							$orderRow->purchase_location,				
-							$orderRow->customer_last_name,		
-							$orderRow->customer_first_name,	
-							$orderRow->address,		            
-							$orderRow->email_address,      
-							$orderRow->contact_no,    
-							$orderRow->order_no,		
-							$orderRow->purchase_date,			
-							$orderRow->mode_of_payment,		
-							$orderRow->bank_name,                  
-							$orderRow->bank_account_no,                   
-							$orderRow->bank_account_name,		
-							$orderRow->items_included,                      
-							$orderRow->items_included_others, 
-							$orderRow->verified_items_included,                      
-							$orderRow->verified_items_included_others, 
-							$orderRow->customer_location,  
-							$orderRow->deliver_to,                 
-				 			$orderRow->return_schedule,                      
-							$orderRow->refunded_date,  
-							$orderRow->date_adjusted,
-							$orderRow->stock_adj_ref_no,
-							$orderRow->sor_number,      
-				 			$orderRow->digits_code,               
-				 			$orderRow->upc_code,                 
-				 			$orderRow->item_description,            
-				 			$orderRow->cost,          
-							$orderRow->brand,
-							$serial_no->serial_number,
-							$orderRow->problem_details,
-				 			$orderRow->problem_details_other,                
-							$orderRow->quantity,
-							//$orderRow->warranty_status,
-							//$orderRow->ship_back_status,
-							//$orderRow->claimed_status,
-							//$orderRow->credit_memo_number,
-							$verified,
-							$verified_date,
-							$scheduled_by,
-							$scheduled_date,
-
-							// $orderRow->diagnosed_by,
-							// $orderRow->level2_personnel_edited,
-							$orderRow->turnover_by,
-							$orderRow->rma_receiver_date_received,
-							$orderRow->received_by1,
-							$orderRow->received_at_rma_sc,
-
-							$orderRow->diagnosed_by,
-							$orderRow->level2_personnel_edited,
-							$orderRow->specialist_by,
-							$orderRow->rma_specialist_date_received,
-
-							$printed_by,
-							$printed_date,
-							$transacted_by,							
-							$transacted_date,
-							$closed_by,
-							$closed_date,
-							$orderRow->comments,
-							$orderRow->diagnose_comments
-						);
-					}
-
-					$headings = array(
-						'RETURN STATUS',
-						'DIAGNOSE',
-						'CREATED DATE',
-						'RETURN REFERENCE#',
-						'PURCHASE LOCATION',
-						'CUSTOMER LAST NAME',
-						'CUSTOMER FIRST NAME',
-						'ADDRESS',
-						'EMAIL ADDRESS',
-						'CONTACT#',
-						'ORDER#',
-						'PURCHASE DATE',
-						'ORIGINAL MODE OF PAYMENT',
-						'BANK NAME',    //yellow
-						'BANK ACCOUNT#',      //red
-						'BANK ACCOUNT NAME',         //red
-						'ITEMS INCLUDED',         //red
-						'ITEMS INCLUDED OTHERS',//green
-						'VERIFIED ITEMS INCLUDED',         //red
-						'VERIFIED ITEMS INCLUDED OTHERS',//green
-						'CUSTOMER LOCATION',               //green
-						'DELIVER TO',               //green
-						'PICKUP SCHEDULE',               //green
-						'REFUNDED DATE',               //green
-						'DATE ADJUSTED',               //green
-						'STOCK ADJUSTED REF#',               //green
-						'SOR#',               //green
-						'DIGITS CODE',                 //green
-						'UPC CODE',      //blue
-						'ITEM DESCRIPTION',               //blue
-						'COST',                 //bue
-						'BRAND',              //blue  //additional code 20200121
-                        'SERIAL#',                //bue   //additional code 20200121
-						'PROBLEM DETAILS',       //additional code 20200207
-						'PROBLEM DETAILS OTHERS',       //additional code 20200207
-						'QUANTITY',           //blue  //additional code 20200205
-						//'WARRANTY STATUS',
-						//'SHIP BACK STATUS',           //blue  //additional code 20200205
-						//'CLAIMED STATUS',           //blue  //additional code 20200205
-						//'CREDIT MEMO#',           //blue  //additional code 20200205
-						'VERIFIED BY',           //blue  //additional code 20200205
-						'VERIFIED DATE',           //blue  //additional code 20200205
-						'SCHEDULED BY',           //blue  //additional code 20200205
-						'SCHEDULED DATE',           //blue  //additional code 20200205
-						'RECEIVED BY',
-						'RECEIVED DATE',
-						'TURNOVER BY',
-						'TURNOVER DATE',
-						'DIAGNOSED BY',           //blue  //additional code 20200205
-						'DIAGNOSED DATE',           //blue  //additional code 20200205
-						'PROCESSED BY',           //blue  //additional code 20200205
-						'PROCESSED DATE',  
-						'PRINTED BY',           //blue  //additional code 20200205
-						'PRINTED DATE',           //blue  //additional code 20200205
-						'SOR BY',           //blue  //additional code 20200205
-						'SOR DATE',           //blue  //additional code 20200205
-						'CLOSED BY',           //blue  //additional code 20200205
-						'CLOSED DATE',           //blue  //additional code 20200205
-						'COMMENTS',
-						'DIAGNOSED COMMENTS'
-					);
-					}elseif(CRUDBooster::myPrivilegeName() == "Distri Store Ops"){
-						$requested = ReturnsStatus::where('id','1')->value('id');
-						
-        				$approvalMatrix = DB::table("cms_users")->where('cms_users.id', CRUDBooster::myId())->get();
-        				$approval_array = array();
-        				foreach($approvalMatrix as $matrix){
-        				    array_push($approval_array, $matrix->stores_id);
-        				}
-        				$approval_string = implode(",",$approval_array);
-        				$storeList = array_map('intval',explode(",",$approval_string));						
-
-						$orderData = DB::table('returns_header_distribution')
-						->leftjoin('warranty_statuses', 'returns_header_distribution.returns_status_1','=', 'warranty_statuses.id')
-						->leftjoin('cms_users as verified', 'returns_header_distribution.level7_personnel','=', 'verified.id')
-						->leftjoin('cms_users as scheduled_logistics', 'returns_header_distribution.level1_personnel','=', 'scheduled_logistics.id')		
-						->leftjoin('cms_users as diagnosed', 'returns_header_distribution.level2_personnel','=', 'diagnosed.id')				
-						->leftjoin('cms_users as printed', 'returns_header_distribution.level3_personnel','=', 'printed.id')																	
-						->leftjoin('cms_users as transacted', 'returns_header_distribution.level4_personnel','=', 'transacted.id')
-						->leftjoin('cms_users as received', 'returns_header_distribution.level6_personnel','=', 'received.id')
-						->leftjoin('cms_users as received1', 'returns_header_distribution.received_by_rma_sc','=', 'received1.id')
-						->leftjoin('cms_users as turnover', 'returns_header_distribution.rma_receiver_id','=', 'turnover.id')
-						->leftjoin('cms_users as specialist', 'returns_header_distribution.rma_specialist_id','=', 'specialist.id')
-						->leftjoin('cms_users as closed', 'returns_header_distribution.level5_personnel','=', 'closed.id')	
-						->leftJoin('returns_body_item_distribution', 'returns_header_distribution.id', '=', 'returns_body_item_distribution.returns_header_id')
-						->select(   'returns_header_distribution.*', 
-									'returns_body_item_distribution.*', 
-									'returns_body_item_distribution.id as body_id', 
-									'verified.name as verified_by',	
-									'scheduled_logistics.name as scheduled_logistics_by',
-									'diagnosed.name as diagnosed_by',
-									'printed.name as printed_by',	
-									'transacted.name as transacted_by',	
-									'received.name as received_by',
-									'received1.name as received_by1',
-									'turnover.name as turnover_by',
-									'specialist.name as specialist_by',
-									'closed.name as closed_by',
-									'warranty_statuses.*'
-						)
-						->whereNotNull('returns_body_item_distribution.category')->where('transaction_type','!=', 2)->where('returns_status_1','!=', $requested)->whereIn('returns_header_distribution.stores_id', $storeList);
-						
-						
-												if(\Request::get('filter_column')) {
-
-						$filter_column = \Request::get('filter_column');
-
-						$orderData->where(function($w) use ($filter_column,$fc) {
-							foreach($filter_column as $key=>$fc) {
-
-								$value = @$fc['value'];
-								$type  = @$fc['type'];
-
-								if($type == 'empty') {
-									$w->whereNull($key)->orWhere($key,'');
-									continue;
-								}
-
-								if($value=='' || $type=='') continue;
-
-								if($type == 'between') continue;
-
-								switch($type) {
-									default:
-										if($key && $type && $value) $w->where($key,$type,$value);
-									break;
-									case 'like':
-									case 'not like':
-										$value = '%'.$value.'%';
-										if($key && $type && $value) $w->where($key,$type,$value);
-									break;
-									case 'in':
-									case 'not in':
-										if($value) {
-											$value = explode(',',$value);
-											if($key && $value) $w->whereIn($key,$value);
-										}
-									break;
-								}
-							}
-						});
-
-						foreach($filter_column as $key=>$fc) {
-							$value = @$fc['value'];
-							$type  = @$fc['type'];
-							$sorting = @$fc['sorting'];
-
-							if($sorting!='') {
-								if($key) {
-									$orderData->orderby($key,$sorting);
-									$filter_is_orderby = true;
-								}
-							}
-
-							if ($type=='between') {
-								if($key && $value) $orderData->whereBetween($key,$value);
-							}
-
-							else {
-								continue;
-							}
-						}
-					}
-
-					$ordeDataLines = $orderData->orderBy('returns_header_distribution.id','asc')->get();
-					$blank_field = '';
-					$store_inv = '';
-					$counter=0;
-					$final_count = count((array)$ordeDataLines) + 1;
-					foreach ($ordeDataLines as $orderRow) {
-					    $counter++;
-						/*$item = Item::where('digits_code', $orderRow->digits_code)->first();
-						$itemBrand = Brand::where('id', $item->brand_id)->first();
-						$itemStoreCategory = StoreCategory::where('id', $item->store_category_id)->first();
-					    $itemCategory = Category::where('id', $item->category_id)->first();
-						$itemWHCategory = WarehouseCategory::where('id', $item->warehouse_category_id)->first();
-						*/
-
-			
-						$serial_no = ReturnsSerialsDISTRI::where('returns_body_item_id', $orderRow->body_id)->first();
-						
-						
-						if($orderRow->transaction_type == 3 ){
-						    
-
-    							
-    							$scheduled_by =  "";
-    							$scheduled_date = "";
-    							$verified = $orderRow->verified_by;
-                                $verified_date = $orderRow->level7_personnel_edited;
-                                
-                                
-                            if($orderRow->diagnose == "REFUND"){
-    								$printed_by = $orderRow->printed_by;
-    								$printed_date = $orderRow->level3_personnel_edited;
-    								$transacted_by = $orderRow->transacted_by;
-    								$transacted_date = $orderRow->level4_personnel_edited;
-    								$closed_by = $orderRow->closed_by;
-    								$closed_date = $orderRow->level5_personnel_edited;
-    						}elseif($orderRow->diagnose == "REPLACE"){
-    							$printed_by = "";
-    							$printed_date = "";
-    							$transacted_by = $orderRow->printed_by;
-    							$transacted_date = $orderRow->level3_personnel_edited;
-    							$closed_by = $orderRow->transacted_by;
-    							$closed_date = $orderRow->level4_personnel_edited;
-    						}else{
-    							$printed_by = $orderRow->printed_by;
-    							$printed_date = $orderRow->level3_personnel_edited;
-    							$transacted_by = "";
-    							$transacted_date = "";
-    							$closed_by = $orderRow->transacted_by;
-    							$closed_date = $orderRow->level4_personnel_edited;	
-    						}
-                                
-                                
-						}else{
-						    
-						    $verified = $orderRow->verified_by;
-						    $verified_date = $orderRow->level7_personnel_edited;
-						    
-                            $scheduled_by = $orderRow->scheduled_logistics_by;
-                            $scheduled_date = $orderRow->level1_personnel_edited;
-    						if($orderRow->diagnose == "REFUND"){
-    								$printed_by = $orderRow->printed_by;
-    								$printed_date = $orderRow->level3_personnel_edited;
-    								$transacted_by = $orderRow->transacted_by;
-    								$transacted_date = $orderRow->level4_personnel_edited;
-    								$closed_by = $orderRow->closed_by;
-    								$closed_date = $orderRow->level5_personnel_edited;
-    						}elseif($orderRow->diagnose == "REPLACE"){
-    							$printed_by = "";
-    							$printed_date = "";
-    							$transacted_by = $orderRow->printed_by;
-    							$transacted_date = $orderRow->level3_personnel_edited;
-    							$closed_by = $orderRow->transacted_by;
-    							$closed_date = $orderRow->level4_personnel_edited;
-    						}else{
-    							$printed_by = $orderRow->printed_by;
-    							$printed_date = $orderRow->level3_personnel_edited;
-    							$transacted_by = "";
-    							$transacted_date = "";
-    							$closed_by = $orderRow->transacted_by;
-    							$closed_date = $orderRow->level4_personnel_edited;	
-    						}
-						}
-						
-			
-						$orderItems[] = array(
-							//is_null($orderRow->approved_at) ? "" : Carbon::parse($orderRow->approved_at)->toDateString(),	//'APPROVED DATE',
-							//is_null($orderRow->approved_at) ? "" : Carbon::parse($orderRow->approved_at)->toTimeString(), //'APPROVED TIME',
-							$orderRow->warranty_status, 		
-							$orderRow->diagnose, 	
-							$orderRow->created_at,				
-							$orderRow->return_reference_no,					
-							$orderRow->purchase_location,				
-							$orderRow->customer_last_name,		
-							$orderRow->customer_first_name,	
-							$orderRow->address,		            
-							$orderRow->email_address,      
-							$orderRow->contact_no,    
-							$orderRow->order_no,		
-							$orderRow->purchase_date,			
-							$orderRow->mode_of_payment,		
-							$orderRow->bank_name,                  
-							$orderRow->bank_account_no,                   
-							$orderRow->bank_account_name,		
-							$orderRow->items_included,                      
-							$orderRow->items_included_others, 
-							$orderRow->verified_items_included,                      
-							$orderRow->verified_items_included_others, 
-							$orderRow->customer_location,  
-							$orderRow->deliver_to,                 
-				 			$orderRow->return_schedule,                      
-							$orderRow->refunded_date,  
-							$orderRow->date_adjusted,
-							$orderRow->stock_adj_ref_no,
-							$orderRow->sor_number,      
-				 			$orderRow->digits_code,               
-				 			$orderRow->upc_code,                 
-				 			$orderRow->item_description,            
-				 			$orderRow->cost,          
-							$orderRow->brand,
-							$serial_no->serial_number,
-							$orderRow->problem_details,
-				 			$orderRow->problem_details_other,                
-							$orderRow->quantity,
-							//$orderRow->warranty_status,
-							//$orderRow->ship_back_status,
-							//$orderRow->claimed_status,
-							//$orderRow->credit_memo_number,
-							$verified,
-							$verified_date,
-							$scheduled_by,
-							$scheduled_date,
-							$orderRow->turnover_by,
-							$orderRow->rma_receiver_date_received,
-							$orderRow->received_by1,
-							$orderRow->received_at_rma_sc,
-
-							$orderRow->diagnosed_by,
-							$orderRow->level2_personnel_edited,
-							$orderRow->specialist_by,
-							$orderRow->rma_specialist_date_received,
-
-							$printed_by,
-							$printed_date,
-							$transacted_by,							
-							$transacted_date,
-							$closed_by,
-							$closed_date,
-							$orderRow->comments,
-							$orderRow->diagnose_comments
-						);
-					}
-
-					$headings = array(
-						'RETURN STATUS',
-						'DIAGNOSE',
-						'CREATED DATE',
-						'RETURN REFERENCE#',
-						'PURCHASE LOCATION',
-						'CUSTOMER LAST NAME',
-						'CUSTOMER FIRST NAME',
-						'ADDRESS',
-						'EMAIL ADDRESS',
-						'CONTACT#',
-						'ORDER#',
-						'PURCHASE DATE',
-						'ORIGINAL MODE OF PAYMENT',
-						'BANK NAME',    //yellow
-						'BANK ACCOUNT#',      //red
-						'BANK ACCOUNT NAME',         //red
-						'ITEMS INCLUDED',         //red
-						'ITEMS INCLUDED OTHERS',//green
-						'VERIFIED ITEMS INCLUDED',         //red
-						'VERIFIED ITEMS INCLUDED OTHERS',//green
-						'CUSTOMER LOCATION',               //green
-						'DELIVER TO',               //green
-						'PICKUP SCHEDULE',               //green
-						'REFUNDED DATE',               //green
-						'DATE ADJUSTED',               //green
-						'STOCK ADJUSTED REF#',               //green
-						'SOR#',               //green
-						'DIGITS CODE',                 //green
-						'UPC CODE',      //blue
-						'ITEM DESCRIPTION',               //blue
-						'COST',                 //bue
-						'BRAND',              //blue  //additional code 20200121
-                        'SERIAL#',                //bue   //additional code 20200121
-						'PROBLEM DETAILS',       //additional code 20200207
-						'PROBLEM DETAILS OTHERS',       //additional code 20200207
-						'QUANTITY',           //blue  //additional code 20200205
-						//'WARRANTY STATUS',
-						//'SHIP BACK STATUS',           //blue  //additional code 20200205
-						//'CLAIMED STATUS',           //blue  //additional code 20200205
-						//'CREDIT MEMO#',           //blue  //additional code 20200205
-						'VERIFIED BY',           //blue  //additional code 20200205
-						'VERIFIED DATE',           //blue  //additional code 20200205
-						'SCHEDULED BY',           //blue  //additional code 20200205
-						'SCHEDULED DATE',           //blue  //additional code 20200205
-						'RECEIVED BY',
-						'RECEIVED DATE',
-						'TURNOVER BY',
-						'TURNOVER DATE',
-						'DIAGNOSED BY',           //blue  //additional code 20200205
-						'DIAGNOSED DATE',           //blue  //additional code 20200205
-						'PROCESSED BY',           //blue  //additional code 20200205
-						'PROCESSED DATE',  
-						'PRINTED BY',           //blue  //additional code 20200205
-						'PRINTED DATE',           //blue  //additional code 20200205
-						'SOR BY',           //blue  //additional code 20200205
-						'SOR DATE',           //blue  //additional code 20200205
-						'CLOSED BY',           //blue  //additional code 20200205
-						'CLOSED DATE',           //blue  //additional code 20200205
-						'COMMENTS',
-						'DIAGNOSED COMMENTS'
-					);
-					}else if(CRUDBooster::myPrivilegeName() == "Logistics"){
-						$requested = ReturnsStatus::where('id','1')->value('id');
-						$to_schedule = 	ReturnsStatus::where('id','18')->value('id');
-					
-						$orderData = DB::table('returns_header_distribution')
-						->leftjoin('warranty_statuses', 'returns_header_distribution.returns_status_1','=', 'warranty_statuses.id')
-						->leftjoin('cms_users as verified', 'returns_header_distribution.level7_personnel','=', 'verified.id')
-						->leftjoin('cms_users as scheduled_logistics', 'returns_header_distribution.level1_personnel','=', 'scheduled_logistics.id')		
-						->leftjoin('cms_users as diagnosed', 'returns_header_distribution.level2_personnel','=', 'diagnosed.id')				
-						->leftjoin('cms_users as printed', 'returns_header_distribution.level3_personnel','=', 'printed.id')																	
-						->leftjoin('cms_users as transacted', 'returns_header_distribution.level4_personnel','=', 'transacted.id')
-						->leftjoin('cms_users as received', 'returns_header_distribution.level6_personnel','=', 'received.id')
-						->leftjoin('cms_users as received1', 'returns_header_distribution.received_by_rma_sc','=', 'received1.id')
-						->leftjoin('cms_users as turnover', 'returns_header_distribution.rma_receiver_id','=', 'turnover.id')
-						->leftjoin('cms_users as specialist', 'returns_header_distribution.rma_specialist_id','=', 'specialist.id')
-						->leftjoin('cms_users as closed', 'returns_header_distribution.level5_personnel','=', 'closed.id')	
-						->leftJoin('returns_body_item_distribution', 'returns_header_distribution.id', '=', 'returns_body_item_distribution.returns_header_id')
-						->select(   'returns_header_distribution.*', 
-									'returns_body_item_distribution.*', 
-									'returns_body_item_distribution.id as body_id', 
-									'verified.name as verified_by',	
-									'scheduled_logistics.name as scheduled_logistics_by',
-									'diagnosed.name as diagnosed_by',
-									'printed.name as printed_by',	
-									'transacted.name as transacted_by',	
-									'received.name as received_by',
-									'received1.name as received_by1',
-									'turnover.name as turnover_by',
-									'specialist.name as specialist_by',
-									'closed.name as closed_by',
-									'warranty_statuses.*'
-						)->whereNotNull('returns_body_item_distribution.category')->where('transaction_type','!=', 2)->where('returns_status_1','!=', $requested)->where('returns_status_1','!=', $to_schedule);				
-					
-					    
-					    						if(\Request::get('filter_column')) {
-
-						$filter_column = \Request::get('filter_column');
-
-						$orderData->where(function($w) use ($filter_column,$fc) {
-							foreach($filter_column as $key=>$fc) {
-
-								$value = @$fc['value'];
-								$type  = @$fc['type'];
-
-								if($type == 'empty') {
-									$w->whereNull($key)->orWhere($key,'');
-									continue;
-								}
-
-								if($value=='' || $type=='') continue;
-
-								if($type == 'between') continue;
-
-								switch($type) {
-									default:
-										if($key && $type && $value) $w->where($key,$type,$value);
-									break;
-									case 'like':
-									case 'not like':
-										$value = '%'.$value.'%';
-										if($key && $type && $value) $w->where($key,$type,$value);
-									break;
-									case 'in':
-									case 'not in':
-										if($value) {
-											$value = explode(',',$value);
-											if($key && $value) $w->whereIn($key,$value);
-										}
-									break;
-								}
-							}
-						});
-
-						foreach($filter_column as $key=>$fc) {
-							$value = @$fc['value'];
-							$type  = @$fc['type'];
-							$sorting = @$fc['sorting'];
-
-							if($sorting!='') {
-								if($key) {
-									$orderData->orderby($key,$sorting);
-									$filter_is_orderby = true;
-								}
-							}
-
-							if ($type=='between') {
-								if($key && $value) $orderData->whereBetween($key,$value);
-							}
-
-							else {
-								continue;
-							}
-						}
-					}
-
-					$ordeDataLines = $orderData->orderBy('returns_header_distribution.id','asc')->get();
-					$blank_field = '';
-					$store_inv = '';
-					$counter=0;
-					$final_count = count((array)$ordeDataLines) + 1;
-					foreach ($ordeDataLines as $orderRow) {
-					    $counter++;
-						/*$item = Item::where('digits_code', $orderRow->digits_code)->first();
-						$itemBrand = Brand::where('id', $item->brand_id)->first();
-						$itemStoreCategory = StoreCategory::where('id', $item->store_category_id)->first();
-					    $itemCategory = Category::where('id', $item->category_id)->first();
-						$itemWHCategory = WarehouseCategory::where('id', $item->warehouse_category_id)->first();
-						*/
-
-			
-						$serial_no = ReturnsSerialsDISTRI::where('returns_body_item_id', $orderRow->body_id)->first();
-						
-						
-						if($orderRow->transaction_type == 3 ){
-						    
-
-    							
-    							$scheduled_by =  "";
-    							$scheduled_date = "";
-    							$verified = $orderRow->verified_by;
-                                $verified_date = $orderRow->level7_personnel_edited;
-                                
-                                
-                            if($orderRow->diagnose == "REFUND"){
-    								$printed_by = $orderRow->printed_by;
-    								$printed_date = $orderRow->level3_personnel_edited;
-    								$transacted_by = $orderRow->transacted_by;
-    								$transacted_date = $orderRow->level4_personnel_edited;
-    								$closed_by = $orderRow->closed_by;
-    								$closed_date = $orderRow->level5_personnel_edited;
-    						}elseif($orderRow->diagnose == "REPLACE"){
-    							$printed_by = "";
-    							$printed_date = "";
-    							$transacted_by = $orderRow->printed_by;
-    							$transacted_date = $orderRow->level3_personnel_edited;
-    							$closed_by = $orderRow->transacted_by;
-    							$closed_date = $orderRow->level4_personnel_edited;
-    						}else{
-    							$printed_by = $orderRow->printed_by;
-    							$printed_date = $orderRow->level3_personnel_edited;
-    							$transacted_by = "";
-    							$transacted_date = "";
-    							$closed_by = $orderRow->transacted_by;
-    							$closed_date = $orderRow->level4_personnel_edited;	
-    						}
-                                
-                                
-						}else{
-						    
-						    $verified = $orderRow->verified_by;
-						    $verified_date = $orderRow->level7_personnel_edited;
-						    
-                            $scheduled_by = $orderRow->scheduled_logistics_by;
-							$scheduled_date = $orderRow->level1_personnel_edited;
-    						if($orderRow->diagnose == "REFUND"){
-    								$printed_by = $orderRow->printed_by;
-    								$printed_date = $orderRow->level3_personnel_edited;
-    								$transacted_by = $orderRow->transacted_by;
-    								$transacted_date = $orderRow->level4_personnel_edited;
-    								$closed_by = $orderRow->closed_by;
-    								$closed_date = $orderRow->level5_personnel_edited;
-    						}elseif($orderRow->diagnose == "REPLACE"){
-    							$printed_by = "";
-    							$printed_date = "";
-    							$transacted_by = $orderRow->printed_by;
-    							$transacted_date = $orderRow->level3_personnel_edited;
-    							$closed_by = $orderRow->transacted_by;
-    							$closed_date = $orderRow->level4_personnel_edited;
-    						}else{
-    							$printed_by = $orderRow->printed_by;
-    							$printed_date = $orderRow->level3_personnel_edited;
-    							$transacted_by = "";
-    							$transacted_date = "";
-    							$closed_by = $orderRow->transacted_by;
-    							$closed_date = $orderRow->level4_personnel_edited;	
-    						}
-						}
-						
-			
-						$orderItems[] = array(
-							//is_null($orderRow->approved_at) ? "" : Carbon::parse($orderRow->approved_at)->toDateString(),	//'APPROVED DATE',
-							//is_null($orderRow->approved_at) ? "" : Carbon::parse($orderRow->approved_at)->toTimeString(), //'APPROVED TIME',
-							$orderRow->warranty_status, 		
-							$orderRow->diagnose, 	
-							$orderRow->created_at,				
-							$orderRow->return_reference_no,					
-							$orderRow->purchase_location,				
-							$orderRow->customer_last_name,		
-							$orderRow->customer_first_name,	
-							$orderRow->address,		            
-							$orderRow->email_address,      
-							$orderRow->contact_no,    
-							$orderRow->order_no,		
-							$orderRow->purchase_date,			
-							$orderRow->mode_of_payment,		
-							//$orderRow->bank_name,                  
-							//$orderRow->bank_account_no,                   
-							//$orderRow->bank_account_name,		
-							$orderRow->items_included,                      
-							$orderRow->items_included_others, 
-							$orderRow->verified_items_included,                      
-							$orderRow->verified_items_included_others, 
-							$orderRow->customer_location,  
-							$orderRow->deliver_to,                 
-				 			$orderRow->return_schedule,                      
-							$orderRow->refunded_date,  
-							$orderRow->date_adjusted,
-							$orderRow->stock_adj_ref_no,
-							$orderRow->sor_number,      
-				 			$orderRow->digits_code,               
-				 			$orderRow->upc_code,                 
-				 			$orderRow->item_description,            
-				 			$orderRow->cost,          
-							$orderRow->brand,
-							$serial_no->serial_number,
-							$orderRow->problem_details,
-				 			$orderRow->problem_details_other,                
-							$orderRow->quantity,
-							//$orderRow->warranty_status,
-							//$orderRow->ship_back_status,
-							//$orderRow->claimed_status,
-							//$orderRow->credit_memo_number,
-							$verified,
-							$verified_date,
-							$scheduled_by,
-							$scheduled_date,
-							$orderRow->turnover_by,
-							$orderRow->rma_receiver_date_received,
-							$orderRow->received_by1,
-							$orderRow->received_at_rma_sc,
-
-							$orderRow->diagnosed_by,
-							$orderRow->level2_personnel_edited,
-							$orderRow->specialist_by,
-							$orderRow->rma_specialist_date_received,
-
-							$printed_by,
-							$printed_date,
-							$transacted_by,							
-							$transacted_date,
-							$closed_by,
-							$closed_date,
-							$orderRow->comments,
-							$orderRow->diagnose_comments
-						);
-					}
-
-					$headings = array(
-						'RETURN STATUS',
-						'DIAGNOSE',
-						'CREATED DATE',
-						'RETURN REFERENCE#',
-						'PURCHASE LOCATION',
-						'CUSTOMER LAST NAME',
-						'CUSTOMER FIRST NAME',
-						'ADDRESS',
-						'EMAIL ADDRESS',
-						'CONTACT#',
-						'ORDER#',
-						'PURCHASE DATE',
-						'ORIGINAL MODE OF PAYMENT',
-						//'BANK NAME',    //yellow
-						//'BANK ACCOUNT#',      //red
-						//'BANK ACCOUNT NAME',         //red
-						'ITEMS INCLUDED',         //red
-						'ITEMS INCLUDED OTHERS',//green
-						'VERIFIED ITEMS INCLUDED',         //red
-						'VERIFIED ITEMS INCLUDED OTHERS',//green
-						'CUSTOMER LOCATION',               //green
-						'DELIVER TO',               //green
-						'PICKUP SCHEDULE',               //green
-						'REFUNDED DATE',               //green
-						'DATE ADJUSTED',               //green
-						'STOCK ADJUSTED REF#',               //green
-						'SOR#',               //green
-						'DIGITS CODE',                 //green
-						'UPC CODE',      //blue
-						'ITEM DESCRIPTION',               //blue
-						'COST',                 //bue
-						'BRAND',              //blue  //additional code 20200121
-                        'SERIAL#',                //bue   //additional code 20200121
-						'PROBLEM DETAILS',       //additional code 20200207
-						'PROBLEM DETAILS OTHERS',       //additional code 20200207
-						'QUANTITY',           //blue  //additional code 20200205
-						//'WARRANTY STATUS',
-						//'SHIP BACK STATUS',           //blue  //additional code 20200205
-						//'CLAIMED STATUS',           //blue  //additional code 20200205
-						//'CREDIT MEMO#',           //blue  //additional code 20200205
-						'VERIFIED BY',           //blue  //additional code 20200205
-						'VERIFIED DATE',           //blue  //additional code 20200205
-						'SCHEDULED BY',           //blue  //additional code 20200205
-						'SCHEDULED DATE',           //blue  //additional code 20200205
-						'RECEIVED BY',
-						'RECEIVED DATE',
-						'TURNOVER BY',
-						'TURNOVER DATE',
-						'DIAGNOSED BY',           //blue  //additional code 20200205
-						'DIAGNOSED DATE',           //blue  //additional code 20200205
-						'PROCESSED BY',           //blue  //additional code 20200205
-						'PROCESSED DATE',  
-						'PRINTED BY',           //blue  //additional code 20200205
-						'PRINTED DATE',           //blue  //additional code 20200205
-						'SOR BY',           //blue  //additional code 20200205
-						'SOR DATE',           //blue  //additional code 20200205
-						'CLOSED BY',           //blue  //additional code 20200205
-						'CLOSED DATE',           //blue  //additional code 20200205
-						'COMMENTS',
-						'DIAGNOSED COMMENTS'
-					);
-					    
-					}else if(in_array(CRUDBooster::myPrivilegeName(), ['RMA Inbound', 'Tech Lead', 'RMA Technician', 'RMA Specialist'])){
-						$to_diagnose = ReturnsStatus::where('id','5')->value('id');
-						$orderData = DB::table('returns_header_distribution')
-						->leftjoin('warranty_statuses', 'returns_header_distribution.returns_status_1','=', 'warranty_statuses.id')
-						->leftjoin('cms_users as verified', 'returns_header_distribution.level7_personnel','=', 'verified.id')
-						->leftjoin('cms_users as scheduled_logistics', 'returns_header_distribution.level1_personnel','=', 'scheduled_logistics.id')		
-						->leftjoin('cms_users as diagnosed', 'returns_header_distribution.level2_personnel','=', 'diagnosed.id')				
-						->leftjoin('cms_users as printed', 'returns_header_distribution.level3_personnel','=', 'printed.id')																	
-						->leftjoin('cms_users as transacted', 'returns_header_distribution.level4_personnel','=', 'transacted.id')
-						->leftjoin('cms_users as received', 'returns_header_distribution.level6_personnel','=', 'received.id')
-						->leftjoin('cms_users as received1', 'returns_header_distribution.received_by_rma_sc','=', 'received1.id')
-						->leftjoin('cms_users as turnover', 'returns_header_distribution.rma_receiver_id','=', 'turnover.id')
-						->leftjoin('cms_users as specialist', 'returns_header_distribution.rma_specialist_id','=', 'specialist.id')
-						->leftjoin('cms_users as closed', 'returns_header_distribution.level5_personnel','=', 'closed.id')	
-						->leftJoin('returns_body_item_distribution', 'returns_header_distribution.id', '=', 'returns_body_item_distribution.returns_header_id')
-						->select(   'returns_header_distribution.*', 
-									'returns_body_item_distribution.*', 
-									'returns_body_item_distribution.id as body_id', 
-									'verified.name as verified_by',	
-									'scheduled_logistics.name as scheduled_logistics_by',
-									'diagnosed.name as diagnosed_by',
-									'printed.name as printed_by',	
-									'transacted.name as transacted_by',	
-									'received.name as received_by',
-									'received1.name as received_by1',
-									'turnover.name as turnover_by',
-									'specialist.name as specialist_by',
-									'closed.name as closed_by',
-									'warranty_statuses.*'
-						)->whereNotNull('returns_body_item_distribution.category')->where('transaction_type', 0)->whereNotNull('diagnose');					
-				
-										if(\Request::get('filter_column')) {
-
-						$filter_column = \Request::get('filter_column');
-
-						$orderData->where(function($w) use ($filter_column,$fc) {
-							foreach($filter_column as $key=>$fc) {
-
-								$value = @$fc['value'];
-								$type  = @$fc['type'];
-
-								if($type == 'empty') {
-									$w->whereNull($key)->orWhere($key,'');
-									continue;
-								}
-
-								if($value=='' || $type=='') continue;
-
-								if($type == 'between') continue;
-
-								switch($type) {
-									default:
-										if($key && $type && $value) $w->where($key,$type,$value);
-									break;
-									case 'like':
-									case 'not like':
-										$value = '%'.$value.'%';
-										if($key && $type && $value) $w->where($key,$type,$value);
-									break;
-									case 'in':
-									case 'not in':
-										if($value) {
-											$value = explode(',',$value);
-											if($key && $value) $w->whereIn($key,$value);
-										}
-									break;
-								}
-							}
-						});
-
-						foreach($filter_column as $key=>$fc) {
-							$value = @$fc['value'];
-							$type  = @$fc['type'];
-							$sorting = @$fc['sorting'];
-
-							if($sorting!='') {
-								if($key) {
-									$orderData->orderby($key,$sorting);
-									$filter_is_orderby = true;
-								}
-							}
-
-							if ($type=='between') {
-								if($key && $value) $orderData->whereBetween($key,$value);
-							}
-
-							else {
-								continue;
-							}
-						}
-					}
-
-					$ordeDataLines = $orderData->orderBy('returns_header_distribution.id','asc')->get();
-					$blank_field = '';
-					$store_inv = '';
-					$counter=0;
-					$final_count = count((array)$ordeDataLines) + 1;
-					foreach ($ordeDataLines as $orderRow) {
-					    $counter++;
-						/*$item = Item::where('digits_code', $orderRow->digits_code)->first();
-						$itemBrand = Brand::where('id', $item->brand_id)->first();
-						$itemStoreCategory = StoreCategory::where('id', $item->store_category_id)->first();
-					    $itemCategory = Category::where('id', $item->category_id)->first();
-						$itemWHCategory = WarehouseCategory::where('id', $item->warehouse_category_id)->first();
-						*/
-
-			
-						$serial_no = ReturnsSerialsDISTRI::where('returns_body_item_id', $orderRow->body_id)->first();
-						
-						
-						if($orderRow->transaction_type == 3 ){
-						    
-
-    							
-    							$scheduled_by =  "";
-    							$scheduled_date = "";
-    							$verified = $orderRow->verified_by;
-                                $verified_date = $orderRow->level7_personnel_edited;
-                                
-                                
-                            if($orderRow->diagnose == "REFUND"){
-    								$printed_by = $orderRow->printed_by;
-    								$printed_date = $orderRow->level3_personnel_edited;
-    								$transacted_by = $orderRow->transacted_by;
-    								$transacted_date = $orderRow->level4_personnel_edited;
-    								$closed_by = $orderRow->closed_by;
-    								$closed_date = $orderRow->level5_personnel_edited;
-    						}elseif($orderRow->diagnose == "REPLACE"){
-    							$printed_by = "";
-    							$printed_date = "";
-    							$transacted_by = $orderRow->printed_by;
-    							$transacted_date = $orderRow->level3_personnel_edited;
-    							$closed_by = $orderRow->transacted_by;
-    							$closed_date = $orderRow->level4_personnel_edited;
-    						}else{
-    							$printed_by = $orderRow->printed_by;
-    							$printed_date = $orderRow->level3_personnel_edited;
-    							$transacted_by = "";
-    							$transacted_date = "";
-    							$closed_by = $orderRow->transacted_by;
-    							$closed_date = $orderRow->level4_personnel_edited;	
-    						}
-                                
-                                
-						}else{
-						    
-						    $verified = $orderRow->verified_by;
-						    $verified_date = $orderRow->level7_personnel_edited;
-						    
-                            $scheduled_by = $orderRow->scheduled_logistics_by;
-                            $scheduled_date = $orderRow->level1_personnel_edited;
-    						if($orderRow->diagnose == "REFUND"){
-    								$printed_by = $orderRow->printed_by;
-    								$printed_date = $orderRow->level3_personnel_edited;
-    								$transacted_by = $orderRow->transacted_by;
-    								$transacted_date = $orderRow->level4_personnel_edited;
-    								$closed_by = $orderRow->closed_by;
-    								$closed_date = $orderRow->level5_personnel_edited;
-    						}elseif($orderRow->diagnose == "REPLACE"){
-    							$printed_by = "";
-    							$printed_date = "";
-    							$transacted_by = $orderRow->printed_by;
-    							$transacted_date = $orderRow->level3_personnel_edited;
-    							$closed_by = $orderRow->transacted_by;
-    							$closed_date = $orderRow->level4_personnel_edited;
-    						}else{
-    							$printed_by = $orderRow->printed_by;
-    							$printed_date = $orderRow->level3_personnel_edited;
-    							$transacted_by = "";
-    							$transacted_date = "";
-    							$closed_by = $orderRow->transacted_by;
-    							$closed_date = $orderRow->level4_personnel_edited;	
-    						}
-						}
-						
-			
-						$orderItems[] = array(
-							//is_null($orderRow->approved_at) ? "" : Carbon::parse($orderRow->approved_at)->toDateString(),	//'APPROVED DATE',
-							//is_null($orderRow->approved_at) ? "" : Carbon::parse($orderRow->approved_at)->toTimeString(), //'APPROVED TIME',
-							$orderRow->warranty_status, 		
-							$orderRow->diagnose, 	
-							$orderRow->created_at,				
-							$orderRow->return_reference_no,					
-							$orderRow->inc_number,			
-							$orderRow->rma_number,	
-							$orderRow->purchase_location,				
-							$orderRow->customer_last_name,		
-							$orderRow->customer_first_name,	
-							$orderRow->address,		            
-							$orderRow->email_address,      
-							$orderRow->contact_no,    
-							$orderRow->order_no,		
-							$orderRow->purchase_date,			
-							$orderRow->mode_of_payment,		
-							//$orderRow->bank_name,                  
-							//$orderRow->bank_account_no,                   
-							//$orderRow->bank_account_name,		
-							$orderRow->items_included,                      
-							$orderRow->items_included_others, 
-							$orderRow->verified_items_included,                      
-							$orderRow->verified_items_included_others, 
-							$orderRow->customer_location,  
-							$orderRow->deliver_to,                 
-				 			$orderRow->return_schedule,                      
-							$orderRow->refunded_date,  
-							$orderRow->date_adjusted,
-							$orderRow->stock_adj_ref_no,
-							$orderRow->sor_number,      
-				 			$orderRow->digits_code,               
-				 			$orderRow->upc_code,                 
-				 			$orderRow->item_description,            
-				 			$orderRow->cost,          
-							$orderRow->brand,
-							$serial_no->serial_number,
-							$orderRow->problem_details,
-				 			$orderRow->problem_details_other,                
-							$orderRow->quantity,
-							$orderRow->warranty_status,
-							$orderRow->ship_back_status,
-							$orderRow->claimed_status,
-							$orderRow->credit_memo_number,
-							$verified,
-							$verified_date,
-							$scheduled_by,
-							$scheduled_date,
-							
-							$orderRow->turnover_by,
-							$orderRow->rma_receiver_date_received,
-							$orderRow->received_by1,
-							$orderRow->received_at_rma_sc,
-
-							$orderRow->diagnosed_by,
-							$orderRow->level2_personnel_edited,
-							$orderRow->specialist_by,
-							$orderRow->rma_specialist_date_received,
-
-							$printed_by,
-							$printed_date,
-							$transacted_by,							
-							$transacted_date,
-							$closed_by,
-							$closed_date,
-							$orderRow->comments,
-							$orderRow->diagnose_comments
-						);
-					}
-
-					$headings = array(
-						'RETURN STATUS',
-						'DIAGNOSE',
-						'CREATED DATE',
-						'RETURN REFERENCE#',
-						'INC#',
-						'RMA#',
-						'PURCHASE LOCATION',
-						'CUSTOMER LAST NAME',
-						'CUSTOMER FIRST NAME',
-						'ADDRESS',
-						'EMAIL ADDRESS',
-						'CONTACT#',
-						'ORDER#',
-						'PURCHASE DATE',
-						'ORIGINAL MODE OF PAYMENT',
-						//'BANK NAME',    //yellow
-						//'BANK ACCOUNT#',      //red
-						//'BANK ACCOUNT NAME',         //red
-						'ITEMS INCLUDED',         //red
-						'ITEMS INCLUDED OTHERS',//green
-						'VERIFIED ITEMS INCLUDED',         //red
-						'VERIFIED ITEMS INCLUDED OTHERS',//green
-						'CUSTOMER LOCATION',               //green
-						'DELIVER TO',               //green
-						'PICKUP SCHEDULE',               //green
-						'REFUNDED DATE',               //green
-						'DATE ADJUSTED',               //green
-						'STOCK ADJUSTED REF#',               //green
-						'SOR#',               //green
-						'DIGITS CODE',                 //green
-						'UPC CODE',      //blue
-						'ITEM DESCRIPTION',               //blue
-						'COST',                 //bue
-						'BRAND',              //blue  //additional code 20200121
-                        'SERIAL#',                //bue   //additional code 20200121
-						'PROBLEM DETAILS',       //additional code 20200207
-						'PROBLEM DETAILS OTHERS',       //additional code 20200207
-						'QUANTITY',           //blue  //additional code 20200205
-						'WARRANTY STATUS',
-						'SHIP BACK STATUS',           //blue  //additional code 20200205
-						'CLAIMED STATUS',           //blue  //additional code 20200205
-						'CREDIT MEMO#',           //blue  //additional code 20200205
-						'VERIFIED BY',           //blue  //additional code 20200205
-						'VERIFIED DATE',           //blue  //additional code 20200205
-						'SCHEDULED BY',           //blue  //additional code 20200205
-						'SCHEDULED DATE',           //blue  //additional code 20200205
-						'RECEIVED BY',
-						'RECEIVED DATE',
-						'TURNOVER BY',
-						'TURNOVER DATE',
-						'DIAGNOSED BY',           //blue  //additional code 20200205
-						'DIAGNOSED DATE',           //blue  //additional code 20200205
-						'PROCESSED BY',           //blue  //additional code 20200205
-						'PROCESSED DATE',  
-						'PRINTED BY',           //blue  //additional code 20200205
-						'PRINTED DATE',           //blue  //additional code 20200205
-						'SOR BY',           //blue  //additional code 20200205
-						'SOR DATE',           //blue  //additional code 20200205
-						'CLOSED BY',           //blue  //additional code 20200205
-						'CLOSED DATE',           //blue  //additional code 20200205
-						'COMMENTS',
-						'DIAGNOSED COMMENTS'
-					);
-				
-					}else if(CRUDBooster::myPrivilegeName() == "Service Center"){
-						$to_diagnose = ReturnsStatus::where('id','5')->value('id');
-						$requested = ReturnsStatus::where('id','1')->value('id');
-						
-        				$approvalMatrix = DB::table("cms_users")->where('cms_users.id', CRUDBooster::myId())->get();
-        				$approval_array = array();
-        				foreach($approvalMatrix as $matrix){
-        				    array_push($approval_array, $matrix->stores_id);
-        				}
-        				$approval_string = implode(",",$approval_array);
-        				$storeList = array_map('intval',explode(",",$approval_string)); 
-        				
-						$orderData = DB::table('returns_header_distribution')
-						->leftjoin('warranty_statuses', 'returns_header_distribution.returns_status_1','=', 'warranty_statuses.id')
-						->leftjoin('cms_users as verified', 'returns_header_distribution.level7_personnel','=', 'verified.id')
-						->leftjoin('cms_users as scheduled_logistics', 'returns_header_distribution.level1_personnel','=', 'scheduled_logistics.id')		
-						->leftjoin('cms_users as diagnosed', 'returns_header_distribution.level2_personnel','=', 'diagnosed.id')				
-						->leftjoin('cms_users as printed', 'returns_header_distribution.level3_personnel','=', 'printed.id')																	
-						->leftjoin('cms_users as transacted', 'returns_header_distribution.level4_personnel','=', 'transacted.id')
-						->leftjoin('cms_users as received', 'returns_header_distribution.level6_personnel','=', 'received.id')
-						->leftjoin('cms_users as closed', 'returns_header_distribution.level5_personnel','=', 'closed.id')	
-						->leftJoin('returns_body_item_distribution', 'returns_header_distribution.id', '=', 'returns_body_item_distribution.returns_header_id')
-						->select(   'returns_header_distribution.*', 
-									'returns_body_item_distribution.*', 
-									'returns_body_item_distribution.id as body_id', 
-									'verified.name as verified_by',	
-									'scheduled_logistics.name as scheduled_logistics_by',
-									'diagnosed.name as diagnosed_by',
-									'printed.name as printed_by',	
-									'transacted.name as transacted_by',	
-									'received.name as received_by',
-									'closed.name as closed_by',
-									'warranty_statuses.*'
-						)->whereNotNull('returns_body_item_distribution.category')->where('transaction_type', 1)->where('returns_status_1','!=', $to_diagnose)->whereNotNull('diagnose')->whereIn('returns_header_distribution.stores_id', $storeList)
-						->orwhereNotNull('returns_body_item_distribution.category')->where('transaction_type', 3)->where('returns_status_1','!=', $to_diagnose)->whereNotNull('diagnose')->whereIn('returns_header_distribution.stores_id', $storeList);	
-						;					
-						
-						
-												if(\Request::get('filter_column')) {
-
-						$filter_column = \Request::get('filter_column');
-
-						$orderData->where(function($w) use ($filter_column,$fc) {
-							foreach($filter_column as $key=>$fc) {
-
-								$value = @$fc['value'];
-								$type  = @$fc['type'];
-
-								if($type == 'empty') {
-									$w->whereNull($key)->orWhere($key,'');
-									continue;
-								}
-
-								if($value=='' || $type=='') continue;
-
-								if($type == 'between') continue;
-
-								switch($type) {
-									default:
-										if($key && $type && $value) $w->where($key,$type,$value);
-									break;
-									case 'like':
-									case 'not like':
-										$value = '%'.$value.'%';
-										if($key && $type && $value) $w->where($key,$type,$value);
-									break;
-									case 'in':
-									case 'not in':
-										if($value) {
-											$value = explode(',',$value);
-											if($key && $value) $w->whereIn($key,$value);
-										}
-									break;
-								}
-							}
-						});
-
-						foreach($filter_column as $key=>$fc) {
-							$value = @$fc['value'];
-							$type  = @$fc['type'];
-							$sorting = @$fc['sorting'];
-
-							if($sorting!='') {
-								if($key) {
-									$orderData->orderby($key,$sorting);
-									$filter_is_orderby = true;
-								}
-							}
-
-							if ($type=='between') {
-								if($key && $value) $orderData->whereBetween($key,$value);
-							}
-
-							else {
-								continue;
-							}
-						}
-					}
-
-					$ordeDataLines = $orderData->orderBy('returns_header_distribution.id','asc')->get();
-					$blank_field = '';
-					$store_inv = '';
-					$counter=0;
-					$final_count = count((array)$ordeDataLines) + 1;
-					foreach ($ordeDataLines as $orderRow) {
-					    $counter++;
-						/*$item = Item::where('digits_code', $orderRow->digits_code)->first();
-						$itemBrand = Brand::where('id', $item->brand_id)->first();
-						$itemStoreCategory = StoreCategory::where('id', $item->store_category_id)->first();
-					    $itemCategory = Category::where('id', $item->category_id)->first();
-						$itemWHCategory = WarehouseCategory::where('id', $item->warehouse_category_id)->first();
-						*/
-
-			
-						$serial_no = ReturnsSerialsDISTRI::where('returns_body_item_id', $orderRow->body_id)->first();
-						
-						
-						if($orderRow->transaction_type == 3 ){
-						    
-
-    							
-    							$scheduled_by =  "";
-    							$scheduled_date = "";
-    							$verified = $orderRow->verified_by;
-                                $verified_date = $orderRow->level7_personnel_edited;
-                                
-                                
-                            if($orderRow->diagnose == "REFUND"){
-    								$printed_by = $orderRow->printed_by;
-    								$printed_date = $orderRow->level3_personnel_edited;
-    								$transacted_by = $orderRow->transacted_by;
-    								$transacted_date = $orderRow->level4_personnel_edited;
-    								$closed_by = $orderRow->closed_by;
-    								$closed_date = $orderRow->level5_personnel_edited;
-    						}elseif($orderRow->diagnose == "REPLACE"){
-    							$printed_by = "";
-    							$printed_date = "";
-    							$transacted_by = $orderRow->printed_by;
-    							$transacted_date = $orderRow->level3_personnel_edited;
-    							$closed_by = $orderRow->transacted_by;
-    							$closed_date = $orderRow->level4_personnel_edited;
-    						}else{
-    							$printed_by = $orderRow->printed_by;
-    							$printed_date = $orderRow->level3_personnel_edited;
-    							$transacted_by = "";
-    							$transacted_date = "";
-    							$closed_by = $orderRow->transacted_by;
-    							$closed_date = $orderRow->level4_personnel_edited;	
-    						}
-                                
-                                
-						}else{
-						    
-						    $verified = $orderRow->verified_by;
-						    $verified_date = $orderRow->level7_personnel_edited;
-						    
-                            $scheduled_by = $orderRow->scheduled_logistics_by;
-							$scheduled_date = $orderRow->level1_personnel_edited;
-    						if($orderRow->diagnose == "REFUND"){
-    								$printed_by = $orderRow->printed_by;
-    								$printed_date = $orderRow->level3_personnel_edited;
-    								$transacted_by = $orderRow->transacted_by;
-    								$transacted_date = $orderRow->level4_personnel_edited;
-    								$closed_by = $orderRow->closed_by;
-    								$closed_date = $orderRow->level5_personnel_edited;
-    						}elseif($orderRow->diagnose == "REPLACE"){
-    							$printed_by = "";
-    							$printed_date = "";
-    							$transacted_by = $orderRow->printed_by;
-    							$transacted_date = $orderRow->level3_personnel_edited;
-    							$closed_by = $orderRow->transacted_by;
-    							$closed_date = $orderRow->level4_personnel_edited;
-    						}else{
-    							$printed_by = $orderRow->printed_by;
-    							$printed_date = $orderRow->level3_personnel_edited;
-    							$transacted_by = "";
-    							$transacted_date = "";
-    							$closed_by = $orderRow->transacted_by;
-    							$closed_date = $orderRow->level4_personnel_edited;	
-    						}
-						}
-						
-			
-						$orderItems[] = array(
-							//is_null($orderRow->approved_at) ? "" : Carbon::parse($orderRow->approved_at)->toDateString(),	//'APPROVED DATE',
-							//is_null($orderRow->approved_at) ? "" : Carbon::parse($orderRow->approved_at)->toTimeString(), //'APPROVED TIME',
-							$orderRow->warranty_status, 		
-							$orderRow->diagnose, 	
-							$orderRow->created_at,				
-							$orderRow->return_reference_no,					
-							$orderRow->purchase_location,				
-							$orderRow->customer_last_name,		
-							$orderRow->customer_first_name,	
-							$orderRow->address,		            
-							$orderRow->email_address,      
-							$orderRow->contact_no,    
-							$orderRow->order_no,		
-							$orderRow->purchase_date,			
-							$orderRow->mode_of_payment,		
-							//$orderRow->bank_name,                  
-							//$orderRow->bank_account_no,                   
-							//$orderRow->bank_account_name,		
-							$orderRow->items_included,                      
-							$orderRow->items_included_others, 
-							$orderRow->verified_items_included,                      
-							$orderRow->verified_items_included_others, 
-							$orderRow->customer_location,  
-							$orderRow->deliver_to,                 
-				 			$orderRow->return_schedule,                      
-							$orderRow->refunded_date,  
-							$orderRow->date_adjusted,
-							$orderRow->stock_adj_ref_no,
-							$orderRow->sor_number,      
-				 			$orderRow->digits_code,               
-				 			$orderRow->upc_code,                 
-				 			$orderRow->item_description,            
-				 			$orderRow->cost,          
-							$orderRow->brand,
-							$serial_no->serial_number,
-							$orderRow->problem_details,
-				 			$orderRow->problem_details_other,                
-							$orderRow->quantity,
-							$orderRow->warranty_status,
-							//$orderRow->ship_back_status,
-							//$orderRow->claimed_status,
-							//$orderRow->credit_memo_number,
-							$verified,
-							$verified_date,
-							$scheduled_by,
-							$scheduled_date,
-							$orderRow->diagnosed_by,
-							$orderRow->level2_personnel_edited,
-							$printed_by,
-							$printed_date,
-							$transacted_by,							
-							$transacted_date,
-							$closed_by,
-							$closed_date,
-							$orderRow->comments,
-							$orderRow->diagnose_comments
-						);
-					}
-
-					$headings = array(
-						'RETURN STATUS',
-						'DIAGNOSE',
-						'CREATED DATE',
-						'RETURN REFERENCE#',
-						'PURCHASE LOCATION',
-						'CUSTOMER LAST NAME',
-						'CUSTOMER FIRST NAME',
-						'ADDRESS',
-						'EMAIL ADDRESS',
-						'CONTACT#',
-						'ORDER#',
-						'PURCHASE DATE',
-						'ORIGINAL MODE OF PAYMENT',
-						//'BANK NAME',    //yellow
-						//'BANK ACCOUNT#',      //red
-						//'BANK ACCOUNT NAME',         //red
-						'ITEMS INCLUDED',         //red
-						'ITEMS INCLUDED OTHERS',//green
-						'VERIFIED ITEMS INCLUDED',         //red
-						'VERIFIED ITEMS INCLUDED OTHERS',//green
-						'CUSTOMER LOCATION',               //green
-						'DELIVER TO',               //green
-						'PICKUP SCHEDULE',               //green
-						'REFUNDED DATE',               //green
-						'DATE ADJUSTED',               //green
-						'STOCK ADJUSTED REF#',               //green
-						'SOR#',               //green
-						'DIGITS CODE',                 //green
-						'UPC CODE',      //blue
-						'ITEM DESCRIPTION',               //blue
-						'COST',                 //bue
-						'BRAND',              //blue  //additional code 20200121
-                        'SERIAL#',                //bue   //additional code 20200121
-						'PROBLEM DETAILS',       //additional code 20200207
-						'PROBLEM DETAILS OTHERS',       //additional code 20200207
-						'QUANTITY',           //blue  //additional code 20200205
-						'WARRANTY STATUS',
-						//'SHIP BACK STATUS',           //blue  //additional code 20200205
-						//'CLAIMED STATUS',           //blue  //additional code 20200205
-						//'CREDIT MEMO#',           //blue  //additional code 20200205
-						'VERIFIED BY',           //blue  //additional code 20200205
-						'VERIFIED DATE',           //blue  //additional code 20200205
-						'SCHEDULED BY',           //blue  //additional code 20200205
-						'SCHEDULED DATE',           //blue  //additional code 20200205
-						'DIAGNOSED BY',           //blue  //additional code 20200205
-						'DIAGNOSED DATE',           //blue  //additional code 20200205
-						'PRINTED BY',           //blue  //additional code 20200205
-						'PRINTED DATE',           //blue  //additional code 20200205
-						'SOR BY',           //blue  //additional code 20200205
-						'SOR DATE',           //blue  //additional code 20200205
-						'CLOSED BY',           //blue  //additional code 20200205
-						'CLOSED DATE',           //blue  //additional code 20200205
-						'COMMENTS',
-						'DIAGNOSED COMMENTS'
-					);
-					}else if(CRUDBooster::myPrivilegeName() == "Accounting"){
-						$to_print_crf = 	ReturnsStatus::where('id','7')->value('id');
-						$replacement_complete = 	ReturnsStatus::where('id','21')->value('id');
-						$orderData = DB::table('returns_header_distribution')
-						->leftjoin('warranty_statuses', 'returns_header_distribution.returns_status_1','=', 'warranty_statuses.id')
-						->leftjoin('cms_users as verified', 'returns_header_distribution.level7_personnel','=', 'verified.id')
-						->leftjoin('cms_users as scheduled_logistics', 'returns_header_distribution.level1_personnel','=', 'scheduled_logistics.id')		
-						->leftjoin('cms_users as diagnosed', 'returns_header_distribution.level2_personnel','=', 'diagnosed.id')				
-						->leftjoin('cms_users as printed', 'returns_header_distribution.level3_personnel','=', 'printed.id')																	
-						->leftjoin('cms_users as transacted', 'returns_header_distribution.level4_personnel','=', 'transacted.id')
-						->leftjoin('cms_users as received', 'returns_header_distribution.level6_personnel','=', 'received.id')
-						->leftjoin('cms_users as received1', 'returns_header_distribution.received_by_rma_sc','=', 'received1.id')
-						->leftjoin('cms_users as turnover', 'returns_header_distribution.rma_receiver_id','=', 'turnover.id')
-						->leftjoin('cms_users as specialist', 'returns_header_distribution.rma_specialist_id','=', 'specialist.id')
-						->leftjoin('cms_users as closed', 'returns_header_distribution.level5_personnel','=', 'closed.id')	
-						->leftJoin('returns_body_item_distribution', 'returns_header_distribution.id', '=', 'returns_body_item_distribution.returns_header_id')
-						->select(   'returns_header_distribution.*', 
-									'returns_body_item_distribution.*', 
-									'returns_body_item_distribution.id as body_id', 
-									'verified.name as verified_by',	
-									'scheduled_logistics.name as scheduled_logistics_by',
-									'diagnosed.name as diagnosed_by',
-									'printed.name as printed_by',	
-									'transacted.name as transacted_by',	
-									'received.name as received_by',
-									'received1.name as received_by1',
-									'turnover.name as turnover_by',
-									'specialist.name as specialist_by',
-									'closed.name as closed_by',
-									'warranty_statuses.*'
-						)->whereNotNull('returns_body_item_distribution.category')->where('transaction_type','!=', 2)->where('returns_status_1','!=', $to_print_crf)->where('diagnose', "REFUND")
-						;			
-						
-						
-												if(\Request::get('filter_column')) {
-
-						$filter_column = \Request::get('filter_column');
-
-						$orderData->where(function($w) use ($filter_column,$fc) {
-							foreach($filter_column as $key=>$fc) {
-
-								$value = @$fc['value'];
-								$type  = @$fc['type'];
-
-								if($type == 'empty') {
-									$w->whereNull($key)->orWhere($key,'');
-									continue;
-								}
-
-								if($value=='' || $type=='') continue;
-
-								if($type == 'between') continue;
-
-								switch($type) {
-									default:
-										if($key && $type && $value) $w->where($key,$type,$value);
-									break;
-									case 'like':
-									case 'not like':
-										$value = '%'.$value.'%';
-										if($key && $type && $value) $w->where($key,$type,$value);
-									break;
-									case 'in':
-									case 'not in':
-										if($value) {
-											$value = explode(',',$value);
-											if($key && $value) $w->whereIn($key,$value);
-										}
-									break;
-								}
-							}
-						});
-
-						foreach($filter_column as $key=>$fc) {
-							$value = @$fc['value'];
-							$type  = @$fc['type'];
-							$sorting = @$fc['sorting'];
-
-							if($sorting!='') {
-								if($key) {
-									$orderData->orderby($key,$sorting);
-									$filter_is_orderby = true;
-								}
-							}
-
-							if ($type=='between') {
-								if($key && $value) $orderData->whereBetween($key,$value);
-							}
-
-							else {
-								continue;
-							}
-						}
-					}
-
-					$ordeDataLines = $orderData->orderBy('returns_header_distribution.id','asc')->get();
-					$blank_field = '';
-					$store_inv = '';
-					$counter=0;
-					$final_count = count((array)$ordeDataLines) + 1;
-					foreach ($ordeDataLines as $orderRow) {
-					    $counter++;
-						/*$item = Item::where('digits_code', $orderRow->digits_code)->first();
-						$itemBrand = Brand::where('id', $item->brand_id)->first();
-						$itemStoreCategory = StoreCategory::where('id', $item->store_category_id)->first();
-					    $itemCategory = Category::where('id', $item->category_id)->first();
-						$itemWHCategory = WarehouseCategory::where('id', $item->warehouse_category_id)->first();
-						*/
-
-			
-						$serial_no = ReturnsSerialsDISTRI::where('returns_body_item_id', $orderRow->body_id)->first();
-						
-						
-						if($orderRow->transaction_type == 3 ){
-						    
-
-    							
-    							$scheduled_by =  "";
-    							$scheduled_date = "";
-    							$verified = $orderRow->verified_by;
-                                $verified_date = $orderRow->level7_personnel_edited;
-                                
-                                
-                            if($orderRow->diagnose == "REFUND"){
-    								$printed_by = $orderRow->printed_by;
-    								$printed_date = $orderRow->level3_personnel_edited;
-    								$transacted_by = $orderRow->transacted_by;
-    								$transacted_date = $orderRow->level4_personnel_edited;
-    								$closed_by = $orderRow->closed_by;
-    								$closed_date = $orderRow->level5_personnel_edited;
-    						}elseif($orderRow->diagnose == "REPLACE"){
-    							$printed_by = "";
-    							$printed_date = "";
-    							$transacted_by = $orderRow->printed_by;
-    							$transacted_date = $orderRow->level3_personnel_edited;
-    							$closed_by = $orderRow->transacted_by;
-    							$closed_date = $orderRow->level4_personnel_edited;
-    						}else{
-    							$printed_by = $orderRow->printed_by;
-    							$printed_date = $orderRow->level3_personnel_edited;
-    							$transacted_by = "";
-    							$transacted_date = "";
-    							$closed_by = $orderRow->transacted_by;
-    							$closed_date = $orderRow->level4_personnel_edited;	
-    						}
-                                
-                                
-						}else{
-						    
-						    $verified = $orderRow->verified_by;
-						    $verified_date = $orderRow->level7_personnel_edited;
-						    
-                            $scheduled_by = $orderRow->scheduled_logistics_by;
-							$scheduled_date = $orderRow->level1_personnel_edited;
-    						if($orderRow->diagnose == "REFUND"){
-    								$printed_by = $orderRow->printed_by;
-    								$printed_date = $orderRow->level3_personnel_edited;
-    								$transacted_by = $orderRow->transacted_by;
-    								$transacted_date = $orderRow->level4_personnel_edited;
-    								$closed_by = $orderRow->closed_by;
-    								$closed_date = $orderRow->level5_personnel_edited;
-    						}elseif($orderRow->diagnose == "REPLACE"){
-    							$printed_by = "";
-    							$printed_date = "";
-    							$transacted_by = $orderRow->printed_by;
-    							$transacted_date = $orderRow->level3_personnel_edited;
-    							$closed_by = $orderRow->transacted_by;
-    							$closed_date = $orderRow->level4_personnel_edited;
-    						}else{
-    							$printed_by = $orderRow->printed_by;
-    							$printed_date = $orderRow->level3_personnel_edited;
-    							$transacted_by = "";
-    							$transacted_date = "";
-    							$closed_by = $orderRow->transacted_by;
-    							$closed_date = $orderRow->level4_personnel_edited;	
-    						}
-						}
-						
-			
-						$orderItems[] = array(
-							//is_null($orderRow->approved_at) ? "" : Carbon::parse($orderRow->approved_at)->toDateString(),	//'APPROVED DATE',
-							//is_null($orderRow->approved_at) ? "" : Carbon::parse($orderRow->approved_at)->toTimeString(), //'APPROVED TIME',
-							$orderRow->warranty_status, 		
-							$orderRow->diagnose, 	
-							$orderRow->created_at,				
-							$orderRow->return_reference_no,					
-							$orderRow->purchase_location,				
-							$orderRow->customer_last_name,		
-							$orderRow->customer_first_name,	
-							$orderRow->address,		            
-							$orderRow->email_address,      
-							$orderRow->contact_no,    
-							$orderRow->order_no,		
-							$orderRow->purchase_date,			
-							$orderRow->mode_of_payment,		
-							$orderRow->bank_name,                  
-							$orderRow->bank_account_no,                   
-							$orderRow->bank_account_name,		
-							$orderRow->items_included,                      
-							$orderRow->items_included_others, 
-							$orderRow->verified_items_included,                      
-							$orderRow->verified_items_included_others, 
-							$orderRow->customer_location,  
-							$orderRow->deliver_to,                 
-				 			$orderRow->return_schedule,                      
-							$orderRow->refunded_date,  
-							$orderRow->date_adjusted,
-							$orderRow->stock_adj_ref_no,
-							$orderRow->sor_number,      
-				 			$orderRow->digits_code,               
-				 			$orderRow->upc_code,                 
-				 			$orderRow->item_description,            
-				 			$orderRow->cost,          
-							$orderRow->brand,
-							$serial_no->serial_number,
-							$orderRow->problem_details,
-				 			$orderRow->problem_details_other,                
-							$orderRow->quantity,
-							//$orderRow->warranty_status,
-							//$orderRow->ship_back_status,
-							//$orderRow->claimed_status,
-							//$orderRow->credit_memo_number,
-							$verified,
-							$verified_date,
-							$scheduled_by,
-							$scheduled_date,
-							$orderRow->turnover_by,
-							$orderRow->rma_receiver_date_received,
-							$orderRow->received_by1,
-							$orderRow->received_at_rma_sc,
-
-							$orderRow->diagnosed_by,
-							$orderRow->level2_personnel_edited,
-							$orderRow->specialist_by,
-							$orderRow->rma_specialist_date_received,
-
-							$printed_by,
-							$printed_date,
-							$transacted_by,							
-							$transacted_date,
-							$closed_by,
-							$closed_date,
-							$orderRow->comments,
-							$orderRow->diagnose_comments
-						);
-					}
-
-					$headings = array(
-						'RETURN STATUS',
-						'DIAGNOSE',
-						'CREATED DATE',
-						'RETURN REFERENCE#',
-						'PURCHASE LOCATION',
-						'CUSTOMER LAST NAME',
-						'CUSTOMER FIRST NAME',
-						'ADDRESS',
-						'EMAIL ADDRESS',
-						'CONTACT#',
-						'ORDER#',
-						'PURCHASE DATE',
-						'ORIGINAL MODE OF PAYMENT',
-						'BANK NAME',    //yellow
-						'BANK ACCOUNT#',      //red
-						'BANK ACCOUNT NAME',         //red
-						'ITEMS INCLUDED',         //red
-						'ITEMS INCLUDED OTHERS',//green
-						'VERIFIED ITEMS INCLUDED',         //red
-						'VERIFIED ITEMS INCLUDED OTHERS',//green
-						'CUSTOMER LOCATION',               //green
-						'DELIVER TO',               //green
-						'PICKUP SCHEDULE',               //green
-						'REFUNDED DATE',               //green
-						'DATE ADJUSTED',               //green
-						'STOCK ADJUSTED REF#',               //green
-						'SOR#',               //green
-						'DIGITS CODE',                 //green
-						'UPC CODE',      //blue
-						'ITEM DESCRIPTION',               //blue
-						'COST',                 //bue
-						'BRAND',              //blue  //additional code 20200121
-                        'SERIAL#',                //bue   //additional code 20200121
-						'PROBLEM DETAILS',       //additional code 20200207
-						'PROBLEM DETAILS OTHERS',       //additional code 20200207
-						'QUANTITY',           //blue  //additional code 20200205
-						//'WARRANTY STATUS',
-						//'SHIP BACK STATUS',           //blue  //additional code 20200205
-						//'CLAIMED STATUS',           //blue  //additional code 20200205
-						//'CREDIT MEMO#',           //blue  //additional code 20200205
-						'VERIFIED BY',           //blue  //additional code 20200205
-						'VERIFIED DATE',           //blue  //additional code 20200205
-						'SCHEDULED BY',           //blue  //additional code 20200205
-						'SCHEDULED DATE',           //blue  //additional code 20200205
-						'RECEIVED BY',
-						'RECEIVED DATE',
-						'TURNOVER BY',
-						'TURNOVER DATE',
-						'DIAGNOSED BY',           //blue  //additional code 20200205
-						'DIAGNOSED DATE',           //blue  //additional code 20200205
-						'PROCESSED BY',           //blue  //additional code 20200205
-						'PROCESSED DATE',  
-						'PRINTED BY',           //blue  //additional code 20200205
-						'PRINTED DATE',           //blue  //additional code 20200205
-						'SOR BY',           //blue  //additional code 20200205
-						'SOR DATE',           //blue  //additional code 20200205
-						'CLOSED BY',           //blue  //additional code 20200205
-						'CLOSED DATE',           //blue  //additional code 20200205
-						'COMMENTS',
-						'DIAGNOSED COMMENTS'
-					);
-					}else if(CRUDBooster::myPrivilegeName() == "Inventory Control"){
-		                $replacement_complete = 	ReturnsStatus::where('id','21')->value('id');
-						$orderData = DB::table('returns_header_distribution')
-						->leftjoin('warranty_statuses', 'returns_header_distribution.returns_status_1','=', 'warranty_statuses.id')
-						->leftjoin('cms_users as verified', 'returns_header_distribution.level7_personnel','=', 'verified.id')
-						->leftjoin('cms_users as scheduled_logistics', 'returns_header_distribution.level1_personnel','=', 'scheduled_logistics.id')		
-						->leftjoin('cms_users as diagnosed', 'returns_header_distribution.level2_personnel','=', 'diagnosed.id')				
-						->leftjoin('cms_users as printed', 'returns_header_distribution.level3_personnel','=', 'printed.id')																	
-						->leftjoin('cms_users as transacted', 'returns_header_distribution.level4_personnel','=', 'transacted.id')
-						->leftjoin('cms_users as received', 'returns_header_distribution.level6_personnel','=', 'received.id')
-						->leftjoin('cms_users as received1', 'returns_header_distribution.received_by_rma_sc','=', 'received1.id')
-						->leftjoin('cms_users as turnover', 'returns_header_distribution.rma_receiver_id','=', 'turnover.id')
-						->leftjoin('cms_users as specialist', 'returns_header_distribution.rma_specialist_id','=', 'specialist.id')
-						->leftjoin('cms_users as closed', 'returns_header_distribution.level5_personnel','=', 'closed.id')	
-						->leftJoin('returns_body_item_distribution', 'returns_header_distribution.id', '=', 'returns_body_item_distribution.returns_header_id')
-						->select(   'returns_header_distribution.*', 
-									'returns_body_item_distribution.*', 
-									'returns_body_item_distribution.id as body_id', 
-									'verified.name as verified_by',	
-									'scheduled_logistics.name as scheduled_logistics_by',
-									'diagnosed.name as diagnosed_by',
-									'printed.name as printed_by',	
-									'transacted.name as transacted_by',	
-									'received.name as received_by',
-									'received1.name as received_by1',
-									'turnover.name as turnover_by',
-									'specialist.name as specialist_by',
-									'closed.name as closed_by',
-									'warranty_statuses.*'
-						)->whereNotNull('returns_body_item_distribution.category')->where('transaction_type','!=', 2)->where('returns_status_1', $replacement_complete)->where('diagnose', "REPLACE")
-						;	
-												if(\Request::get('filter_column')) {
-
-						$filter_column = \Request::get('filter_column');
-
-						$orderData->where(function($w) use ($filter_column,$fc) {
-							foreach($filter_column as $key=>$fc) {
-
-								$value = @$fc['value'];
-								$type  = @$fc['type'];
-
-								if($type == 'empty') {
-									$w->whereNull($key)->orWhere($key,'');
-									continue;
-								}
-
-								if($value=='' || $type=='') continue;
-
-								if($type == 'between') continue;
-
-								switch($type) {
-									default:
-										if($key && $type && $value) $w->where($key,$type,$value);
-									break;
-									case 'like':
-									case 'not like':
-										$value = '%'.$value.'%';
-										if($key && $type && $value) $w->where($key,$type,$value);
-									break;
-									case 'in':
-									case 'not in':
-										if($value) {
-											$value = explode(',',$value);
-											if($key && $value) $w->whereIn($key,$value);
-										}
-									break;
-								}
-							}
-						});
-
-						foreach($filter_column as $key=>$fc) {
-							$value = @$fc['value'];
-							$type  = @$fc['type'];
-							$sorting = @$fc['sorting'];
-
-							if($sorting!='') {
-								if($key) {
-									$orderData->orderby($key,$sorting);
-									$filter_is_orderby = true;
-								}
-							}
-
-							if ($type=='between') {
-								if($key && $value) $orderData->whereBetween($key,$value);
-							}
-
-							else {
-								continue;
-							}
-						}
-					}
-
-					$ordeDataLines = $orderData->orderBy('returns_header_distribution.id','asc')->get();
-					$blank_field = '';
-					$store_inv = '';
-					$counter=0;
-					$final_count = count((array)$ordeDataLines) + 1;
-					foreach ($ordeDataLines as $orderRow) {
-					    $counter++;
-						/*$item = Item::where('digits_code', $orderRow->digits_code)->first();
-						$itemBrand = Brand::where('id', $item->brand_id)->first();
-						$itemStoreCategory = StoreCategory::where('id', $item->store_category_id)->first();
-					    $itemCategory = Category::where('id', $item->category_id)->first();
-						$itemWHCategory = WarehouseCategory::where('id', $item->warehouse_category_id)->first();
-						*/
-
-			
-						$serial_no = ReturnsSerialsDISTRI::where('returns_body_item_id', $orderRow->body_id)->first();
-						
-						
-						if($orderRow->transaction_type == 3 ){
-						    
-
-    							
-    							$scheduled_by =  "";
-    							$scheduled_date = "";
-    							$verified = $orderRow->verified_by;
-                                $verified_date = $orderRow->level7_personnel_edited;
-                                
-                                
-                            if($orderRow->diagnose == "REFUND"){
-    								$printed_by = $orderRow->printed_by;
-    								$printed_date = $orderRow->level3_personnel_edited;
-    								$transacted_by = $orderRow->transacted_by;
-    								$transacted_date = $orderRow->level4_personnel_edited;
-    								$closed_by = $orderRow->closed_by;
-    								$closed_date = $orderRow->level5_personnel_edited;
-    						}elseif($orderRow->diagnose == "REPLACE"){
-    							$printed_by = "";
-    							$printed_date = "";
-    							$transacted_by = $orderRow->printed_by;
-    							$transacted_date = $orderRow->level3_personnel_edited;
-    							$closed_by = $orderRow->transacted_by;
-    							$closed_date = $orderRow->level4_personnel_edited;
-    						}else{
-    							$printed_by = $orderRow->printed_by;
-    							$printed_date = $orderRow->level3_personnel_edited;
-    							$transacted_by = "";
-    							$transacted_date = "";
-    							$closed_by = $orderRow->transacted_by;
-    							$closed_date = $orderRow->level4_personnel_edited;	
-    						}
-                                
-                                
-						}else{
-						    
-						    $verified = $orderRow->verified_by;
-						    $verified_date = $orderRow->level7_personnel_edited;
-						    
-                            $scheduled_by = $orderRow->scheduled_logistics_by;
-							$scheduled_date = $orderRow->level1_personnel_edited;
-    						if($orderRow->diagnose == "REFUND"){
-    								$printed_by = $orderRow->printed_by;
-    								$printed_date = $orderRow->level3_personnel_edited;
-    								$transacted_by = $orderRow->transacted_by;
-    								$transacted_date = $orderRow->level4_personnel_edited;
-    								$closed_by = $orderRow->closed_by;
-    								$closed_date = $orderRow->level5_personnel_edited;
-    						}elseif($orderRow->diagnose == "REPLACE"){
-    							$printed_by = "";
-    							$printed_date = "";
-    							$transacted_by = $orderRow->printed_by;
-    							$transacted_date = $orderRow->level3_personnel_edited;
-    							$closed_by = $orderRow->transacted_by;
-    							$closed_date = $orderRow->level4_personnel_edited;
-    						}else{
-    							$printed_by = $orderRow->printed_by;
-    							$printed_date = $orderRow->level3_personnel_edited;
-    							$transacted_by = "";
-    							$transacted_date = "";
-    							$closed_by = $orderRow->transacted_by;
-    							$closed_date = $orderRow->level4_personnel_edited;	
-    						}
-						}
-						
-			
-						$orderItems[] = array(
-							//is_null($orderRow->approved_at) ? "" : Carbon::parse($orderRow->approved_at)->toDateString(),	//'APPROVED DATE',
-							//is_null($orderRow->approved_at) ? "" : Carbon::parse($orderRow->approved_at)->toTimeString(), //'APPROVED TIME',
-							$orderRow->warranty_status, 		
-							$orderRow->diagnose, 	
-							$orderRow->created_at,				
-							$orderRow->return_reference_no,					
-							$orderRow->purchase_location,				
-							$orderRow->customer_last_name,		
-							$orderRow->customer_first_name,	
-							$orderRow->address,		            
-							$orderRow->email_address,      
-							$orderRow->contact_no,    
-							$orderRow->order_no,		
-							$orderRow->purchase_date,			
-							$orderRow->mode_of_payment,		
-							$orderRow->bank_name,                  
-							$orderRow->bank_account_no,                   
-							$orderRow->bank_account_name,		
-							$orderRow->items_included,                      
-							$orderRow->items_included_others, 
-							$orderRow->verified_items_included,                      
-							$orderRow->verified_items_included_others, 
-							$orderRow->customer_location,  
-							$orderRow->deliver_to,                 
-				 			$orderRow->return_schedule,                      
-							$orderRow->refunded_date,  
-							$orderRow->date_adjusted,
-							$orderRow->stock_adj_ref_no,
-							$orderRow->sor_number,      
-				 			$orderRow->digits_code,               
-				 			$orderRow->upc_code,                 
-				 			$orderRow->item_description,            
-				 			$orderRow->cost,          
-							$orderRow->brand,
-							$serial_no->serial_number,
-							$orderRow->problem_details,
-				 			$orderRow->problem_details_other,                
-							$orderRow->quantity,
-							$orderRow->warranty_status,
-							$orderRow->ship_back_status,
-							$orderRow->claimed_status,
-							$orderRow->credit_memo_number,
-							$verified,
-							$verified_date,
-							$scheduled_by,
-							$scheduled_date,
-							$orderRow->turnover_by,
-							$orderRow->rma_receiver_date_received,
-							$orderRow->received_by1,
-							$orderRow->received_at_rma_sc,
-
-							$orderRow->diagnosed_by,
-							$orderRow->level2_personnel_edited,
-							$orderRow->specialist_by,
-							$orderRow->rma_specialist_date_received,
-
-							$printed_by,
-							$printed_date,
-							$transacted_by,							
-							$transacted_date,
-							$closed_by,
-							$closed_date,
-							$orderRow->comments,
-							$orderRow->diagnose_comments
-						);
-					}
-
-					$headings = array(
-						'RETURN STATUS',
-						'DIAGNOSE',
-						'CREATED DATE',
-						'RETURN REFERENCE#',
-						'PURCHASE LOCATION',
-						'CUSTOMER LAST NAME',
-						'CUSTOMER FIRST NAME',
-						'ADDRESS',
-						'EMAIL ADDRESS',
-						'CONTACT#',
-						'ORDER#',
-						'PURCHASE DATE',
-						'ORIGINAL MODE OF PAYMENT',
-						'BANK NAME',    //yellow
-						'BANK ACCOUNT#',      //red
-						'BANK ACCOUNT NAME',         //red
-						'ITEMS INCLUDED',         //red
-						'ITEMS INCLUDED OTHERS',//green
-						'VERIFIED ITEMS INCLUDED',         //red
-						'VERIFIED ITEMS INCLUDED OTHERS',//green
-						'CUSTOMER LOCATION',               //green
-						'DELIVER TO',               //green
-						'PICKUP SCHEDULE',               //green
-						'REFUNDED DATE',               //green
-						'DATE ADJUSTED',               //green
-						'STOCK ADJUSTED REF#',               //green
-						'SOR#',               //green
-						'DIGITS CODE',                 //green
-						'UPC CODE',      //blue
-						'ITEM DESCRIPTION',               //blue
-						'COST',                 //bue
-						'BRAND',              //blue  //additional code 20200121
-                        'SERIAL#',                //bue   //additional code 20200121
-						'PROBLEM DETAILS',       //additional code 20200207
-						'PROBLEM DETAILS OTHERS',       //additional code 20200207
-						'QUANTITY',           //blue  //additional code 20200205
-						'WARRANTY STATUS',
-						'SHIP BACK STATUS',           //blue  //additional code 20200205
-						'CLAIMED STATUS',           //blue  //additional code 20200205
-						'CREDIT MEMO#',           //blue  //additional code 20200205
-						'VERIFIED BY',           //blue  //additional code 20200205
-						'VERIFIED DATE',           //blue  //additional code 20200205
-						'SCHEDULED BY',           //blue  //additional code 20200205
-						'SCHEDULED DATE',           //blue  //additional code 20200205
-						'RECEIVED BY',
-						'RECEIVED DATE',
-						'TURNOVER BY',
-						'TURNOVER DATE',
-						'DIAGNOSED BY',           //blue  //additional code 20200205
-						'DIAGNOSED DATE',           //blue  //additional code 20200205
-						'PROCESSED BY',           //blue  //additional code 20200205
-						'PROCESSED DATE',  
-						'PRINTED BY',           //blue  //additional code 20200205
-						'PRINTED DATE',           //blue  //additional code 20200205
-						'SOR BY',           //blue  //additional code 20200205
-						'SOR DATE',           //blue  //additional code 20200205
-						'CLOSED BY',           //blue  //additional code 20200205
-						'CLOSED DATE',           //blue  //additional code 20200205
-						'COMMENTS',
-						'DIAGNOSED COMMENTS'
-					);
-					}else if(CRUDBooster::myPrivilegeName() == "Aftersales (Ops)"){
-						$return_invalid = 			ReturnsStatus::where('id','15')->value('id');
-						$repair_complete = 			ReturnsStatus::where('id','17')->value('id');
-						$replacement_complete = 	ReturnsStatus::where('id','21')->value('id');
-						$to_close = ReturnsStatus::where('id','30')->value('id');
-
-                        $requested = ReturnsStatus::where('id','1')->value('id');
-                        
-						$orderData = DB::table('returns_header_distribution')
-						->leftjoin('warranty_statuses', 'returns_header_distribution.returns_status_1','=', 'warranty_statuses.id')
-						->leftjoin('cms_users as verified', 'returns_header_distribution.level7_personnel','=', 'verified.id')
-						->leftjoin('cms_users as scheduled_logistics', 'returns_header_distribution.level1_personnel','=', 'scheduled_logistics.id')		
-						->leftjoin('cms_users as diagnosed', 'returns_header_distribution.level2_personnel','=', 'diagnosed.id')				
-						->leftjoin('cms_users as printed', 'returns_header_distribution.level3_personnel','=', 'printed.id')																	
-						->leftjoin('cms_users as transacted', 'returns_header_distribution.level4_personnel','=', 'transacted.id')
-						->leftjoin('cms_users as received', 'returns_header_distribution.level6_personnel','=', 'received.id')
-						->leftjoin('cms_users as received1', 'returns_header_distribution.received_by_rma_sc','=', 'received1.id')
-						->leftjoin('cms_users as turnover', 'returns_header_distribution.rma_receiver_id','=', 'turnover.id')
-						->leftjoin('cms_users as specialist', 'returns_header_distribution.rma_specialist_id','=', 'specialist.id')
-						->leftjoin('cms_users as closed', 'returns_header_distribution.level5_personnel','=', 'closed.id')	
-						->leftJoin('returns_body_item_distribution', 'returns_header_distribution.id', '=', 'returns_body_item_distribution.returns_header_id')
-						->select(   'returns_header_distribution.*', 
-									'returns_body_item_distribution.*', 
-									'returns_body_item_distribution.id as body_id', 
-									'verified.name as verified_by',	
-									'scheduled_logistics.name as scheduled_logistics_by',
-									'diagnosed.name as diagnosed_by',
-									'printed.name as printed_by',	
-									'transacted.name as transacted_by',	
-									'received.name as received_by',
-									'received1.name as received_by1',
-									'turnover.name as turnover_by',
-									'specialist.name as specialist_by',
-									'closed.name as closed_by',
-									'warranty_statuses.*'
-						)->whereNotNull('returns_body_item_distribution.category')->where('transaction_type','!=', 2)//->where('returns_status_1','!=',$requested)
-						/*->orwhereNotNull('returns_body_item_distribution.category')->where('returns_status_1', $repair_complete)
-						->orwhereNotNull('returns_body_item_distribution.category')->where('returns_status_1', $replacement_complete)
-						->orwhereNotNull('returns_body_item_distribution.category')->where('returns_status_1', $to_close)*/;	
-						
-						
-												if(\Request::get('filter_column')) {
-
-						$filter_column = \Request::get('filter_column');
-
-						$orderData->where(function($w) use ($filter_column,$fc) {
-							foreach($filter_column as $key=>$fc) {
-
-								$value = @$fc['value'];
-								$type  = @$fc['type'];
-
-								if($type == 'empty') {
-									$w->whereNull($key)->orWhere($key,'');
-									continue;
-								}
-
-								if($value=='' || $type=='') continue;
-
-								if($type == 'between') continue;
-
-								switch($type) {
-									default:
-										if($key && $type && $value) $w->where($key,$type,$value);
-									break;
-									case 'like':
-									case 'not like':
-										$value = '%'.$value.'%';
-										if($key && $type && $value) $w->where($key,$type,$value);
-									break;
-									case 'in':
-									case 'not in':
-										if($value) {
-											$value = explode(',',$value);
-											if($key && $value) $w->whereIn($key,$value);
-										}
-									break;
-								}
-							}
-						});
-
-						foreach($filter_column as $key=>$fc) {
-							$value = @$fc['value'];
-							$type  = @$fc['type'];
-							$sorting = @$fc['sorting'];
-
-							if($sorting!='') {
-								if($key) {
-									$orderData->orderby($key,$sorting);
-									$filter_is_orderby = true;
-								}
-							}
-
-							if ($type=='between') {
-								if($key && $value) $orderData->whereBetween($key,$value);
-							}
-
-							else {
-								continue;
-							}
-						}
-					}
-
-					$ordeDataLines = $orderData->orderBy('returns_header_distribution.id','asc')->get();
-					$blank_field = '';
-					$store_inv = '';
-					$counter=0;
-					$final_count = count((array)$ordeDataLines) + 1;
-					foreach ($ordeDataLines as $orderRow) {
-					    $counter++;
-						/*$item = Item::where('digits_code', $orderRow->digits_code)->first();
-						$itemBrand = Brand::where('id', $item->brand_id)->first();
-						$itemStoreCategory = StoreCategory::where('id', $item->store_category_id)->first();
-					    $itemCategory = Category::where('id', $item->category_id)->first();
-						$itemWHCategory = WarehouseCategory::where('id', $item->warehouse_category_id)->first();
-						*/
-
-			
-						$serial_no = ReturnsSerialsDISTRI::where('returns_body_item_id', $orderRow->body_id)->first();
-						
-						
-						if($orderRow->transaction_type == 3 ){
-						    
-
-    							
-    							$scheduled_by =  "";
-    							$scheduled_date = "";
-    							$verified = $orderRow->verified_by;
-                                $verified_date = $orderRow->level7_personnel_edited;
-                                
-                                
-                            if($orderRow->diagnose == "REFUND"){
-    								$printed_by = $orderRow->printed_by;
-    								$printed_date = $orderRow->level3_personnel_edited;
-    								$transacted_by = $orderRow->transacted_by;
-    								$transacted_date = $orderRow->level4_personnel_edited;
-    								$closed_by = $orderRow->closed_by;
-    								$closed_date = $orderRow->level5_personnel_edited;
-    						}elseif($orderRow->diagnose == "REPLACE"){
-    							$printed_by = "";
-    							$printed_date = "";
-    							$transacted_by = $orderRow->printed_by;
-    							$transacted_date = $orderRow->level3_personnel_edited;
-    							$closed_by = $orderRow->transacted_by;
-    							$closed_date = $orderRow->level4_personnel_edited;
-    						}else{
-    							$printed_by = $orderRow->printed_by;
-    							$printed_date = $orderRow->level3_personnel_edited;
-    							$transacted_by = "";
-    							$transacted_date = "";
-    							$closed_by = $orderRow->transacted_by;
-    							$closed_date = $orderRow->level4_personnel_edited;	
-    						}
-                                
-                                
-						}else{
-						    
-						    $verified = $orderRow->verified_by;
-						    $verified_date = $orderRow->level7_personnel_edited;
-						    
-                            $scheduled_by = $orderRow->scheduled_logistics_by;
-                            $scheduled_date = $orderRow->level1_personnel_edited;
-    						if($orderRow->diagnose == "REFUND"){
-    								$printed_by = $orderRow->printed_by;
-    								$printed_date = $orderRow->level3_personnel_edited;
-    								$transacted_by = $orderRow->transacted_by;
-    								$transacted_date = $orderRow->level4_personnel_edited;
-    								$closed_by = $orderRow->closed_by;
-    								$closed_date = $orderRow->level5_personnel_edited;
-    						}elseif($orderRow->diagnose == "REPLACE"){
-    							$printed_by = "";
-    							$printed_date = "";
-    							$transacted_by = $orderRow->printed_by;
-    							$transacted_date = $orderRow->level3_personnel_edited;
-    							$closed_by = $orderRow->transacted_by;
-    							$closed_date = $orderRow->level4_personnel_edited;
-    						}else{
-    							$printed_by = $orderRow->printed_by;
-    							$printed_date = $orderRow->level3_personnel_edited;
-    							$transacted_by = "";
-    							$transacted_date = "";
-    							$closed_by = $orderRow->transacted_by;
-    							$closed_date = $orderRow->level4_personnel_edited;	
-    						}
-						}
-						
-			
-						$orderItems[] = array(
-							//is_null($orderRow->approved_at) ? "" : Carbon::parse($orderRow->approved_at)->toDateString(),	//'APPROVED DATE',
-							//is_null($orderRow->approved_at) ? "" : Carbon::parse($orderRow->approved_at)->toTimeString(), //'APPROVED TIME',
-							$orderRow->warranty_status, 		
-							$orderRow->diagnose, 	
-							$orderRow->created_at,				
-							$orderRow->return_reference_no,					
-							$orderRow->purchase_location,				
-							$orderRow->customer_last_name,		
-							$orderRow->customer_first_name,	
-							$orderRow->address,		            
-							$orderRow->email_address,      
-							$orderRow->contact_no,    
-							$orderRow->order_no,		
-							$orderRow->purchase_date,			
-							$orderRow->mode_of_payment,		
-							$orderRow->bank_name,                  
-							$orderRow->bank_account_no,                   
-							$orderRow->bank_account_name,		
-							$orderRow->items_included,                      
-							$orderRow->items_included_others, 
-							$orderRow->verified_items_included,                      
-							$orderRow->verified_items_included_others, 
-							$orderRow->customer_location,  
-							$orderRow->deliver_to,                 
-				 			$orderRow->return_schedule,                      
-							$orderRow->refunded_date,  
-							$orderRow->date_adjusted,
-							$orderRow->stock_adj_ref_no,
-							$orderRow->sor_number,      
-				 			$orderRow->digits_code,               
-				 			$orderRow->upc_code,                 
-				 			$orderRow->item_description,            
-				 			$orderRow->cost,          
-							$orderRow->brand,
-							$serial_no->serial_number,
-							$orderRow->problem_details,
-				 			$orderRow->problem_details_other,                
-							$orderRow->quantity,
-							//$orderRow->warranty_status,
-							//$orderRow->ship_back_status,
-						//	$orderRow->claimed_status,
-							//$orderRow->credit_memo_number,
-							$verified,
-							$verified_date,
-							$scheduled_by,
-							$scheduled_date,
-							$orderRow->turnover_by,
-							$orderRow->rma_receiver_date_received,
-							$orderRow->received_by1,
-							$orderRow->received_at_rma_sc,
-
-							$orderRow->diagnosed_by,
-							$orderRow->level2_personnel_edited,
-							$orderRow->specialist_by,
-							$orderRow->rma_specialist_date_received,
-
-							$printed_by,
-							$printed_date,
-							$transacted_by,							
-							$transacted_date,
-							$closed_by,
-							$closed_date,
-							$orderRow->comments,
-							$orderRow->diagnose_comments
-						);
-					}
-
-					$headings = array(
-						'RETURN STATUS',
-						'DIAGNOSE',
-						'CREATED DATE',
-						'RETURN REFERENCE#',
-						'PURCHASE LOCATION',
-						'CUSTOMER LAST NAME',
-						'CUSTOMER FIRST NAME',
-						'ADDRESS',
-						'EMAIL ADDRESS',
-						'CONTACT#',
-						'ORDER#',
-						'PURCHASE DATE',
-						'ORIGINAL MODE OF PAYMENT',
-						'BANK NAME',    //yellow
-						'BANK ACCOUNT#',      //red
-						'BANK ACCOUNT NAME',         //red
-						'ITEMS INCLUDED',         //red
-						'ITEMS INCLUDED OTHERS',//green
-						'VERIFIED ITEMS INCLUDED',         //red
-						'VERIFIED ITEMS INCLUDED OTHERS',//green
-						'CUSTOMER LOCATION',               //green
-						'DELIVER TO',               //green
-						'PICKUP SCHEDULE',               //green
-						'REFUNDED DATE',               //green
-						'DATE ADJUSTED',               //green
-						'STOCK ADJUSTED REF#',               //green
-						'SOR#',               //green
-						'DIGITS CODE',                 //green
-						'UPC CODE',      //blue
-						'ITEM DESCRIPTION',               //blue
-						'COST',                 //bue
-						'BRAND',              //blue  //additional code 20200121
-                        'SERIAL#',                //bue   //additional code 20200121
-						'PROBLEM DETAILS',       //additional code 20200207
-						'PROBLEM DETAILS OTHERS',       //additional code 20200207
-						'QUANTITY',           //blue  //additional code 20200205
-						//'WARRANTY STATUS',
-						//'SHIP BACK STATUS',           //blue  //additional code 20200205
-						//'CLAIMED STATUS',           //blue  //additional code 20200205
-						//'CREDIT MEMO#',           //blue  //additional code 20200205
-						'VERIFIED BY',           //blue  //additional code 20200205
-						'VERIFIED DATE',           //blue  //additional code 20200205
-						'SCHEDULED BY',           //blue  //additional code 20200205
-						'SCHEDULED DATE',           //blue  //additional code 20200205
-						'RECEIVED BY',
-						'RECEIVED DATE',
-						'TURNOVER BY',
-						'TURNOVER DATE',
-						'DIAGNOSED BY',           //blue  //additional code 20200205
-						'DIAGNOSED DATE',           //blue  //additional code 20200205
-						'PROCESSED BY',           //blue  //additional code 20200205
-						'PROCESSED DATE',  
-						'PRINTED BY',           //blue  //additional code 20200205
-						'PRINTED DATE',           //blue  //additional code 20200205
-						'SOR BY',           //blue  //additional code 20200205
-						'SOR DATE',           //blue  //additional code 20200205
-						'CLOSED BY',           //blue  //additional code 20200205
-						'CLOSED DATE',           //blue  //additional code 20200205
-						'COMMENTS',
-						'DIAGNOSED COMMENTS'
-					);
-					}else if(CRUDBooster::myPrivilegeName() == "SDM"){
-						$orderData = DB::table('returns_header_distribution')
-						->leftjoin('warranty_statuses', 'returns_header_distribution.returns_status_1','=', 'warranty_statuses.id')
-						->leftjoin('cms_users as verified', 'returns_header_distribution.level7_personnel','=', 'verified.id')
-						->leftjoin('cms_users as scheduled_logistics', 'returns_header_distribution.level1_personnel','=', 'scheduled_logistics.id')		
-						->leftjoin('cms_users as diagnosed', 'returns_header_distribution.level2_personnel','=', 'diagnosed.id')				
-						->leftjoin('cms_users as printed', 'returns_header_distribution.level3_personnel','=', 'printed.id')																	
-						->leftjoin('cms_users as transacted', 'returns_header_distribution.level4_personnel','=', 'transacted.id')
-						->leftjoin('cms_users as received', 'returns_header_distribution.level6_personnel','=', 'received.id')
-						->leftjoin('cms_users as received1', 'returns_header_distribution.received_by_rma_sc','=', 'received1.id')
-						->leftjoin('cms_users as turnover', 'returns_header_distribution.rma_receiver_id','=', 'turnover.id')
-						->leftjoin('cms_users as specialist', 'returns_header_distribution.rma_specialist_id','=', 'specialist.id')
-						->leftjoin('cms_users as closed', 'returns_header_distribution.level5_personnel','=', 'closed.id')	
-						->leftJoin('returns_body_item_distribution', 'returns_header_distribution.id', '=', 'returns_body_item_distribution.returns_header_id')
-						->select(   'returns_header_distribution.*', 
-									'returns_body_item_distribution.*', 
-									'returns_body_item_distribution.id as body_id', 
-									'verified.name as verified_by',	
-									'scheduled_logistics.name as scheduled_logistics_by',
-									'diagnosed.name as diagnosed_by',
-									'printed.name as printed_by',	
-									'transacted.name as transacted_by',	
-									'received.name as received_by',
-									'received1.name as received_by1',
-									'turnover.name as turnover_by',
-									'specialist.name as specialist_by',
-									'closed.name as closed_by',
-									'warranty_statuses.*'
-						)->whereNotNull('returns_body_item_distribution.category')->where('transaction_type','!=', 2)->where('diagnose', "REPLACE")->wherenotnull('level6_personnel');	
-						
-						
-												if(\Request::get('filter_column')) {
-
-						$filter_column = \Request::get('filter_column');
-
-						$orderData->where(function($w) use ($filter_column,$fc) {
-							foreach($filter_column as $key=>$fc) {
-
-								$value = @$fc['value'];
-								$type  = @$fc['type'];
-
-								if($type == 'empty') {
-									$w->whereNull($key)->orWhere($key,'');
-									continue;
-								}
-
-								if($value=='' || $type=='') continue;
-
-								if($type == 'between') continue;
-
-								switch($type) {
-									default:
-										if($key && $type && $value) $w->where($key,$type,$value);
-									break;
-									case 'like':
-									case 'not like':
-										$value = '%'.$value.'%';
-										if($key && $type && $value) $w->where($key,$type,$value);
-									break;
-									case 'in':
-									case 'not in':
-										if($value) {
-											$value = explode(',',$value);
-											if($key && $value) $w->whereIn($key,$value);
-										}
-									break;
-								}
-							}
-						});
-
-						foreach($filter_column as $key=>$fc) {
-							$value = @$fc['value'];
-							$type  = @$fc['type'];
-							$sorting = @$fc['sorting'];
-
-							if($sorting!='') {
-								if($key) {
-									$orderData->orderby($key,$sorting);
-									$filter_is_orderby = true;
-								}
-							}
-
-							if ($type=='between') {
-								if($key && $value) $orderData->whereBetween($key,$value);
-							}
-
-							else {
-								continue;
-							}
-						}
-					}
-
-					$ordeDataLines = $orderData->orderBy('returns_header_distribution.id','asc')->get();
-					$blank_field = '';
-					$store_inv = '';
-					$counter=0;
-					$final_count = count((array)$ordeDataLines) + 1;
-					foreach ($ordeDataLines as $orderRow) {
-					    $counter++;
-						/*$item = Item::where('digits_code', $orderRow->digits_code)->first();
-						$itemBrand = Brand::where('id', $item->brand_id)->first();
-						$itemStoreCategory = StoreCategory::where('id', $item->store_category_id)->first();
-					    $itemCategory = Category::where('id', $item->category_id)->first();
-						$itemWHCategory = WarehouseCategory::where('id', $item->warehouse_category_id)->first();
-						*/
-
-			
-						$serial_no = ReturnsSerialsDISTRI::where('returns_body_item_id', $orderRow->body_id)->first();
-						
-						
-						if($orderRow->transaction_type == 3 ){
-						    
-
-    							
-    							$scheduled_by =  "";
-    							$scheduled_date = "";
-    							$verified = $orderRow->verified_by;
-                                $verified_date = $orderRow->level7_personnel_edited;
-                                
-                                
-                            if($orderRow->diagnose == "REFUND"){
-    								$printed_by = $orderRow->printed_by;
-    								$printed_date = $orderRow->level3_personnel_edited;
-    								$transacted_by = $orderRow->transacted_by;
-    								$transacted_date = $orderRow->level4_personnel_edited;
-    								$closed_by = $orderRow->closed_by;
-    								$closed_date = $orderRow->level5_personnel_edited;
-    						}elseif($orderRow->diagnose == "REPLACE"){
-    							$printed_by = "";
-    							$printed_date = "";
-    							$transacted_by = $orderRow->printed_by;
-    							$transacted_date = $orderRow->level3_personnel_edited;
-    							$closed_by = $orderRow->transacted_by;
-    							$closed_date = $orderRow->level4_personnel_edited;
-    						}else{
-    							$printed_by = $orderRow->printed_by;
-    							$printed_date = $orderRow->level3_personnel_edited;
-    							$transacted_by = "";
-    							$transacted_date = "";
-    							$closed_by = $orderRow->transacted_by;
-    							$closed_date = $orderRow->level4_personnel_edited;	
-    						}
-                                
-                                
-						}else{
-						    
-						    $verified = $orderRow->verified_by;
-						    $verified_date = $orderRow->level7_personnel_edited;
-						    
-                            $scheduled_by = $orderRow->scheduled_logistics_by;
-                            $scheduled_date = $orderRow->level1_personnel_edited;
-    						if($orderRow->diagnose == "REFUND"){
-    								$printed_by = $orderRow->printed_by;
-    								$printed_date = $orderRow->level3_personnel_edited;
-    								$transacted_by = $orderRow->transacted_by;
-    								$transacted_date = $orderRow->level4_personnel_edited;
-    								$closed_by = $orderRow->closed_by;
-    								$closed_date = $orderRow->level5_personnel_edited;
-    						}elseif($orderRow->diagnose == "REPLACE"){
-    							$printed_by = "";
-    							$printed_date = "";
-    							$transacted_by = $orderRow->printed_by;
-    							$transacted_date = $orderRow->level3_personnel_edited;
-    							$closed_by = $orderRow->transacted_by;
-    							$closed_date = $orderRow->level4_personnel_edited;
-    						}else{
-    							$printed_by = $orderRow->printed_by;
-    							$printed_date = $orderRow->level3_personnel_edited;
-    							$transacted_by = "";
-    							$transacted_date = "";
-    							$closed_by = $orderRow->transacted_by;
-    							$closed_date = $orderRow->level4_personnel_edited;	
-    						}
-						}
-						
-			
-						$orderItems[] = array(
-							//is_null($orderRow->approved_at) ? "" : Carbon::parse($orderRow->approved_at)->toDateString(),	//'APPROVED DATE',
-							//is_null($orderRow->approved_at) ? "" : Carbon::parse($orderRow->approved_at)->toTimeString(), //'APPROVED TIME',
-							$orderRow->warranty_status, 		
-							$orderRow->diagnose, 	
-							$orderRow->created_at,				
-							$orderRow->return_reference_no,					
-							$orderRow->purchase_location,				
-							$orderRow->customer_last_name,		
-							$orderRow->customer_first_name,	
-							$orderRow->address,		            
-							$orderRow->email_address,      
-							$orderRow->contact_no,    
-							$orderRow->order_no,		
-							$orderRow->purchase_date,			
-							$orderRow->mode_of_payment,		
-							$orderRow->bank_name,                  
-							$orderRow->bank_account_no,                   
-							$orderRow->bank_account_name,		
-							$orderRow->items_included,                      
-							$orderRow->items_included_others, 
-							$orderRow->verified_items_included,                      
-							$orderRow->verified_items_included_others, 
-							$orderRow->customer_location,  
-							$orderRow->deliver_to,                 
-				 			$orderRow->return_schedule,                      
-							$orderRow->refunded_date,  
-							$orderRow->date_adjusted,
-							$orderRow->stock_adj_ref_no,
-							$orderRow->sor_number,      
-				 			$orderRow->digits_code,               
-				 			$orderRow->upc_code,                 
-				 			$orderRow->item_description,            
-				 			$orderRow->cost,          
-							$orderRow->brand,
-							$serial_no->serial_number,
-							$orderRow->problem_details,
-				 			$orderRow->problem_details_other,                
-							$orderRow->quantity,
-							$orderRow->warranty_status,
-							$orderRow->ship_back_status,
-							$orderRow->claimed_status,
-							$orderRow->credit_memo_number,
-							$verified,
-							$verified_date,
-							$scheduled_by,
-							$scheduled_date,
-							$orderRow->turnover_by,
-							$orderRow->rma_receiver_date_received,
-							$orderRow->received_by1,
-							$orderRow->received_at_rma_sc,
-
-							$orderRow->diagnosed_by,
-							$orderRow->level2_personnel_edited,
-							$orderRow->specialist_by,
-							$orderRow->rma_specialist_date_received,
-
-							$printed_by,
-							$printed_date,
-							$transacted_by,							
-							$transacted_date,
-							$closed_by,
-							$closed_date,
-							$orderRow->comments,
-							$orderRow->diagnose_comments
-						);
-					}
-
-					$headings = array(
-						'RETURN STATUS',
-						'DIAGNOSE',
-						'CREATED DATE',
-						'RETURN REFERENCE#',
-						'PURCHASE LOCATION',
-						'CUSTOMER LAST NAME',
-						'CUSTOMER FIRST NAME',
-						'ADDRESS',
-						'EMAIL ADDRESS',
-						'CONTACT#',
-						'ORDER#',
-						'PURCHASE DATE',
-						'ORIGINAL MODE OF PAYMENT',
-						'BANK NAME',    //yellow
-						'BANK ACCOUNT#',      //red
-						'BANK ACCOUNT NAME',         //red
-						'ITEMS INCLUDED',         //red
-						'ITEMS INCLUDED OTHERS',//green
-						'VERIFIED ITEMS INCLUDED',         //red
-						'VERIFIED ITEMS INCLUDED OTHERS',//green
-						'CUSTOMER LOCATION',               //green
-						'DELIVER TO',               //green
-						'PICKUP SCHEDULE',               //green
-						'REFUNDED DATE',               //green
-						'DATE ADJUSTED',               //green
-						'STOCK ADJUSTED REF#',               //green
-						'SOR#',               //green
-						'DIGITS CODE',                 //green
-						'UPC CODE',      //blue
-						'ITEM DESCRIPTION',               //blue
-						'COST',                 //bue
-						'BRAND',              //blue  //additional code 20200121
-                        'SERIAL#',                //bue   //additional code 20200121
-						'PROBLEM DETAILS',       //additional code 20200207
-						'PROBLEM DETAILS OTHERS',       //additional code 20200207
-						'QUANTITY',           //blue  //additional code 20200205
-						'WARRANTY STATUS',
-						'SHIP BACK STATUS',           //blue  //additional code 20200205
-						'CLAIMED STATUS',           //blue  //additional code 20200205
-						'CREDIT MEMO#',           //blue  //additional code 20200205
-						'VERIFIED BY',           //blue  //additional code 20200205
-						'VERIFIED DATE',           //blue  //additional code 20200205
-						'SCHEDULED BY',           //blue  //additional code 20200205
-						'SCHEDULED DATE',           //blue  //additional code 20200205
-						'RECEIVED BY',
-						'RECEIVED DATE',
-						'TURNOVER BY',
-						'TURNOVER DATE',
-						'DIAGNOSED BY',           //blue  //additional code 20200205
-						'DIAGNOSED DATE',           //blue  //additional code 20200205
-						'PROCESSED BY',           //blue  //additional code 20200205
-						'PROCESSED DATE',  
-						'PRINTED BY',           //blue  //additional code 20200205
-						'PRINTED DATE',           //blue  //additional code 20200205
-						'SOR BY',           //blue  //additional code 20200205
-						'SOR DATE',           //blue  //additional code 20200205
-						'CLOSED BY',           //blue  //additional code 20200205
-						'CLOSED DATE',           //blue  //additional code 20200205
-						'COMMENTS',
-						'DIAGNOSED COMMENTS'
-					);
-					}else{
-						$orderData = DB::table('returns_header_distribution')
-						->leftjoin('warranty_statuses', 'returns_header_distribution.returns_status_1','=', 'warranty_statuses.id')
-						->leftjoin('cms_users as verified', 'returns_header_distribution.level7_personnel','=', 'verified.id')
-						->leftjoin('cms_users as scheduled_logistics', 'returns_header_distribution.level1_personnel','=', 'scheduled_logistics.id')		
-						->leftjoin('cms_users as diagnosed', 'returns_header_distribution.level2_personnel','=', 'diagnosed.id')				
-						->leftjoin('cms_users as printed', 'returns_header_distribution.level3_personnel','=', 'printed.id')																	
-						->leftjoin('cms_users as transacted', 'returns_header_distribution.level4_personnel','=', 'transacted.id')
-						->leftjoin('cms_users as received', 'returns_header_distribution.level6_personnel','=', 'received.id')
-						->leftjoin('cms_users as received1', 'returns_header_distribution.received_by_rma_sc','=', 'received1.id')
-						->leftjoin('cms_users as turnover', 'returns_header_distribution.rma_receiver_id','=', 'turnover.id')
-						->leftjoin('cms_users as specialist', 'returns_header_distribution.rma_specialist_id','=', 'specialist.id')
-						->leftjoin('cms_users as closed', 'returns_header_distribution.level5_personnel','=', 'closed.id')	
-						->leftJoin('returns_body_item_distribution', 'returns_header_distribution.id', '=', 'returns_body_item_distribution.returns_header_id')
-						->select(   'returns_header_distribution.*', 
-									'returns_body_item_distribution.*', 
-									'returns_body_item_distribution.id as body_id', 
-									'verified.name as verified_by',	
-									'scheduled_logistics.name as scheduled_logistics_by',
-									'diagnosed.name as diagnosed_by',
-									'printed.name as printed_by',	
-									'transacted.name as transacted_by',	
-									'received.name as received_by',
-									'received1.name as received_by1',
-									'turnover.name as turnover_by',
-									'specialist.name as specialist_by',
-									'closed.name as closed_by',
-									'warranty_statuses.*'
-						)->whereNotNull('returns_body_item_distribution.category');
-						
-						
-						
-						
-												if(\Request::get('filter_column')) {
-
-						$filter_column = \Request::get('filter_column');
-
-						$orderData->where(function($w) use ($filter_column,$fc) {
-							foreach($filter_column as $key=>$fc) {
-
-								$value = @$fc['value'];
-								$type  = @$fc['type'];
-
-								if($type == 'empty') {
-									$w->whereNull($key)->orWhere($key,'');
-									continue;
-								}
-
-								if($value=='' || $type=='') continue;
-
-								if($type == 'between') continue;
-
-								switch($type) {
-									default:
-										if($key && $type && $value) $w->where($key,$type,$value);
-									break;
-									case 'like':
-									case 'not like':
-										$value = '%'.$value.'%';
-										if($key && $type && $value) $w->where($key,$type,$value);
-									break;
-									case 'in':
-									case 'not in':
-										if($value) {
-											$value = explode(',',$value);
-											if($key && $value) $w->whereIn($key,$value);
-										}
-									break;
-								}
-							}
-						});
-
-						foreach($filter_column as $key=>$fc) {
-							$value = @$fc['value'];
-							$type  = @$fc['type'];
-							$sorting = @$fc['sorting'];
-
-							if($sorting!='') {
-								if($key) {
-									$orderData->orderby($key,$sorting);
-									$filter_is_orderby = true;
-								}
-							}
-
-							if ($type=='between') {
-								if($key && $value) $orderData->whereBetween($key,$value);
-							}
-
-							else {
-								continue;
-							}
-						}
-					}
-
-					$ordeDataLines = $orderData->orderBy('returns_header_distribution.id','asc')->get();
-					$blank_field = '';
-					$store_inv = '';
-					$counter=0;
-					$final_count = count((array)$ordeDataLines) + 1;
-					foreach ($ordeDataLines as $orderRow) {
-					    $counter++;
-						/*$item = Item::where('digits_code', $orderRow->digits_code)->first();
-						$itemBrand = Brand::where('id', $item->brand_id)->first();
-						$itemStoreCategory = StoreCategory::where('id', $item->store_category_id)->first();
-					    $itemCategory = Category::where('id', $item->category_id)->first();
-						$itemWHCategory = WarehouseCategory::where('id', $item->warehouse_category_id)->first();
-						*/
-
-			
-						$serial_no = ReturnsSerialsDISTRI::where('returns_body_item_id', $orderRow->body_id)->first();
-						
-						
-						if($orderRow->transaction_type == 3 ){
-						    
-
-    							
-    							$scheduled_by =  "";
-    							$scheduled_date = "";
-    							$verified = $orderRow->verified_by;
-                                $verified_date = $orderRow->level7_personnel_edited;
-                                
-                                
-                            if($orderRow->diagnose == "REFUND"){
-    								$printed_by = $orderRow->printed_by;
-    								$printed_date = $orderRow->level3_personnel_edited;
-    								$transacted_by = $orderRow->transacted_by;
-    								$transacted_date = $orderRow->level4_personnel_edited;
-    								$closed_by = $orderRow->closed_by;
-    								$closed_date = $orderRow->level5_personnel_edited;
-    						}elseif($orderRow->diagnose == "REPLACE"){
-    							$printed_by = "";
-    							$printed_date = "";
-    							$transacted_by = $orderRow->printed_by;
-    							$transacted_date = $orderRow->level3_personnel_edited;
-    							$closed_by = $orderRow->transacted_by;
-    							$closed_date = $orderRow->level4_personnel_edited;
-    						}else{
-    							$printed_by = $orderRow->printed_by;
-    							$printed_date = $orderRow->level3_personnel_edited;
-    							$transacted_by = "";
-    							$transacted_date = "";
-    							$closed_by = $orderRow->transacted_by;
-    							$closed_date = $orderRow->level4_personnel_edited;	
-    						}
-                                
-                                
-						}else{
-						    
-						    $verified = $orderRow->verified_by;
-						    $verified_date = $orderRow->level7_personnel_edited;
-						    
-                            $scheduled_by = $orderRow->scheduled_logistics_by;
-                            $scheduled_date = $orderRow->level1_personnel_edited;
-    						if($orderRow->diagnose == "REFUND"){
-    								$printed_by = $orderRow->printed_by;
-    								$printed_date = $orderRow->level3_personnel_edited;
-    								$transacted_by = $orderRow->transacted_by;
-    								$transacted_date = $orderRow->level4_personnel_edited;
-    								$closed_by = $orderRow->closed_by;
-    								$closed_date = $orderRow->level5_personnel_edited;
-    						}elseif($orderRow->diagnose == "REPLACE"){
-    							$printed_by = "";
-    							$printed_date = "";
-    							$transacted_by = $orderRow->printed_by;
-    							$transacted_date = $orderRow->level3_personnel_edited;
-    							$closed_by = $orderRow->transacted_by;
-    							$closed_date = $orderRow->level4_personnel_edited;
-    						}else{
-    							$printed_by = $orderRow->printed_by;
-    							$printed_date = $orderRow->level3_personnel_edited;
-    							$transacted_by = "";
-    							$transacted_date = "";
-    							$closed_by = $orderRow->transacted_by;
-    							$closed_date = $orderRow->level4_personnel_edited;	
-    						}
-						}
-						
-			
-						$orderItems[] = array(
-							//is_null($orderRow->approved_at) ? "" : Carbon::parse($orderRow->approved_at)->toDateString(),	//'APPROVED DATE',
-							//is_null($orderRow->approved_at) ? "" : Carbon::parse($orderRow->approved_at)->toTimeString(), //'APPROVED TIME',
-							$orderRow->warranty_status, 		
-							$orderRow->diagnose, 	
-							$orderRow->created_at,				
-							$orderRow->return_reference_no,					
-							$orderRow->purchase_location,				
-							$orderRow->customer_last_name,		
-							$orderRow->customer_first_name,	
-							$orderRow->address,		            
-							$orderRow->email_address,      
-							$orderRow->contact_no,    
-							$orderRow->order_no,		
-							$orderRow->purchase_date,			
-							$orderRow->mode_of_payment,		
-							$orderRow->bank_name,                  
-							$orderRow->bank_account_no,                   
-							$orderRow->bank_account_name,		
-							$orderRow->items_included,                      
-							$orderRow->items_included_others, 
-							$orderRow->verified_items_included,                      
-							$orderRow->verified_items_included_others, 
-							$orderRow->customer_location,  
-							$orderRow->deliver_to,                 
-				 			$orderRow->return_schedule,                      
-							$orderRow->refunded_date,  
-							$orderRow->date_adjusted,
-							$orderRow->stock_adj_ref_no,
-							$orderRow->sor_number,      
-				 			$orderRow->digits_code,               
-				 			$orderRow->upc_code,                 
-				 			$orderRow->item_description,            
-				 			$orderRow->cost,          
-							$orderRow->brand,
-							$serial_no->serial_number,
-							$orderRow->problem_details,
-				 			$orderRow->problem_details_other,                
-							$orderRow->quantity,
-							$orderRow->warranty_status,
-							$orderRow->ship_back_status,
-							$orderRow->claimed_status,
-							$orderRow->credit_memo_number,
-							$verified,
-							$verified_date,
-							$scheduled_by,
-							$scheduled_date,
-							$orderRow->turnover_by,
-							$orderRow->rma_receiver_date_received,
-							$orderRow->received_by1,
-							$orderRow->received_at_rma_sc,
-
-							$orderRow->diagnosed_by,
-							$orderRow->level2_personnel_edited,
-							$orderRow->specialist_by,
-							$orderRow->rma_specialist_date_received,
-
-							$printed_by,
-							$printed_date,
-							$transacted_by,							
-							$transacted_date,
-							$closed_by,
-							$closed_date,
-							$orderRow->comments,
-							$orderRow->diagnose_comments
-						);
-					}
-
-					$headings = array(
-						'RETURN STATUS',
-						'DIAGNOSE',
-						'CREATED DATE',
-						'RETURN REFERENCE#',
-						'PURCHASE LOCATION',
-						'CUSTOMER LAST NAME',
-						'CUSTOMER FIRST NAME',
-						'ADDRESS',
-						'EMAIL ADDRESS',
-						'CONTACT#',
-						'ORDER#',
-						'PURCHASE DATE',
-						'ORIGINAL MODE OF PAYMENT',
-						'BANK NAME',    //yellow
-						'BANK ACCOUNT#',      //red
-						'BANK ACCOUNT NAME',         //red
-						'ITEMS INCLUDED',         //red
-						'ITEMS INCLUDED OTHERS',//green
-						'VERIFIED ITEMS INCLUDED',         //red
-						'VERIFIED ITEMS INCLUDED OTHERS',//green
-						'CUSTOMER LOCATION',               //green
-						'DELIVER TO',               //green
-						'PICKUP SCHEDULE',               //green
-						'REFUNDED DATE',               //green
-						'DATE ADJUSTED',               //green
-						'STOCK ADJUSTED REF#',               //green
-						'SOR#',               //green
-						'DIGITS CODE',                 //green
-						'UPC CODE',      //blue
-						'ITEM DESCRIPTION',               //blue
-						'COST',                 //bue
-						'BRAND',              //blue  //additional code 20200121
-                        'SERIAL#',                //bue   //additional code 20200121
-						'PROBLEM DETAILS',       //additional code 20200207
-						'PROBLEM DETAILS OTHERS',       //additional code 20200207
-						'QUANTITY',           //blue  //additional code 20200205
-						'WARRANTY STATUS',
-						'SHIP BACK STATUS',           //blue  //additional code 20200205
-						'CLAIMED STATUS',           //blue  //additional code 20200205
-						'CREDIT MEMO#',           //blue  //additional code 20200205
-						'VERIFIED BY',           //blue  //additional code 20200205
-						'VERIFIED DATE',           //blue  //additional code 20200205
-						'SCHEDULED BY',           //blue  //additional code 20200205
-						'SCHEDULED DATE',           //blue  //additional code 20200205
-						'RECEIVED BY',
-						'RECEIVED DATE',
-						'TURNOVER BY',
-						'TURNOVER DATE',
-						'DIAGNOSED BY',           //blue  //additional code 20200205
-						'DIAGNOSED DATE',           //blue  //additional code 20200205
-						'PROCESSED BY',           //blue  //additional code 20200205
-						'PROCESSED DATE',  
-						'PRINTED BY',           //blue  //additional code 20200205
-						'PRINTED DATE',           //blue  //additional code 20200205
-						'SOR BY',           //blue  //additional code 20200205
-						'SOR DATE',           //blue  //additional code 20200205
-						'CLOSED BY',           //blue  //additional code 20200205
-						'CLOSED DATE',           //blue  //additional code 20200205
-						'COMMENTS',
-						'DIAGNOSED COMMENTS'
-					);
-					}
-
-
-					
-
-
-
-					$sheet->fromArray($orderItems, null, 'A1', false, false);
-					$sheet->prependRow(1, $headings);
-
-                             
-                    $sheet->getStyle('A1:BA1')->applyFromArray(array(
-                        'fill' => array(
-                            'type'  => PHPExcel_Style_Fill::FILL_SOLID,
-                            'color' => array('rgb' => '8DB4E2') //141,180,226->8DB4E2
-                        )
-                    ));
-                    $sheet->cells('A1:BA1'.$final_count, function($cells) {
-                    	$cells->setAlignment('left');
-                    	
-                    });
- 
-				});
-			})->export('xlsx');
-
-		}
-
+		
 
 		public function ReturnsHistoryEdit($id)
 		{
@@ -4147,242 +1069,1703 @@ use App\StoresFrontEnd;
 			
 		}
 
+		public function exportReturnHistoryDISTRI()
+		{
+			$filename = 'Returns - ' . date("d M Y - h.i.sa");
+			$orderData = self::getQueryData();
 
-		public function GetExtractReturnsDISTRISC() {
+			if (CRUDBooster::myPrivilegeName() == "Retail Ops") {
 
-            $filename = 'Returns - ' . date("d M Y - h.i.sa");
-			$sheetname = 'Returns'.date("d-M-Y");
-            ini_set('memory_limit', '512M');
-			Excel::create($filename, function ($excel) {
-				$excel->sheet('orders', function ($sheet) {	
-					// Set auto size for sheet
-					
-					$sheet->setAutoSize(true);
-					$sheet->setColumnFormat(array(
-					    'J' => '@',		//for upc code
-					    'AI' => '0.00',
-					    'AJ' => '0.00',
-					    'AK' => '0.00',
-					));
+				$result = self::getRetailOpsResult($orderData);
+				$headers = self::getRetailOpsExportHeaders();
 
-					$requested = ReturnsStatus::where('id','1')->value('id');
-					//$to_receive_sor = 		ReturnsStatus::where('id','10')->value('id');
-					$to_print_return_form = ReturnsStatus::where('id','13')->value('id');
+			} elseif (CRUDBooster::myPrivilegeName() == "Distri Store Ops") {
 
-					$orderData = DB::table('returns_header_distribution')
-					->leftjoin('warranty_statuses', 'returns_header_distribution.returns_status_1','=', 'warranty_statuses.id')
-					->leftjoin('cms_users as verified', 'returns_header_distribution.level7_personnel','=', 'verified.id')
-					->leftjoin('cms_users as scheduled_logistics', 'returns_header_distribution.level1_personnel','=', 'scheduled_logistics.id')		
-					->leftjoin('cms_users as diagnosed', 'returns_header_distribution.level2_personnel','=', 'diagnosed.id')				
-					->leftjoin('cms_users as printed', 'returns_header_distribution.level3_personnel','=', 'printed.id')																	
-					->leftjoin('cms_users as transacted', 'returns_header_distribution.level4_personnel','=', 'transacted.id')
-					->leftjoin('cms_users as received', 'returns_header_distribution.level6_personnel','=', 'received.id')
-					->leftjoin('cms_users as closed', 'returns_header_distribution.level5_personnel','=', 'closed.id')	
-					->leftJoin('returns_body_item_distribution', 'returns_header_distribution.id', '=', 'returns_body_item_distribution.returns_header_id')
-					->select( 	'returns_header_distribution.*', 
-								'returns_body_item_distribution.*', 
-								'returns_body_item_distribution.id as body_id', 
-								'verified.name as verified_by',	
-								'scheduled_logistics.name as scheduled_logistics_by',
-								'diagnosed.name as diagnosed_by',
-								'printed.name as printed_by',	
-								'transacted.name as transacted_by',	
-								'received.name as received_by',
-								'closed.name as closed_by',
-								'warranty_statuses.*'
-								)->whereNull('returns_body_item_distribution.category')->where('transaction_type', 1)->where('returns_status_1','!=',$requested)->where('returns_status_1','!=',$to_print_return_form)->whereNotNull('diagnose');
-					
+				$result = self::getDistriStoreOpsResult($orderData);
+				$headers = self::getDistriStoreOpsExportHeaders();
 
-						if(\Request::get('filter_column')) {
+			} elseif (CRUDBooster::myPrivilegeName() == "Logistics") {
 
-						$filter_column = \Request::get('filter_column');
+				$result = self::getLogisticsResult($orderData);
+				$headers = self::getLogisticsExportHeaders();
 
-						$orderData->where(function($w) use ($filter_column,$fc) {
-							foreach($filter_column as $key=>$fc) {
+			}  elseif (in_array(CRUDBooster::myPrivilegeName(), ['RMA Inbound', 'Tech Lead', 'RMA Technician', 'RMA Specialist'])) {
 
-								$value = @$fc['value'];
-								$type  = @$fc['type'];
+				$result = self::getRMAResult($orderData);
+				$headers = self::getRMAExportHeaders();
 
-								if($type == 'empty') {
-									$w->whereNull($key)->orWhere($key,'');
-									continue;
-								}
+			} elseif (CRUDBooster::myPrivilegeName() == "Service Center") {
 
-								if($value=='' || $type=='') continue;
+				$result = self::getServiceCenterResult($orderData);
+				$headers = self::getServiceCenterExportHeaders();
 
-								if($type == 'between') continue;
+			} elseif (CRUDBooster::myPrivilegeName() == "Accounting") {
 
-								switch($type) {
-									default:
-										if($key && $type && $value) $w->where($key,$type,$value);
-									break;
-									case 'like':
-									case 'not like':
-										$value = '%'.$value.'%';
-										if($key && $type && $value) $w->where($key,$type,$value);
-									break;
-									case 'in':
-									case 'not in':
-										if($value) {
-											$value = explode(',',$value);
-											if($key && $value) $w->whereIn($key,$value);
-										}
-									break;
-								}
-							}
-						});
+				$result = self::getAccountingResult($orderData);
+				$headers = self::getAccountingExportHeaders();
 
-						foreach($filter_column as $key=>$fc) {
-							$value = @$fc['value'];
-							$type  = @$fc['type'];
-							$sorting = @$fc['sorting'];
+			} elseif (CRUDBooster::myPrivilegeName() == "Inventory Control") {
 
-							if($sorting!='') {
-								if($key) {
-									$orderData->orderby($key,$sorting);
-									$filter_is_orderby = true;
-								}
-							}
+				$result = self::getInventoryControlResult($orderData);
+				$headers = self::getInventoryControlExportHeaders();
 
-							if ($type=='between') {
-								if($key && $value) $orderData->whereBetween($key,$value);
-							}
+			} elseif (CRUDBooster::myPrivilegeName() == "Aftersales (Ops)") {
 
-							else {
-								continue;
-							}
-						}
-					}
+				$result = self::getAfterSalesOpsResult($orderData);
+				$headers = self::getAfterSalesOpsExportHeaders();
+			} elseif (CRUDBooster::myPrivilegeName() == "SDM") {
 
-					$ordeDataLines = $orderData->orderBy('returns_header_distribution.id','asc')->get();
-					$blank_field = '';
-					$store_inv = '';
-					$counter=0;
-					$final_count = count((array)$ordeDataLines) + 1;
-					foreach ($ordeDataLines as $orderRow) {
-					    $counter++;
-						/*$item = Item::where('digits_code', $orderRow->digits_code)->first();
-						$itemBrand = Brand::where('id', $item->brand_id)->first();
-						$itemStoreCategory = StoreCategory::where('id', $item->store_category_id)->first();
-					    $itemCategory = Category::where('id', $item->category_id)->first();
-						$itemWHCategory = WarehouseCategory::where('id', $item->warehouse_category_id)->first();
-						*/
+				$result = self::getSDMData($orderData);
+				$headers = self::getSDMExportHeaders();
+			} else {
+				
+				$result = self::getOthersResult($orderData);
+				$headers = self::getOthersExportHeaders();
+			}
 
 			
-						$serial_no = ReturnsSerialsDISTRI::where('returns_body_item_id', $orderRow->body_id)->first();
-						
-						if($orderRow->diagnose == "REFUND"){
-							//$transacted_personnel = $orderRow->transacted_by;
-							//$transacted_date = 		$orderRow->level5_personnel_edited;
-							$closed_personnel = 	$orderRow->verified_by;
-							$closed_date = 			$orderRow->level1_personnel_edited;
-						}else{
-							//$transacted_personnel = "";
-							//$transacted_date = "";
-							//$closed_personnel = $orderRow->scheduled_by;
-							//$closed_date = 		$orderRow->level2_personnel_edited;
-							$closed_personnel = 	$orderRow->verified_by;
-							$closed_date = 			$orderRow->level1_personnel_edited;
-						}
-						
-					
-						
-						$orderItems[] = array(
-							//is_null($orderRow->approved_at) ? "" : Carbon::parse($orderRow->approved_at)->toDateString(),	//'APPROVED DATE',
-							//is_null($orderRow->approved_at) ? "" : Carbon::parse($orderRow->approved_at)->toTimeString(), //'APPROVED TIME',
-							$orderRow->warranty_status, 		
-							$orderRow->diagnose, 	
-							$orderRow->created_at,				
-							$orderRow->return_reference_no,					
-							$orderRow->purchase_location,				
-							$orderRow->customer_last_name,		
-							$orderRow->customer_first_name,	
-							$orderRow->address,		            
-							$orderRow->email_address,      
-							$orderRow->contact_no,    
-							$orderRow->order_no,		
-							$orderRow->purchase_date,			
-							$orderRow->mode_of_payment,		
-							$orderRow->mode_of_refund,	
-							$orderRow->bank_name,                  
-							$orderRow->bank_account_no,                   
-							$orderRow->bank_account_name,		
-							$orderRow->items_included,                      
-							$orderRow->items_included_others, 
-							$orderRow->verified_items_included,                      
-							$orderRow->verified_items_included_others, 
-							$orderRow->customer_location,  
-				 			$orderRow->digits_code,               
-				 			$orderRow->upc_code,                 
-				 			$orderRow->item_description,            
-				 			$orderRow->cost,          
-							$orderRow->brand,
-							$serial_no->serial_number,
-							$orderRow->problem_details,
-				 			$orderRow->problem_details_other,                
-							$orderRow->quantity,
-							$closed_personnel,
-							$closed_date,
-							$orderRow->diagnose_comments
-						);
-					}
+			$finalData = self::filterFinalData($result);
 
-					$headings = array(
-						'RETURN STATUS',
-						'DIAGNOSE',
-						'CREATED DATE',
-						'RETURN REFERENCE#',
-						'PURCHASE LOCATION',
-						'CUSTOMER LAST NAME',
-						'CUSTOMER FIRST NAME',
-						'ADDRESS',
-						'EMAIL ADDRESS',
-						'CONTACT#',
-						'ORDER#',
-						'PURCHASE DATE',
-						'ORIGINAL MODE OF PAYMENT',
-						'MODE OF REFUND',
-						'BANK NAME',    //yellow
-						'BANK ACCOUNT#',      //red
-						'BANK ACCOUNT NAME',         //red
-						'ITEMS INCLUDED',         //red
-						'ITEMS INCLUDED OTHERS',//green
-						'VERIFIED ITEMS INCLUDED',         //red
-						'VERIFIED ITEMS INCLUDED OTHERS',//green
-						'CUSTOMER LOCATION',               //green
-						'DIGITS CODE',                 //green
-						'UPC CODE',      //blue
-						'ITEM DESCRIPTION',               //blue
-						'COST',                 //bue
-						'BRAND',              //blue  //additional code 20200121
-                        'SERIAL#',                //bue   //additional code 20200121
-						'PROBLEM DETAILS',       //additional code 20200207
-						'PROBLEM DETAILS OTHERS',       //additional code 20200207
-						'QUANTITY',           //blue  //additional code 20200205
-						'CLOSED BY',           //blue  //additional code 20200205
-						'CLOSED DATE',           //blue  //additional code 20200205
-						'DIAGNOSED COMMENTS'
-					);
+			$orderItems = self::processOrderData($finalData);
 
-					$sheet->fromArray($orderItems, null, 'A1', false, false);
-					$sheet->prependRow(1, $headings);
-
-                             
-                    $sheet->getStyle('A1:AH1')->applyFromArray(array(
-                        'fill' => array(
-                            'type'  => PHPExcel_Style_Fill::FILL_SOLID,
-                            'color' => array('rgb' => '8DB4E2') //141,180,226->8DB4E2
-                        )
-                    ));
-                    $sheet->cells('A1:AH1'.$final_count, function($cells) {
-                    	$cells->setAlignment('left');
-                    	
-                    });
- 
-				});
-			})->export('xlsx');
-			
+			self::exportToExcel($filename, $orderItems, $headers);
 		}
 
+		
+		private function getQueryData(){
+			$orderData = DB::table('returns_header_distribution')
+			->leftjoin('warranty_statuses', 'returns_header_distribution.returns_status_1','=', 'warranty_statuses.id')
+			->leftjoin('cms_users as verified', 'returns_header_distribution.level7_personnel','=', 'verified.id')
+			->leftjoin('cms_users as scheduled_logistics', 'returns_header_distribution.level1_personnel','=', 'scheduled_logistics.id')		
+			->leftjoin('cms_users as diagnosed', 'returns_header_distribution.level2_personnel','=', 'diagnosed.id')				
+			->leftjoin('cms_users as printed', 'returns_header_distribution.level3_personnel','=', 'printed.id')																	
+			->leftjoin('cms_users as transacted', 'returns_header_distribution.level4_personnel','=', 'transacted.id')
+			->leftjoin('cms_users as received', 'returns_header_distribution.level6_personnel','=', 'received.id')
+			->leftjoin('cms_users as received1', 'returns_header_distribution.received_by_rma_sc','=', 'received1.id')
+			->leftjoin('cms_users as turnover', 'returns_header_distribution.rma_receiver_id','=', 'turnover.id')
+			->leftjoin('cms_users as specialist', 'returns_header_distribution.rma_specialist_id','=', 'specialist.id')
+			->leftjoin('cms_users as closed', 'returns_header_distribution.level5_personnel','=', 'closed.id')	
+			->leftJoin('returns_body_item_distribution', 'returns_header_distribution.id', '=', 'returns_body_item_distribution.returns_header_id')
+			->select(   'returns_header_distribution.created_at as rhd_created_at',
+						'returns_header_distribution.*', 
+						'returns_body_item_distribution.*', 
+						'returns_body_item_distribution.id as body_id', 
+						'verified.name as verified_by',	
+						'scheduled_logistics.name as scheduled_logistics_by',
+						'diagnosed.name as diagnosed_by',
+						'printed.name as printed_by',	
+						'transacted.name as transacted_by',	
+						'received.name as received_by',
+						'received1.name as received_by1',
+						'turnover.name as turnover_by',
+						'specialist.name as specialist_by',
+						'closed.name as closed_by',
+						'warranty_statuses.*');
+
+			return $orderData;
+		}
+		
+
+		private function filterData($query){
+
+			$filter_column = \Request::get('filter_column');
+
+			$query->where(function($query) use ($filter_column) {
+
+				foreach($filter_column as $key => $fc) {
+
+					$value = @$fc['value'];
+					$type  = @$fc['type'];
+
+					if($value == '' && ($type == '' || $type == null)) continue;
+
+					if($type == 'empty') {
+						$query->whereNull($key)->orWhere($key,'');
+						continue;
+					}
+
+					if($type == 'between') {
+						$query->whereBetween($key, [$value[0], $value[1]]);
+						continue;
+					}
+
+					switch($type) {
+						case 'like':
+						case 'not like':
+							$value = '%'.$value.'%';
+							if($key && $type && $value) $query->where($key,$type,$value);
+						break;
+
+						case 'in':
+						case 'not in':
+							if($value) {
+								$value = explode(',',$value);
+								if($key && $value) $query->whereIn($key,$value);
+							}
+						break;
+
+						default:
+							if($key && $type && $value) $query->where($key,$type,$value);
+						break;
+					}
+				}
+			});
+
+			foreach($filter_column as $key=>$fc) {
+				$sorting = @$fc['sorting'];
+
+				if($sorting!='') {
+					if($key) {
+						$query->orderBy($key,$sorting);
+					}
+				}
+
+			}
+
+			return $query;
+		
+		}
+		
+		private function filterFinalData($result)
+		{
+			if (\Request::get('filter_column')) {
+				return self::filterData($result);
+			} else {
+				return $result->orderBy('returns_header_distribution.id', 'asc')->get();
+			}
+		}
+
+		private function processOrderData($finalData)
+		{
+			$orderItems = [];
+
+			$privilegeName = CRUDBooster::myPrivilegeName();
+
+			foreach ($finalData as $orderLine) {
+
+				switch($privilegeName){
+					case 'Retail Ops':
+						$orderItems[] = self::getRetailOpsData($orderLine);
+					break;
+
+					case 'Distri Store Ops':
+						$orderItems[] = self::getDistriStoreOpsData($orderLine);
+					break;
+
+					case 'Logistics':
+						$orderItems[] = self::getLogisticsData($orderLine);
+					break;
+
+					case 'RMA Inbound':
+					case 'Tech Lead':
+					case 'RRMA Technician':
+					case 'RMA Specialist':
+						$orderItems[] = self::getRMAData($orderLine);
+					break;
+
+					case 'Service Center':
+						$orderItems[] = self::getServiceCenterData($orderLine);
+					break;
+
+					case 'Accounting':
+						$orderItems[] = self::getAccountingData($orderLine);
+					break;
+
+					case 'Inventory Control':
+						$orderItems[] = self::getInventoryControlData($orderLine);
+					break;
+
+					case 'Aftersales (Ops)':
+						$orderItems[] = self::getAfterSalesOpsData($orderLine);
+					break;
+
+					case 'SDM':
+						$orderItems[] = self::getSDMData($orderLine);
+					break;
+
+					default:
+						$orderItems[] = self::getOthersData($orderLine);
+					break;
+				}
+
+				
+			}
+
+			return $orderItems;
+		}
+
+		private function exportToExcel($filename, $orderItems, $headers)
+		{
+			Excel::create($filename, function ($excel) use ($orderItems, $headers) {
+				$excel->sheet('orders', function ($sheet) use ($orderItems, $headers) {
+					$sheet->setAutoSize(true);
+					$sheet->setColumnFormat([
+						'J' => '@', // for upc code
+						'AI' => '0.00',
+						'AJ' => '0.00',
+						'AK' => '0.00',
+					]);
+
+					$sheet->fromArray($orderItems, null, 'A1', false, false);
+					$sheet->prependRow(1, $headers);
+
+				});
+			})->export('xlsx');
+		}
+
+		private function getRetailOpsResult($orderData)
+		{
+		
+			return $orderData->where('returns_status_1','!=', ReturnsStatus::REQUESTED)
+			->where('transaction_type','!=', 2)
+			->groupBy('return_reference_no')
+			->orderBy('rhd_created_at', 'desc');  
+		
+		}
+		private function getDistriStoreOpsResult($orderData)
+		{
+			$storeList = self::getStoreList();
+		
+			return $orderData->where('returns_status_1','!=', ReturnsStatus::REQUESTED)
+			->where('transaction_type','!=', 2)
+			->whereIn('returns_header_distribution.stores_id', $storeList)
+			->groupBy('return_reference_no')
+			->orderBy('rhd_created_at', 'desc');  
+		
+		}
+		private function getLogisticsResult($orderData)
+		{
+		
+			return $orderData->whereNotIn('returns_status_1',[
+				ReturnsStatus::REQUESTED,
+				ReturnsStatus::TO_SCHEDULE,
+			])
+			->where('transaction_type','!=', 2)
+			->groupBy('return_reference_no')
+			->orderBy('rhd_created_at', 'desc');  
+		
+		}
+		private function getRMAResult($orderData)
+		{
+		
+			return $orderData->where('transaction_type', 0)
+			->whereNotNull('returns_status_1')
+			->groupBy('return_reference_no')
+			->orderBy('rhd_created_at', 'desc');  
+		
+		}
+		private function getServiceCenterResult($orderData)
+		{
+			$storeList = self::getStoreList();
+
+			return $orderData->where('returns_status_1','!=', ReturnsStatus::TO_DIAGNOSE)
+			->whereIn('transaction_type',[1,3])
+			->whereNotNull('diagnose')
+			->whereIn('returns_header_distribution.stores_id', $storeList)
+			->groupBy('return_reference_no')
+			->orderBy('rhd_created_at', 'desc');  
+		
+		}
+		private function getAccountingResult($orderData)
+		{
+		
+			return $orderData->where('returns_status_1', '!=', ReturnsStatus::TO_PRINT_CRF)
+			->where('transaction_type','!=', 2)
+			->where('diagnose', "REFUND")
+			->groupBy('return_reference_no')
+			->orderBy('rhd_created_at', 'desc');  
+		
+		}
+		private function getInventoryControlResult($orderData)
+		{
+		
+			return $orderData->where('returns_status_1', ReturnsStatus::REPLACEMENT_COMPLETE)
+			->where('transaction_type','!=', 2)
+			->where('diagnose', "REPLACE")
+			->groupBy('return_reference_no')
+			->orderBy('rhd_created_at', 'desc');  
+		
+		}
+		private function getAftersalesOpsResult($orderData)
+		{
+		
+			return $orderData->where('transaction_type','!=', 2)
+			->groupBy('return_reference_no')
+			->orderBy('rhd_created_at', 'desc');  
+		
+		}
+		private function getSDMResult($orderData)
+		{
+		
+			return $orderData->where('diagnose', "REPLACE")
+			->wherenotnull('level6_personnel')
+			->where('transaction_type','!=', 2)
+			->groupBy('return_reference_no')
+			->orderBy('rhd_created_at', 'desc');  
+		
+		}
+		private function getOthersResult($orderData)
+		{
+		
+			return $orderData->whereNotNull('returns_status_1')
+			->groupBy('return_reference_no')
+			->orderBy('rhd_created_at', 'desc');  
+		
+		}
+
+		private function getRetailOpsData($orderLine){
+			$serial_no = ReturnsSerialsDISTRI::where('returns_body_item_id', $orderLine->body_id)->first();
+
+			return [
+				$orderLine->warranty_status, 		
+				$orderLine->diagnose, 	
+				$orderLine->rhd_created_at,				
+				$orderLine->return_reference_no,					
+				$orderLine->purchase_location,				
+				$orderLine->customer_last_name,		
+				$orderLine->customer_first_name,	
+				$orderLine->address,		            
+				$orderLine->email_address,      
+				$orderLine->contact_no,    
+				$orderLine->order_no,		
+				$orderLine->purchase_date,			
+				$orderLine->mode_of_payment,		
+				$orderLine->bank_name,                  
+				$orderLine->bank_account_no,                   
+				$orderLine->bank_account_name,		
+				$orderLine->items_included,                      
+				$orderLine->items_included_others, 
+				$orderLine->verified_items_included,                      
+				$orderLine->verified_items_included_others, 
+				$orderLine->customer_location,  
+				$orderLine->deliver_to,                 
+				$orderLine->return_schedule,                      
+				$orderLine->refunded_date,  
+				$orderLine->date_adjusted,
+				$orderLine->stock_adj_ref_no,
+				$orderLine->sor_number,      
+				$orderLine->digits_code,               
+				$orderLine->upc_code,                 
+				$orderLine->item_description,            
+				$orderLine->cost,          
+				$orderLine->brand,
+				$serial_no->serial_number,
+				$orderLine->problem_details,
+				$orderLine->problem_details_other,                
+				$orderLine->quantity,
+				self::getVerifiedBy($orderLine),
+				self::getVerifiedDate($orderLine),
+				self::getScheduledBy($orderLine),
+				self::getScheduledDate($orderLine),
+				$orderLine->turnover_by,
+				$orderLine->rma_receiver_date_received,
+				$orderLine->received_by1,
+				$orderLine->received_at_rma_sc,
+				$orderLine->diagnosed_by,
+				$orderLine->level2_personnel_edited,
+				$orderLine->specialist_by,
+				$orderLine->rma_specialist_date_received,
+				self::getPrintedBy($orderLine),
+				self::getPrintedDate($orderLine),
+				self::getTransactedBy($orderLine),			
+				self::getTransactedDate($orderLine),
+				self::getClosedBy($orderLine),
+				self::getClosedDate($orderLine),
+				$orderLine->comments,
+				$orderLine->diagnose_comments
+			
+			];
+		}
+		private function getDistriStoreOpsData($orderLine){
+			$serial_no = ReturnsSerialsDISTRI::where('returns_body_item_id', $orderLine->body_id)->first();
+
+			return [
+				$orderLine->warranty_status, 		
+				$orderLine->diagnose, 	
+				$orderLine->rhd_created_at,				
+				$orderLine->return_reference_no,					
+				$orderLine->purchase_location,				
+				$orderLine->customer_last_name,		
+				$orderLine->customer_first_name,	
+				$orderLine->address,		            
+				$orderLine->email_address,      
+				$orderLine->contact_no,    
+				$orderLine->order_no,		
+				$orderLine->purchase_date,			
+				$orderLine->mode_of_payment,		
+				$orderLine->bank_name,                  
+				$orderLine->bank_account_no,                   
+				$orderLine->bank_account_name,		
+				$orderLine->items_included,                      
+				$orderLine->items_included_others, 
+				$orderLine->verified_items_included,                      
+				$orderLine->verified_items_included_others, 
+				$orderLine->customer_location,  
+				$orderLine->deliver_to,                 
+				$orderLine->return_schedule,                      
+				$orderLine->refunded_date,  
+				$orderLine->date_adjusted,
+				$orderLine->stock_adj_ref_no,
+				$orderLine->sor_number,      
+				$orderLine->digits_code,               
+				$orderLine->upc_code,                 
+				$orderLine->item_description,            
+				$orderLine->cost,          
+				$orderLine->brand,
+				$serial_no->serial_number,
+				$orderLine->problem_details,
+				$orderLine->problem_details_other,                
+				$orderLine->quantity,
+				self::getVerifiedBy($orderLine),
+				self::getVerifiedDate($orderLine),
+				self::getScheduledBy($orderLine),
+				self::getScheduledDate($orderLine),
+				$orderLine->turnover_by,
+				$orderLine->rma_receiver_date_received,
+				$orderLine->received_by1,
+				$orderLine->received_at_rma_sc,
+				$orderLine->diagnosed_by,
+				$orderLine->level2_personnel_edited,
+				$orderLine->specialist_by,
+				$orderLine->rma_specialist_date_received,
+				self::getPrintedBy($orderLine),
+				self::getPrintedDate($orderLine),
+				self::getTransactedBy($orderLine),			
+				self::getTransactedDate($orderLine),
+				self::getClosedBy($orderLine),
+				self::getClosedDate($orderLine),
+				$orderLine->comments,
+				$orderLine->diagnose_comments
+			];
+		}
+		private function getLogisticsData($orderLine){
+			$serial_no = ReturnsSerialsDISTRI::where('returns_body_item_id', $orderLine->body_id)->first();
+
+			return [
+				$orderLine->warranty_status, 		
+				$orderLine->diagnose, 	
+				$orderLine->rhd_created_at,				
+				$orderLine->return_reference_no,					
+				$orderLine->purchase_location,				
+				$orderLine->customer_last_name,		
+				$orderLine->customer_first_name,	
+				$orderLine->address,		            
+				$orderLine->email_address,      
+				$orderLine->contact_no,    
+				$orderLine->order_no,		
+				$orderLine->purchase_date,			
+				$orderLine->mode_of_payment,		
+				$orderLine->items_included,                      
+				$orderLine->items_included_others, 
+				$orderLine->verified_items_included,                      
+				$orderLine->verified_items_included_others, 
+				$orderLine->customer_location,  
+				$orderLine->deliver_to,                 
+				$orderLine->return_schedule,                      
+				$orderLine->refunded_date,  
+				$orderLine->date_adjusted,
+				$orderLine->stock_adj_ref_no,
+				$orderLine->sor_number,      
+				$orderLine->digits_code,               
+				$orderLine->upc_code,                 
+				$orderLine->item_description,            
+				$orderLine->cost,          
+				$orderLine->brand,
+				$serial_no->serial_number,
+				$orderLine->problem_details,
+				$orderLine->problem_details_other,                
+				$orderLine->quantity,
+				self::getVerifiedBy($orderLine),
+				self::getVerifiedDate($orderLine),
+				self::getScheduledBy($orderLine),
+				self::getScheduledDate($orderLine),
+				$orderLine->turnover_by,
+				$orderLine->rma_receiver_date_received,
+				$orderLine->received_by1,
+				$orderLine->received_at_rma_sc,
+				$orderLine->diagnosed_by,
+				$orderLine->level2_personnel_edited,
+				$orderLine->specialist_by,
+				$orderLine->rma_specialist_date_received,
+				self::getPrintedBy($orderLine),
+				self::getPrintedDate($orderLine),
+				self::getTransactedBy($orderLine),			
+				self::getTransactedDate($orderLine),
+				self::getClosedBy($orderLine),
+				self::getClosedDate($orderLine),
+				$orderLine->comments,
+				$orderLine->diagnose_comments
+				
+			];
+		}
+		private function getRMAData($orderLine){
+			$serial_no = ReturnsSerialsDISTRI::where('returns_body_item_id', $orderLine->body_id)->first();
+
+			return [
+				$orderLine->warranty_status, 		
+				$orderLine->diagnose, 	
+				$orderLine->rhd_created_at,				
+				$orderLine->return_reference_no,					
+				$orderLine->inc_number,			
+				$orderLine->rma_number,	
+				$orderLine->purchase_location,				
+				$orderLine->customer_last_name,		
+				$orderLine->customer_first_name,	
+				$orderLine->address,		            
+				$orderLine->email_address,      
+				$orderLine->contact_no,    
+				$orderLine->order_no,		
+				$orderLine->purchase_date,			
+				$orderLine->mode_of_payment,		
+				$orderLine->items_included,                      
+				$orderLine->items_included_others, 
+				$orderLine->verified_items_included,                      
+				$orderLine->verified_items_included_others, 
+				$orderLine->customer_location,  
+				$orderLine->deliver_to,                 
+				$orderLine->return_schedule,                      
+				$orderLine->refunded_date,  
+				$orderLine->date_adjusted,
+				$orderLine->stock_adj_ref_no,
+				$orderLine->sor_number,      
+				$orderLine->digits_code,               
+				$orderLine->upc_code,                 
+				$orderLine->item_description,            
+				$orderLine->cost,          
+				$orderLine->brand,
+				$serial_no->serial_number,
+				$orderLine->problem_details,
+				$orderLine->problem_details_other,                
+				$orderLine->quantity,
+				$orderLine->warranty_status,
+				$orderLine->ship_back_status,
+				$orderLine->claimed_status,
+				$orderLine->credit_memo_number,
+				self::getVerifiedBy($orderLine),
+				self::getVerifiedDate($orderLine),
+				self::getScheduledBy($orderLine),
+				self::getScheduledDate($orderLine),
+				$orderLine->turnover_by,
+				$orderLine->rma_receiver_date_received,
+				$orderLine->received_by1,
+				$orderLine->received_at_rma_sc,
+				$orderLine->diagnosed_by,
+				$orderLine->level2_personnel_edited,
+				$orderLine->specialist_by,
+				$orderLine->rma_specialist_date_received,
+				self::getPrintedBy($orderLine),
+				self::getPrintedDate($orderLine),
+				self::getTransactedBy($orderLine),			
+				self::getTransactedDate($orderLine),
+				self::getClosedBy($orderLine),
+				self::getClosedDate($orderLine),
+				$orderLine->comments,
+				$orderLine->diagnose_comments
+				
+			];
+		}
+		private function getServiceCenterData($orderLine){
+			$serial_no = ReturnsSerialsDISTRI::where('returns_body_item_id', $orderLine->body_id)->first();
+
+			return [
+				$orderLine->warranty_status, 		
+				$orderLine->diagnose, 	
+				$orderLine->rhd_created_at,				
+				$orderLine->return_reference_no,					
+				$orderLine->purchase_location,				
+				$orderLine->customer_last_name,		
+				$orderLine->customer_first_name,	
+				$orderLine->address,		            
+				$orderLine->email_address,      
+				$orderLine->contact_no,    
+				$orderLine->order_no,		
+				$orderLine->purchase_date,			
+				$orderLine->mode_of_payment,		
+				$orderLine->items_included,                      
+				$orderLine->items_included_others, 
+				$orderLine->verified_items_included,                      
+				$orderLine->verified_items_included_others, 
+				$orderLine->customer_location,  
+				$orderLine->deliver_to,                 
+				$orderLine->return_schedule,                      
+				$orderLine->refunded_date,  
+				$orderLine->date_adjusted,
+				$orderLine->stock_adj_ref_no,
+				$orderLine->sor_number,      
+				$orderLine->digits_code,               
+				$orderLine->upc_code,                 
+				$orderLine->item_description,            
+				$orderLine->cost,          
+				$orderLine->brand,
+				$serial_no->serial_number,
+				$orderLine->problem_details,
+				$orderLine->problem_details_other,                
+				$orderLine->quantity,
+				$orderLine->warranty_status,
+				self::getVerifiedBy($orderLine),
+				self::getVerifiedDate($orderLine),
+				self::getScheduledBy($orderLine),
+				self::getScheduledDate($orderLine),
+				$orderLine->diagnosed_by,
+				$orderLine->level2_personnel_edited,
+				self::getPrintedBy($orderLine),
+				self::getPrintedDate($orderLine),
+				self::getTransactedBy($orderLine),			
+				self::getTransactedDate($orderLine),
+				self::getClosedBy($orderLine),
+				self::getClosedDate($orderLine),
+				$orderLine->comments,
+				$orderLine->diagnose_comments
+			];
+		}
+		private function getAccountingData($orderLine){
+			$serial_no = ReturnsSerialsDISTRI::where('returns_body_item_id', $orderLine->body_id)->first();
+
+			return [
+				$orderLine->warranty_status, 		
+				$orderLine->diagnose, 	
+				$orderLine->rhd_created_at,				
+				$orderLine->return_reference_no,					
+				$orderLine->purchase_location,				
+				$orderLine->customer_last_name,		
+				$orderLine->customer_first_name,	
+				$orderLine->address,		            
+				$orderLine->email_address,      
+				$orderLine->contact_no,    
+				$orderLine->order_no,		
+				$orderLine->purchase_date,			
+				$orderLine->mode_of_payment,		
+				$orderLine->bank_name,                  
+				$orderLine->bank_account_no,                   
+				$orderLine->bank_account_name,		
+				$orderLine->items_included,                      
+				$orderLine->items_included_others, 
+				$orderLine->verified_items_included,                      
+				$orderLine->verified_items_included_others, 
+				$orderLine->customer_location,  
+				$orderLine->deliver_to,                 
+				$orderLine->return_schedule,                      
+				$orderLine->refunded_date,  
+				$orderLine->date_adjusted,
+				$orderLine->stock_adj_ref_no,
+				$orderLine->sor_number,      
+				$orderLine->digits_code,               
+				$orderLine->upc_code,                 
+				$orderLine->item_description,            
+				$orderLine->cost,          
+				$orderLine->brand,
+				$serial_no->serial_number,
+				$orderLine->problem_details,
+				$orderLine->problem_details_other,                
+				$orderLine->quantity,
+				self::getVerifiedBy($orderLine),
+				self::getVerifiedDate($orderLine),
+				self::getScheduledBy($orderLine),
+				self::getScheduledDate($orderLine),
+				$orderLine->turnover_by,
+				$orderLine->rma_receiver_date_received,
+				$orderLine->received_by1,
+				$orderLine->received_at_rma_sc,
+				$orderLine->diagnosed_by,
+				$orderLine->level2_personnel_edited,
+				$orderLine->specialist_by,
+				$orderLine->rma_specialist_date_received,
+				self::getPrintedBy($orderLine),
+				self::getPrintedDate($orderLine),
+				self::getTransactedBy($orderLine),			
+				self::getTransactedDate($orderLine),
+				self::getClosedBy($orderLine),
+				self::getClosedDate($orderLine),
+				$orderLine->comments,
+				$orderLine->diagnose_comments
+			];
+		}
+		private function getInventoryControlData($orderLine){
+			$serial_no = ReturnsSerialsDISTRI::where('returns_body_item_id', $orderLine->body_id)->first();
+
+			return [
+				$orderLine->warranty_status, 		
+				$orderLine->diagnose, 	
+				$orderLine->rhd_created_at,				
+				$orderLine->return_reference_no,					
+				$orderLine->purchase_location,				
+				$orderLine->customer_last_name,		
+				$orderLine->customer_first_name,	
+				$orderLine->address,		            
+				$orderLine->email_address,      
+				$orderLine->contact_no,    
+				$orderLine->order_no,		
+				$orderLine->purchase_date,			
+				$orderLine->mode_of_payment,		
+				$orderLine->bank_name,                  
+				$orderLine->bank_account_no,                   
+				$orderLine->bank_account_name,		
+				$orderLine->items_included,                      
+				$orderLine->items_included_others, 
+				$orderLine->verified_items_included,                      
+				$orderLine->verified_items_included_others, 
+				$orderLine->customer_location,  
+				$orderLine->deliver_to,                 
+				$orderLine->return_schedule,                      
+				$orderLine->refunded_date,  
+				$orderLine->date_adjusted,
+				$orderLine->stock_adj_ref_no,
+				$orderLine->sor_number,      
+				$orderLine->digits_code,               
+				$orderLine->upc_code,                 
+				$orderLine->item_description,            
+				$orderLine->cost,          
+				$orderLine->brand,
+				$serial_no->serial_number,
+				$orderLine->problem_details,
+				$orderLine->problem_details_other,                
+				$orderLine->quantity,
+				$orderLine->warranty_status,
+				$orderLine->ship_back_status,
+				$orderLine->claimed_status,
+				$orderLine->credit_memo_number,
+				self::getVerifiedBy($orderLine),
+				self::getVerifiedDate($orderLine),
+				self::getScheduledBy($orderLine),
+				self::getScheduledDate($orderLine),
+				$orderLine->turnover_by,
+				$orderLine->rma_receiver_date_received,
+				$orderLine->received_by1,
+				$orderLine->received_at_rma_sc,
+				$orderLine->diagnosed_by,
+				$orderLine->level2_personnel_edited,
+				$orderLine->specialist_by,
+				$orderLine->rma_specialist_date_received,
+				self::getPrintedBy($orderLine),
+				self::getPrintedDate($orderLine),
+				self::getTransactedBy($orderLine),			
+				self::getTransactedDate($orderLine),
+				self::getClosedBy($orderLine),
+				self::getClosedDate($orderLine),
+				$orderLine->comments,
+				$orderLine->diagnose_comments
+				
+			];
+		}
+		private function getAftersalesOpsData($orderLine){
+			$serial_no = ReturnsSerialsDISTRI::where('returns_body_item_id', $orderLine->body_id)->first();
+
+			return [
+				$orderLine->warranty_status, 		
+				$orderLine->diagnose, 	
+				$orderLine->rhd_created_at,				
+				$orderLine->return_reference_no,					
+				$orderLine->purchase_location,				
+				$orderLine->customer_last_name,		
+				$orderLine->customer_first_name,	
+				$orderLine->address,		            
+				$orderLine->email_address,      
+				$orderLine->contact_no,    
+				$orderLine->order_no,		
+				$orderLine->purchase_date,			
+				$orderLine->mode_of_payment,		
+				$orderLine->bank_name,                  
+				$orderLine->bank_account_no,                   
+				$orderLine->bank_account_name,		
+				$orderLine->items_included,                      
+				$orderLine->items_included_others, 
+				$orderLine->verified_items_included,                      
+				$orderLine->verified_items_included_others, 
+				$orderLine->customer_location,  
+				$orderLine->deliver_to,                 
+				$orderLine->return_schedule,                      
+				$orderLine->refunded_date,  
+				$orderLine->date_adjusted,
+				$orderLine->stock_adj_ref_no,
+				$orderLine->sor_number,      
+				$orderLine->digits_code,               
+				$orderLine->upc_code,                 
+				$orderLine->item_description,            
+				$orderLine->cost,          
+				$orderLine->brand,
+				$serial_no->serial_number,
+				$orderLine->problem_details,
+				$orderLine->problem_details_other,                
+				$orderLine->quantity,
+				self::getVerifiedBy($orderLine),
+				self::getVerifiedDate($orderLine),
+				self::getScheduledBy($orderLine),
+				self::getScheduledDate($orderLine),
+				$orderLine->turnover_by,
+				$orderLine->rma_receiver_date_received,
+				$orderLine->received_by1,
+				$orderLine->received_at_rma_sc,
+				$orderLine->diagnosed_by,
+				$orderLine->level2_personnel_edited,
+				$orderLine->specialist_by,
+				$orderLine->rma_specialist_date_received,
+				self::getPrintedBy($orderLine),
+				self::getPrintedDate($orderLine),
+				self::getTransactedBy($orderLine),			
+				self::getTransactedDate($orderLine),
+				self::getClosedBy($orderLine),
+				self::getClosedDate($orderLine),
+				$orderLine->comments,
+				$orderLine->diagnose_comments
+				
+			];
+		}
+		private function getSDMData($orderLine){
+			$serial_no = ReturnsSerialsDISTRI::where('returns_body_item_id', $orderLine->body_id)->first();
+
+			return [
+				$orderLine->warranty_status, 		
+				$orderLine->diagnose, 	
+				$orderLine->rhd_created_at,				
+				$orderLine->return_reference_no,					
+				$orderLine->purchase_location,				
+				$orderLine->customer_last_name,		
+				$orderLine->customer_first_name,	
+				$orderLine->address,		            
+				$orderLine->email_address,      
+				$orderLine->contact_no,    
+				$orderLine->order_no,		
+				$orderLine->purchase_date,			
+				$orderLine->mode_of_payment,		
+				$orderLine->bank_name,                  
+				$orderLine->bank_account_no,                   
+				$orderLine->bank_account_name,		
+				$orderLine->items_included,                      
+				$orderLine->items_included_others, 
+				$orderLine->verified_items_included,                      
+				$orderLine->verified_items_included_others, 
+				$orderLine->customer_location,  
+				$orderLine->deliver_to,                 
+				$orderLine->return_schedule,                      
+				$orderLine->refunded_date,  
+				$orderLine->date_adjusted,
+				$orderLine->stock_adj_ref_no,
+				$orderLine->sor_number,      
+				$orderLine->digits_code,               
+				$orderLine->upc_code,                 
+				$orderLine->item_description,            
+				$orderLine->cost,          
+				$orderLine->brand,
+				$serial_no->serial_number,
+				$orderLine->problem_details,
+				$orderLine->problem_details_other,                
+				$orderLine->quantity,
+				$orderLine->warranty_status,
+				$orderLine->ship_back_status,
+				$orderLine->claimed_status,
+				$orderLine->credit_memo_number,
+				self::getVerifiedBy($orderLine),
+				self::getVerifiedDate($orderLine),
+				self::getScheduledBy($orderLine),
+				self::getScheduledDate($orderLine),
+				$orderLine->turnover_by,
+				$orderLine->rma_receiver_date_received,
+				$orderLine->received_by1,
+				$orderLine->received_at_rma_sc,
+				$orderLine->diagnosed_by,
+				$orderLine->level2_personnel_edited,
+				$orderLine->specialist_by,
+				$orderLine->rma_specialist_date_received,
+				self::getPrintedBy($orderLine),
+				self::getPrintedDate($orderLine),
+				self::getTransactedBy($orderLine),			
+				self::getTransactedDate($orderLine),
+				self::getClosedBy($orderLine),
+				self::getClosedDate($orderLine),
+				$orderLine->comments,
+				$orderLine->diagnose_comments
+				
+			];
+		}
+		private function getOthersData($orderLine){
+			$serial_no = ReturnsSerialsDISTRI::where('returns_body_item_id', $orderLine->body_id)->first();
+
+			return [
+				$orderLine->warranty_status, 		
+				$orderLine->diagnose, 	
+				$orderLine->rhd_created_at,				
+				$orderLine->return_reference_no,					
+				$orderLine->purchase_location,				
+				$orderLine->customer_last_name,		
+				$orderLine->customer_first_name,	
+				$orderLine->address,		            
+				$orderLine->email_address,      
+				$orderLine->contact_no,    
+				$orderLine->order_no,		
+				$orderLine->purchase_date,			
+				$orderLine->mode_of_payment,		
+				$orderLine->bank_name,                  
+				$orderLine->bank_account_no,                   
+				$orderLine->bank_account_name,		
+				$orderLine->items_included,                      
+				$orderLine->items_included_others, 
+				$orderLine->verified_items_included,                      
+				$orderLine->verified_items_included_others, 
+				$orderLine->customer_location,  
+				$orderLine->deliver_to,                 
+				$orderLine->return_schedule,                      
+				$orderLine->refunded_date,  
+				$orderLine->date_adjusted,
+				$orderLine->stock_adj_ref_no,
+				$orderLine->sor_number,      
+				$orderLine->digits_code,               
+				$orderLine->upc_code,                 
+				$orderLine->item_description,            
+				$orderLine->cost,          
+				$orderLine->brand,
+				$serial_no->serial_number,
+				$orderLine->problem_details,
+				$orderLine->problem_details_other,                
+				$orderLine->quantity,
+				$orderLine->warranty_status,
+				$orderLine->ship_back_status,
+				$orderLine->claimed_status,
+				$orderLine->credit_memo_number,
+				self::getVerifiedBy($orderLine),
+				self::getVerifiedDate($orderLine),
+				self::getScheduledBy($orderLine),
+				self::getScheduledDate($orderLine),
+				$orderLine->turnover_by,
+				$orderLine->rma_receiver_date_received,
+				$orderLine->received_by1,
+				$orderLine->received_at_rma_sc,
+				$orderLine->diagnosed_by,
+				$orderLine->level2_personnel_edited,
+				$orderLine->specialist_by,
+				$orderLine->rma_specialist_date_received,
+				self::getPrintedBy($orderLine),
+				self::getPrintedDate($orderLine),
+				self::getTransactedBy($orderLine),			
+				self::getTransactedDate($orderLine),
+				self::getClosedBy($orderLine),
+				self::getClosedDate($orderLine),
+				$orderLine->comments,
+				$orderLine->diagnose_comments
+			];
+		}
+
+		private function getRetailOpsExportHeaders(){	
+			
+			return [
+				'RETURN STATUS',
+				'DIAGNOSE',
+				'CREATED DATE',
+				'RETURN REFERENCE#',
+				'PURCHASE LOCATION',
+				'CUSTOMER LAST NAME',
+				'CUSTOMER FIRST NAME',
+				'ADDRESS',
+				'EMAIL ADDRESS',
+				'CONTACT#',
+				'ORDER#',
+				'PURCHASE DATE',
+				'ORIGINAL MODE OF PAYMENT',
+				'BANK NAME',    
+				'BANK ACCOUNT#',      
+				'BANK ACCOUNT NAME',         
+				'ITEMS INCLUDED',         
+				'ITEMS INCLUDED OTHERS',
+				'VERIFIED ITEMS INCLUDED',         
+				'VERIFIED ITEMS INCLUDED OTHERS',
+				'CUSTOMER LOCATION',               
+				'DELIVER TO',               
+				'PICKUP SCHEDULE',               
+				'REFUNDED DATE',               
+				'DATE ADJUSTED',               
+				'STOCK ADJUSTED REF#',               
+				'SOR#',               
+				'DIGITS CODE',                 
+				'UPC CODE',      
+				'ITEM DESCRIPTION',               
+				'COST',                 
+				'BRAND',                
+				'SERIAL#',                   
+				'PROBLEM DETAILS',       
+				'PROBLEM DETAILS OTHERS',       
+				'QUANTITY',            
+				'VERIFIED BY',            
+				'VERIFIED DATE',            
+				'SCHEDULED BY',            
+				'SCHEDULED DATE',            
+				'RECEIVED BY',
+				'RECEIVED DATE',
+				'TURNOVER BY',
+				'TURNOVER DATE',
+				'DIAGNOSED BY',            
+				'DIAGNOSED DATE',            
+				'PROCESSED BY',            
+				'PROCESSED DATE',  
+				'PRINTED BY',            
+				'PRINTED DATE',            
+				'SOR BY',            
+				'SOR DATE',            
+				'CLOSED BY',            
+				'CLOSED DATE',            
+				'COMMENTS',
+				'DIAGNOSED COMMENTS'
+			];		
+
+		}
+		private function getDistriStoreOpsExportHeaders(){	
+			
+			return [
+				'RETURN STATUS',
+				'DIAGNOSE',
+				'CREATED DATE',
+				'RETURN REFERENCE#',
+				'PURCHASE LOCATION',
+				'CUSTOMER LAST NAME',
+				'CUSTOMER FIRST NAME',
+				'ADDRESS',
+				'EMAIL ADDRESS',
+				'CONTACT#',
+				'ORDER#',
+				'PURCHASE DATE',
+				'ORIGINAL MODE OF PAYMENT',
+				'BANK NAME',    
+				'BANK ACCOUNT#',      
+				'BANK ACCOUNT NAME',         
+				'ITEMS INCLUDED',         
+				'ITEMS INCLUDED OTHERS',
+				'VERIFIED ITEMS INCLUDED',         
+				'VERIFIED ITEMS INCLUDED OTHERS',
+				'CUSTOMER LOCATION',               
+				'DELIVER TO',               
+				'PICKUP SCHEDULE',               
+				'REFUNDED DATE',               
+				'DATE ADJUSTED',               
+				'STOCK ADJUSTED REF#',               
+				'SOR#',               
+				'DIGITS CODE',                 
+				'UPC CODE',      
+				'ITEM DESCRIPTION',               
+				'COST',                 
+				'BRAND',                
+				'SERIAL#',                   
+				'PROBLEM DETAILS',       
+				'PROBLEM DETAILS OTHERS',       
+				'QUANTITY',            
+				'VERIFIED BY',            
+				'VERIFIED DATE',            
+				'SCHEDULED BY',            
+				'SCHEDULED DATE',            
+				'RECEIVED BY',
+				'RECEIVED DATE',
+				'TURNOVER BY',
+				'TURNOVER DATE',
+				'DIAGNOSED BY',            
+				'DIAGNOSED DATE',            
+				'PROCESSED BY',            
+				'PROCESSED DATE',  
+				'PRINTED BY',            
+				'PRINTED DATE',            
+				'SOR BY',            
+				'SOR DATE',            
+				'CLOSED BY',            
+				'CLOSED DATE',            
+				'COMMENTS',
+				'DIAGNOSED COMMENTS'
+			];		
+
+		}
+		private function getLogisticsExportHeaders(){	
+			
+			return [
+				'RETURN STATUS',
+				'DIAGNOSE',
+				'CREATED DATE',
+				'RETURN REFERENCE#',
+				'PURCHASE LOCATION',
+				'CUSTOMER LAST NAME',
+				'CUSTOMER FIRST NAME',
+				'ADDRESS',
+				'EMAIL ADDRESS',
+				'CONTACT#',
+				'ORDER#',
+				'PURCHASE DATE',
+				'ORIGINAL MODE OF PAYMENT',
+				'ITEMS INCLUDED',         
+				'ITEMS INCLUDED OTHERS',
+				'VERIFIED ITEMS INCLUDED',         
+				'VERIFIED ITEMS INCLUDED OTHERS',
+				'CUSTOMER LOCATION',               
+				'DELIVER TO',               
+				'PICKUP SCHEDULE',               
+				'REFUNDED DATE',               
+				'DATE ADJUSTED',               
+				'STOCK ADJUSTED REF#',               
+				'SOR#',               
+				'DIGITS CODE',                 
+				'UPC CODE',      
+				'ITEM DESCRIPTION',               
+				'COST',                 
+				'BRAND',                
+				'SERIAL#',                   
+				'PROBLEM DETAILS',       
+				'PROBLEM DETAILS OTHERS',       
+				'QUANTITY',            
+				'VERIFIED BY',            
+				'VERIFIED DATE',            
+				'SCHEDULED BY',            
+				'SCHEDULED DATE',            
+				'RECEIVED BY',
+				'RECEIVED DATE',
+				'TURNOVER BY',
+				'TURNOVER DATE',
+				'DIAGNOSED BY',            
+				'DIAGNOSED DATE',            
+				'PROCESSED BY',            
+				'PROCESSED DATE',  
+				'PRINTED BY',            
+				'PRINTED DATE',            
+				'SOR BY',            
+				'SOR DATE',            
+				'CLOSED BY',            
+				'CLOSED DATE',            
+				'COMMENTS',
+				'DIAGNOSED COMMENTS'
+			];		
+
+		}
+		private function getRMAExportHeaders(){	
+			
+			return [
+				'RETURN STATUS',
+				'DIAGNOSE',
+				'CREATED DATE',
+				'RETURN REFERENCE#',
+				'INC#',
+				'RMA#',
+				'PURCHASE LOCATION',
+				'CUSTOMER LAST NAME',
+				'CUSTOMER FIRST NAME',
+				'ADDRESS',
+				'EMAIL ADDRESS',
+				'CONTACT#',
+				'ORDER#',
+				'PURCHASE DATE',
+				'ORIGINAL MODE OF PAYMENT',
+				'ITEMS INCLUDED',         
+				'ITEMS INCLUDED OTHERS',
+				'VERIFIED ITEMS INCLUDED',         
+				'VERIFIED ITEMS INCLUDED OTHERS',
+				'CUSTOMER LOCATION',               
+				'DELIVER TO',               
+				'PICKUP SCHEDULE',               
+				'REFUNDED DATE',               
+				'DATE ADJUSTED',               
+				'STOCK ADJUSTED REF#',               
+				'SOR#',               
+				'DIGITS CODE',                 
+				'UPC CODE',      
+				'ITEM DESCRIPTION',               
+				'COST',                 
+				'BRAND',                
+				'SERIAL#',                   
+				'PROBLEM DETAILS',       
+				'PROBLEM DETAILS OTHERS',       
+				'QUANTITY',            
+				'WARRANTY STATUS',
+				'SHIP BACK STATUS',            
+				'CLAIMED STATUS',            
+				'CREDIT MEMO#',            
+				'VERIFIED BY',            
+				'VERIFIED DATE',            
+				'SCHEDULED BY',            
+				'SCHEDULED DATE',            
+				'RECEIVED BY',
+				'RECEIVED DATE',
+				'TURNOVER BY',
+				'TURNOVER DATE',
+				'DIAGNOSED BY',            
+				'DIAGNOSED DATE',            
+				'PROCESSED BY',            
+				'PROCESSED DATE',  
+				'PRINTED BY',            
+				'PRINTED DATE',            
+				'SOR BY',            
+				'SOR DATE',            
+				'CLOSED BY',            
+				'CLOSED DATE',            
+				'COMMENTS',
+				'DIAGNOSED COMMENTS'
+			];		
+
+		}
+		private function getServiceCenterExportHeaders(){	
+			
+			return [
+				'RETURN STATUS',
+				'DIAGNOSE',
+				'CREATED DATE',
+				'RETURN REFERENCE#',
+				'PURCHASE LOCATION',
+				'CUSTOMER LAST NAME',
+				'CUSTOMER FIRST NAME',
+				'ADDRESS',
+				'EMAIL ADDRESS',
+				'CONTACT#',
+				'ORDER#',
+				'PURCHASE DATE',
+				'ORIGINAL MODE OF PAYMENT',
+				'ITEMS INCLUDED',         
+				'ITEMS INCLUDED OTHERS',
+				'VERIFIED ITEMS INCLUDED',         
+				'VERIFIED ITEMS INCLUDED OTHERS',
+				'CUSTOMER LOCATION',               
+				'DELIVER TO',               
+				'PICKUP SCHEDULE',               
+				'REFUNDED DATE',               
+				'DATE ADJUSTED',               
+				'STOCK ADJUSTED REF#',               
+				'SOR#',               
+				'DIGITS CODE',                 
+				'UPC CODE',      
+				'ITEM DESCRIPTION',               
+				'COST',                 
+				'BRAND',                
+				'SERIAL#',                   
+				'PROBLEM DETAILS',       
+				'PROBLEM DETAILS OTHERS',       
+				'QUANTITY',            
+				'WARRANTY STATUS',
+				'VERIFIED BY',            
+				'VERIFIED DATE',            
+				'SCHEDULED BY',            
+				'SCHEDULED DATE',            
+				'DIAGNOSED BY',            
+				'DIAGNOSED DATE',            
+				'PRINTED BY',            
+				'PRINTED DATE',            
+				'SOR BY',            
+				'SOR DATE',            
+				'CLOSED BY',            
+				'CLOSED DATE',            
+				'COMMENTS',
+				'DIAGNOSED COMMENTS'
+			];		
+
+		}
+		private function getAccountingExportHeaders(){	
+			
+			return [
+				'RETURN STATUS',
+				'DIAGNOSE',
+				'CREATED DATE',
+				'RETURN REFERENCE#',
+				'PURCHASE LOCATION',
+				'CUSTOMER LAST NAME',
+				'CUSTOMER FIRST NAME',
+				'ADDRESS',
+				'EMAIL ADDRESS',
+				'CONTACT#',
+				'ORDER#',
+				'PURCHASE DATE',
+				'ORIGINAL MODE OF PAYMENT',
+				'BANK NAME',    
+				'BANK ACCOUNT#',      
+				'BANK ACCOUNT NAME',         
+				'ITEMS INCLUDED',         
+				'ITEMS INCLUDED OTHERS',
+				'VERIFIED ITEMS INCLUDED',         
+				'VERIFIED ITEMS INCLUDED OTHERS',
+				'CUSTOMER LOCATION',               
+				'DELIVER TO',               
+				'PICKUP SCHEDULE',               
+				'REFUNDED DATE',               
+				'DATE ADJUSTED',               
+				'STOCK ADJUSTED REF#',               
+				'SOR#',               
+				'DIGITS CODE',                 
+				'UPC CODE',      
+				'ITEM DESCRIPTION',               
+				'COST',                 
+				'BRAND',                
+				'SERIAL#',                   
+				'PROBLEM DETAILS',       
+				'PROBLEM DETAILS OTHERS',       
+				'QUANTITY',            
+				'VERIFIED BY',            
+				'VERIFIED DATE',            
+				'SCHEDULED BY',            
+				'SCHEDULED DATE',            
+				'RECEIVED BY',
+				'RECEIVED DATE',
+				'TURNOVER BY',
+				'TURNOVER DATE',
+				'DIAGNOSED BY',            
+				'DIAGNOSED DATE',            
+				'PROCESSED BY',            
+				'PROCESSED DATE',  
+				'PRINTED BY',            
+				'PRINTED DATE',            
+				'SOR BY',            
+				'SOR DATE',            
+				'CLOSED BY',            
+				'CLOSED DATE',            
+				'COMMENTS',
+				'DIAGNOSED COMMENTS'
+			];		
+
+		}
+		private function getInventoryControlExportHeaders(){	
+			
+			return [
+				'RETURN STATUS',
+				'DIAGNOSE',
+				'CREATED DATE',
+				'RETURN REFERENCE#',
+				'PURCHASE LOCATION',
+				'CUSTOMER LAST NAME',
+				'CUSTOMER FIRST NAME',
+				'ADDRESS',
+				'EMAIL ADDRESS',
+				'CONTACT#',
+				'ORDER#',
+				'PURCHASE DATE',
+				'ORIGINAL MODE OF PAYMENT',
+				'BANK NAME',    
+				'BANK ACCOUNT#',      
+				'BANK ACCOUNT NAME',         
+				'ITEMS INCLUDED',         
+				'ITEMS INCLUDED OTHERS',
+				'VERIFIED ITEMS INCLUDED',         
+				'VERIFIED ITEMS INCLUDED OTHERS',
+				'CUSTOMER LOCATION',               
+				'DELIVER TO',               
+				'PICKUP SCHEDULE',               
+				'REFUNDED DATE',               
+				'DATE ADJUSTED',               
+				'STOCK ADJUSTED REF#',               
+				'SOR#',               
+				'DIGITS CODE',                 
+				'UPC CODE',      
+				'ITEM DESCRIPTION',               
+				'COST',                 
+				'BRAND',                
+				'SERIAL#',                   
+				'PROBLEM DETAILS',       
+				'PROBLEM DETAILS OTHERS',       
+				'QUANTITY',            
+				'WARRANTY STATUS',
+				'SHIP BACK STATUS',            
+				'CLAIMED STATUS',            
+				'CREDIT MEMO#',            
+				'VERIFIED BY',            
+				'VERIFIED DATE',            
+				'SCHEDULED BY',            
+				'SCHEDULED DATE',            
+				'RECEIVED BY',
+				'RECEIVED DATE',
+				'TURNOVER BY',
+				'TURNOVER DATE',
+				'DIAGNOSED BY',            
+				'DIAGNOSED DATE',            
+				'PROCESSED BY',            
+				'PROCESSED DATE',  
+				'PRINTED BY',            
+				'PRINTED DATE',            
+				'SOR BY',            
+				'SOR DATE',            
+				'CLOSED BY',            
+				'CLOSED DATE',            
+				'COMMENTS',
+				'DIAGNOSED COMMENTS'
+			];		
+
+		}
+		private function getAftersalesOpsExportHeaders(){	
+			
+			return [
+				'RETURN STATUS',
+				'DIAGNOSE',
+				'CREATED DATE',
+				'RETURN REFERENCE#',
+				'PURCHASE LOCATION',
+				'CUSTOMER LAST NAME',
+				'CUSTOMER FIRST NAME',
+				'ADDRESS',
+				'EMAIL ADDRESS',
+				'CONTACT#',
+				'ORDER#',
+				'PURCHASE DATE',
+				'ORIGINAL MODE OF PAYMENT',
+				'BANK NAME',    
+				'BANK ACCOUNT#',      
+				'BANK ACCOUNT NAME',         
+				'ITEMS INCLUDED',         
+				'ITEMS INCLUDED OTHERS',
+				'VERIFIED ITEMS INCLUDED',         
+				'VERIFIED ITEMS INCLUDED OTHERS',
+				'CUSTOMER LOCATION',               
+				'DELIVER TO',               
+				'PICKUP SCHEDULE',               
+				'REFUNDED DATE',               
+				'DATE ADJUSTED',               
+				'STOCK ADJUSTED REF#',               
+				'SOR#',               
+				'DIGITS CODE',                 
+				'UPC CODE',      
+				'ITEM DESCRIPTION',               
+				'COST',                 
+				'BRAND',                
+				'SERIAL#',                   
+				'PROBLEM DETAILS',       
+				'PROBLEM DETAILS OTHERS',       
+				'QUANTITY',            
+				'VERIFIED BY',            
+				'VERIFIED DATE',            
+				'SCHEDULED BY',            
+				'SCHEDULED DATE',            
+				'RECEIVED BY',
+				'RECEIVED DATE',
+				'TURNOVER BY',
+				'TURNOVER DATE',
+				'DIAGNOSED BY',            
+				'DIAGNOSED DATE',            
+				'PROCESSED BY',            
+				'PROCESSED DATE',  
+				'PRINTED BY',            
+				'PRINTED DATE',            
+				'SOR BY',            
+				'SOR DATE',            
+				'CLOSED BY',            
+				'CLOSED DATE',            
+				'COMMENTS',
+				'DIAGNOSED COMMENTS'
+			];		
+
+		}
+		private function getSDMExportHeaders(){	
+			
+			return [
+				'RETURN STATUS',
+				'DIAGNOSE',
+				'CREATED DATE',
+				'RETURN REFERENCE#',
+				'PURCHASE LOCATION',
+				'CUSTOMER LAST NAME',
+				'CUSTOMER FIRST NAME',
+				'ADDRESS',
+				'EMAIL ADDRESS',
+				'CONTACT#',
+				'ORDER#',
+				'PURCHASE DATE',
+				'ORIGINAL MODE OF PAYMENT',
+				'BANK NAME',    
+				'BANK ACCOUNT#',      
+				'BANK ACCOUNT NAME',         
+				'ITEMS INCLUDED',         
+				'ITEMS INCLUDED OTHERS',
+				'VERIFIED ITEMS INCLUDED',         
+				'VERIFIED ITEMS INCLUDED OTHERS',
+				'CUSTOMER LOCATION',               
+				'DELIVER TO',               
+				'PICKUP SCHEDULE',               
+				'REFUNDED DATE',               
+				'DATE ADJUSTED',               
+				'STOCK ADJUSTED REF#',               
+				'SOR#',               
+				'DIGITS CODE',                 
+				'UPC CODE',      
+				'ITEM DESCRIPTION',               
+				'COST',                 
+				'BRAND',                
+				'SERIAL#',                   
+				'PROBLEM DETAILS',       
+				'PROBLEM DETAILS OTHERS',       
+				'QUANTITY',            
+				'WARRANTY STATUS',
+				'SHIP BACK STATUS',            
+				'CLAIMED STATUS',            
+				'CREDIT MEMO#',            
+				'VERIFIED BY',            
+				'VERIFIED DATE',            
+				'SCHEDULED BY',            
+				'SCHEDULED DATE',            
+				'RECEIVED BY',
+				'RECEIVED DATE',
+				'TURNOVER BY',
+				'TURNOVER DATE',
+				'DIAGNOSED BY',            
+				'DIAGNOSED DATE',            
+				'PROCESSED BY',            
+				'PROCESSED DATE',  
+				'PRINTED BY',            
+				'PRINTED DATE',            
+				'SOR BY',            
+				'SOR DATE',            
+				'CLOSED BY',            
+				'CLOSED DATE',            
+				'COMMENTS',
+				'DIAGNOSED COMMENTS'	
+			];		
+
+		}
+		private function getOthersExportHeaders(){	
+			
+			return [
+				'RETURN STATUS',
+				'DIAGNOSE',
+				'CREATED DATE',
+				'RETURN REFERENCE#',
+				'PURCHASE LOCATION',
+				'CUSTOMER LAST NAME',
+				'CUSTOMER FIRST NAME',
+				'ADDRESS',
+				'EMAIL ADDRESS',
+				'CONTACT#',
+				'ORDER#',
+				'PURCHASE DATE',
+				'ORIGINAL MODE OF PAYMENT',
+				'BANK NAME',    
+				'BANK ACCOUNT#',      
+				'BANK ACCOUNT NAME',         
+				'ITEMS INCLUDED',         
+				'ITEMS INCLUDED OTHERS',
+				'VERIFIED ITEMS INCLUDED',         
+				'VERIFIED ITEMS INCLUDED OTHERS',
+				'CUSTOMER LOCATION',               
+				'DELIVER TO',               
+				'PICKUP SCHEDULE',               
+				'REFUNDED DATE',               
+				'DATE ADJUSTED',               
+				'STOCK ADJUSTED REF#',               
+				'SOR#',               
+				'DIGITS CODE',                 
+				'UPC CODE',      
+				'ITEM DESCRIPTION',               
+				'COST',                 
+				'BRAND',                
+				'SERIAL#',                   
+				'PROBLEM DETAILS',       
+				'PROBLEM DETAILS OTHERS',       
+				'QUANTITY',            
+				'WARRANTY STATUS',
+				'SHIP BACK STATUS',            
+				'CLAIMED STATUS',            
+				'CREDIT MEMO#',            
+				'VERIFIED BY',            
+				'VERIFIED DATE',            
+				'SCHEDULED BY',            
+				'SCHEDULED DATE',            
+				'RECEIVED BY',
+				'RECEIVED DATE',
+				'TURNOVER BY',
+				'TURNOVER DATE',
+				'DIAGNOSED BY',            
+				'DIAGNOSED DATE',            
+				'PROCESSED BY',            
+				'PROCESSED DATE',  
+				'PRINTED BY',            
+				'PRINTED DATE',            
+				'SOR BY',            
+				'SOR DATE',            
+				'CLOSED BY',            
+				'CLOSED DATE',            
+				'COMMENTS',
+				'DIAGNOSED COMMENTS'
+			];		
+
+		}
+		private function getStoreList()
+		{
+			$userStores = DB::table("cms_users")->where('cms_users.id', CRUDBooster::myId())->pluck('stores_id')->toArray();
+			return array_map('intval', explode(",", implode(",", $userStores)));
+		}
+
+		private function getScheduledBy($orderRow)
+		{
+			if ($orderRow->transaction_type == 3) {
+				return "";
+			} else {
+				return $orderRow->scheduled_logistics_by;
+			}
+		}
+
+		private function getScheduledDate($orderRow)
+		{
+			if ($orderRow->transaction_type == 3) {
+				return "";
+			} else {
+				return $orderRow->level1_personnel_edited;
+			}
+		}
+
+		private function getVerifiedBy($orderRow)
+		{
+			return $orderRow->verified_by;
+		}
+
+		private function getVerifiedDate($orderRow)
+		{
+			return $orderRow->level7_personnel_edited;
+		}
+
+		private function getPrintedBy($orderRow)
+		{
+			if ($orderRow->diagnose == "REFUND") {
+				return $orderRow->printed_by;
+			} elseif($orderRow->diagnose == "REPLACE") {
+				return "";
+			} else {
+				return $orderRow->printed_by;
+			}
+		}
+
+		private function getPrintedDate($orderRow)
+		{
+			if ($orderRow->diagnose == "REFUND") {
+				return $orderRow->level3_personnel_edited;
+			} elseif($orderRow->diagnose == "REPLACE") {
+				return "";
+			} else {
+				return $orderRow->level3_personnel_edited;
+			}
+		}
+
+		private function getTransactedBy($orderRow)
+		{
+			if ($orderRow->diagnose == "REPLACE") {
+				return $orderRow->printed_by;
+			} elseif ($orderRow->diagnose == "REFUND") {
+				return $orderRow->transacted_by;
+			} else {
+				return "";
+			}
+		}
+
+		private function getTransactedDate($orderRow)
+		{
+			if ($orderRow->diagnose == "REPLACE") {
+				return $orderRow->level3_personnel_edited;
+			} elseif ($orderRow->diagnose == "REFUND") {
+				return $orderRow->level4_personnel_edited;
+			} else {
+				return "";
+			}
+		}
+
+		private function getClosedBy($orderRow)
+		{
+			if ($orderRow->diagnose == "REPLACE") {
+				return $orderRow->transacted_by;
+			} elseif ($orderRow->diagnose == "REFUND") {
+				return $orderRow->closed_by;
+			} else {
+				return $orderRow->transacted_by;
+			}
+		}
+
+		private function getClosedDate($orderRow)
+		{
+			if ($orderRow->diagnose == "REPLACE") {
+				return $orderRow->level4_personnel_edited;
+			} elseif ($orderRow->diagnose == "REFUND") {
+				return $orderRow->level5_personnel_edited;
+			} else {
+				return $orderRow->level4_personnel_edited;
+			}
+		}
 
 	}
