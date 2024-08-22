@@ -1654,7 +1654,7 @@ use PHPExcel_Style_Fill;
 
 		public function exportReturnDiagnosingECOMM()
 		{
-			$filename = 'Returns - ' . date("d M Y - h.i.sa");
+			$filename = 'Returns for Diagnosing ECOMM - ' . date("d M Y - h.i.sa");
 			$orderData = self::getQueryData();
 
 			if (CRUDBooster::myPrivilegeName() == "Service Center") {
