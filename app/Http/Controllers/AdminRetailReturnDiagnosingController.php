@@ -1686,7 +1686,7 @@ use PHPExcel_Style_Fill;
 
 		public function exportReturnDiagnosingRTL()
 		{
-			$filename = 'Returns - ' . date("d M Y - h.i.sa");
+			$filename = 'Returns for Diagnosing RTL - ' . date("d M Y - h.i.sa");
 			$orderData = self::getQueryData();
 
 			if (CRUDBooster::myPrivilegeName() == "Service Center") {
