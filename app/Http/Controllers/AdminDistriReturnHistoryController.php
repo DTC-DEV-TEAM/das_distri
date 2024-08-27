@@ -1229,7 +1229,7 @@ use App\StoresFrontEnd;
 		private function filterFinalData($result)
 		{
 			if (\Request::get('filter_column')) {
-				return self::filterData($result);
+				return self::filterData($result)->get();
 			} else {
 				return $result->orderBy('returns_header_distribution.id', 'asc')->get();
 			}
