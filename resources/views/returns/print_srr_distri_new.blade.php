@@ -481,43 +481,42 @@
         </table>
   </div>
   <div class='panel-footer'>
-    <form method='' id="myform" action="">
+    <form method='GET' id="myform" action="{{route('ReturnsSRRUpdateDISTRI')}}" enctype="multipart/form-data">
         
         <input type="hidden" value="{{$row->id}}" name="return_id">
         <a href="{{ CRUDBooster::mainpath() }}" class="btn btn-default">{{ trans('message.form.cancel') }}</a>
         
-        <button class="btn btn-primary pull-right" type="submit" id="printPulloutForm" onclick="printDivision('printableArea')"> <i class="fa fa-print" ></i> Print as PDF</button>
-
+   
+        <button class="btn btn-primary pull-right" type="submit" style="margin-left: 10px" disabled id="btnSubmit" > <i class="fa fa-check" ></i> Proceed</button>
+        <button class="btn btn-primary pull-right" type="button" onclick="printDivision('printableArea', event)" > <i class="fa fa-print"></i> Print as PDF</button>
        
     </form>
   </div>
 @endsection
 @push('bottom')
     <script type="text/javascript">
-        $("#printPulloutForm").on('click',function(){
-        //var strconfirm = confirm("Are you sure you want to approve this pull-out request?");
-            var data = $('#myform').serialize();
-                $.ajax({
-                        type: 'GET',
-                        url: '{{ url('admin/distri_to_verify/ReturnsSRRUpdateDISTRI') }}',
-                        data: data,
-                        success: function( response ){
-                             
-                            console.log( response );              
-                        
-                        },
-                        error: function( e ) {
-                       
-                            console.log(e);
-                        }
-                  });
-                  return true;
-        });
+        $("#btnSubmit").click(function(event) {
+        if (document.querySelector("#myform").reportValidity()) {
+                event.preventDefault(); 
+                swal({
+                    title: "Are you sure you want to approve this pull-out request?",
+                    type: "warning",
+                    showCancelButton: true,
+                    confirmButtonColor: "#367fa9",
+                    confirmButtonText: "Yes, proceed",
+                    width: 450,
+                    height: 200
+                    }, function () {               
+                        $('#myform').submit();
+                });
+            } else {
+                event.preventDefault(); 
+             }
 
-
-
-        function printDivision(divName) {
-                  
+        })
+ 
+        function printDivision(divName ,event) {
+            event.preventDefault();
             alert('Please print 2 copies!');
             var generator = window.open(",'printableArea,");
             var layertext = document.getElementById(divName);
@@ -525,7 +524,25 @@
             generator.document.close();
             generator.print();
             generator.close();
-         
-        }                
+
+            swal({
+            title: "Did you print/save the file?",
+            type: "warning",
+            showCancelButton: true,
+            confirmButtonColor: "#367fa9",
+            confirmButtonText: "Yes",
+            cancelButtonText: "No",
+            closeOnConfirm: true,
+            closeOnCancel: true
+            },
+            function(isConfirm){
+            if (isConfirm) {
+                document.querySelector('.btn-primary[type="submit"]').removeAttribute('disabled');
+            } else {
+                document.querySelector('.btn-primary[type="submit"]').setAttribute('disabled', 'disabled');
+            }
+            });
+            
+        } 
     </script>
 @endpush

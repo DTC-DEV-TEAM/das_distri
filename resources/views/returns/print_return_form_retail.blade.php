@@ -34,6 +34,7 @@
                             <hr color="black" >
                         </td>
                     </tr>
+                  
 
                     <tr style="font-size: 13px;">
                         <td width="20%">
@@ -92,7 +93,10 @@
                             <label class="control-label col-md-12"><strong>Warranty Status:</strong></label>
                         </td>
                         <td>
+                            @if ($row->diagnose != 'PrintSSR')
                             <p><label style="color:red">{{$row->diagnose}}</label></p>
+                            @endif
+                          
                         </td> 
                         
                     </tr>  
@@ -440,11 +444,11 @@
         <a href="{{ CRUDBooster::mainpath() }}" class="btn btn-default">{{ trans('message.form.cancel') }}</a>
         
         @if($row->diagnose == "REJECT" && $row->returns_status_1 != 15 )
-                <button class="btn btn-primary pull-right" type="submit" id="printReturnForm" onclick="printDivision('printableArea')"> <i class="fa fa-print" ></i> Print as PDF</button>
+                <button class="btn btn-primary pull-right" type="submit" id="printReturnForm"> <i class="fa fa-print" ></i> Print as PDF</button>
         @elseif($row->diagnose == "REPAIR" && $row->returns_status_1 != 17 )
-                <button class="btn btn-primary pull-right" type="submit" id="printReturnFormRepair" onclick="printDivision('printableArea')"> <i class="fa fa-print" ></i> Print as PDF</button>
+                <button class="btn btn-primary pull-right" type="submit" id="printReturnFormRepair"> <i class="fa fa-print" ></i> Print as PDF</button>
             @else
-                <button class="btn btn-primary pull-right" type="submit" id="print"    onclick="printDivision('printableArea')"> <i class="fa fa-print" ></i> Print as PDF</button>
+                <button class="btn btn-primary pull-right" type="submit" id="print"> <i class="fa fa-print" ></i> Print as PDF</button>
         @endif
        
     </form>
@@ -452,40 +456,46 @@
 @endsection
 @push('bottom')
     <script type="text/javascript">
-        $("#printReturnForm").on('click',function(){
+
+   
+
+        $("#printReturnForm").on('click',function(e){
         //var strconfirm = confirm("Are you sure you want to approve this pull-out request?");
+        e.preventDefault();
             var data = $('#myform').serialize();
                 $.ajax({
                         type: 'GET',
                         url: '{{ url('admin/retail_return_diagnosing/FormRejectUpdateStatusRTL') }}',
                         data: data,
                         success: function( response ){
-                            console.log( response );              
+                            console.log( response );    
+                            printDivision('printableArea');          
                         
                         },
                         error: function( e ) {
                             console.log(e);
                         }
                   });
-                  return true;
+        
         });
 
-        $("#printReturnFormRepair").on('click',function(){
+        $("#printReturnFormRepair").on('click',function(e){
         //var strconfirm = confirm("Are you sure you want to approve this pull-out request?");
+        e.preventDefault();
             var data = $('#myform').serialize();
                 $.ajax({
                         type: 'GET',
                         url: '{{ url('admin/retail_return_diagnosing/FormRepairUpdateStatusRTL') }}',
                         data: data,
                         success: function( response ){
-                            console.log( response );              
+                            console.log( response );          
+                            printDivision('printableArea');              
                         
                         },
                         error: function( e ) {
                             console.log(e);
                         }
                   });
-                  return true;
         });
 
         function printDivision(divName) {
@@ -496,6 +506,8 @@
          generator.document.close();
          generator.print();
          generator.close();
-        }                
+        }  
+
+                  
     </script>
 @endpush

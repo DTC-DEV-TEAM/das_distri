@@ -27,6 +27,7 @@ use App\Mail\Gmail;
 use App\Item;
 use App\StoresFrontEnd;
 use App\TransactionTypeList;
+use DateTime;
 
 	class AdminReturnsHeaderController extends \crocodicstudio\crudbooster\controllers\CBController {
 
@@ -61,16 +62,39 @@ use App\TransactionTypeList;
 			# START COLUMNS DO NOT REMOVE THIS LINE
 			$this->col = [];
 			$this->col[] = ["label"=>"Status","name"=>"returns_status_1","join"=>"warranty_statuses,warranty_status"];
+			$this->col[] = ["label"=>"Last Chat", "name"=>"id", 'callback'=>function($row){
+				$img_url = asset("chat_img/$row->last_image");
+				;
+				$str = '';
+				
+				$str .= "<div class='sender_name'>$row->sender_name</div>";
+				$str .= "<div class='time_ago' datetime='$row->date_send'>$row->date_send</div>";
+				
+				if ($row->last_message) {
+					// Truncate the message if it's longer than 150 characters
+					$truncatedMessage = strlen($row->last_message) > 41 ? substr($row->last_message, 0, 41) . '...' : $row->last_message;
+					$str .= "<div class='text-msg'>$truncatedMessage</div>";
+				}
+				if($row->last_image){
+					$str .= "<div class='last_msg'><img src='$img_url'></div>";
+				}
+				if($row->sender_name){
+					return $str;
+				}else{
+					return '<div class="no-message">No messages available at the moment.</div>';
+				}
+			}];
 			$this->col[] = ["label"=>"Created Date","name"=>"created_at"];
 			//$this->col[] = ["label"=>"Pickup Schedule","name"=>"return_schedule"];
 			$this->col[] = ["label"=>"Return Reference#","name"=>"return_reference_no"];
+			$this->col[] = ["label"=>"PO Date","name"=>"po_store_date"];
 			$this->col[] = ["label"=>"Order#","name"=>"order_no"];
 			$this->col[] = ["label"=>"Customer Location","name"=>"customer_location"];
 			$this->col[] = ["label"=>"Mode Of Return","name"=>"mode_of_return"];
 			//$this->col[] = ["label"=>"Store","name"=>"store"];
 		
-				$this->col[] = ["label"=>"Store Drop-Off","name"=>"store_dropoff"];
-				$this->col[] = ["label"=>"Branch Drop-Off","name"=>"branch_dropoff"];
+			$this->col[] = ["label"=>"Store Drop-Off","name"=>"store_dropoff"];
+			$this->col[] = ["label"=>"Branch Drop-Off","name"=>"branch_dropoff"];
 			
 			//$this->col[] = ["label"=>"Mode of Return","name"=>"mode_of_return"];
 			$this->col[] = ["label"=>"Customer Last Name","name"=>"customer_last_name"];
@@ -100,7 +124,7 @@ use App\TransactionTypeList;
 			// $this->form[] = ['label'=>'Items Included Others','name'=>'items_included_others','type'=>'text','validation'=>'required|min:1|max:255','width'=>'col-sm-10'];
 			$this->form[] = ['label'=>'Comments','name'=>'comments','type'=>'textarea','validation'=>'required|string|min:5|max:5000','width'=>'col-sm-10'];
 			$this->form[] = ['label'=>'Customer Location','name'=>'customer_location','type'=>'text','validation'=>'required|min:1|max:255','width'=>'col-sm-10'];
-			$this->form[] = ['label'=>'Sor No','name'=>'sor_no','type'=>'text','validation'=>'required|min:1|max:255','width'=>'col-sm-10'];
+			// $this->form[] = ['label'=>'Sor No','name'=>'sor_no','type'=>'text','validation'=>'required|min:1|max:255','width'=>'col-sm-10'];
 			$this->form[] = ['label'=>'Created By','name'=>'created_by','type'=>'number','validation'=>'required|integer|min:0','width'=>'col-sm-10'];
 			$this->form[] = ['label'=>'Updated By','name'=>'updated_by','type'=>'number','validation'=>'required|integer|min:0','width'=>'col-sm-10'];
 			# END FORM DO NOT REMOVE THIS LINE
@@ -170,14 +194,14 @@ use App\TransactionTypeList;
             
 		    if(CRUDBooster::myPrivilegeName() == "Ecomm Ops"){
 		        
-		        $this->addaction[] = ['title'=>'Detail','url'=>CRUDBooster::mainpath('ReturnsDetail/[id]'),'icon'=>'fa fa-eye'];
+		        $this->addaction[] = ['title'=>'Detail','url'=>CRUDBooster::mainpath('ReturnsDetail/[id]'),'color'=>'none','icon'=>'fa fa-eye'];
 			    
 			}else{
-			    $this->addaction[] = ['title'=>'Edit','url'=>CRUDBooster::mainpath('ReturnsTaggingEdit/[id]'),'icon'=>'fa fa-pencil', "showIf"=>"[returns_status_1] == $requested"];
-			    $this->addaction[] = ['title'=>'Edit','url'=>CRUDBooster::mainpath('ReturnsDeliveryEdit/[id]'),'icon'=>'fa fa-pencil', "showIf"=>"[returns_status_1] == $return_delivery_date"];
-			    $this->addaction[] = ['title'=>'Edit','url'=>CRUDBooster::mainpath('ReturnsSchedulingEdit/[id]'),'icon'=>'fa fa-pencil', "showIf"=>"[returns_status_1] == $to_schedule_aftersales or [returns_status_1] == $to_schedule_logistics"];
-			    $this->addaction[] = ['title'=>'Edit','url'=>CRUDBooster::mainpath('ReturnsCloseRejectEdit/[id]'),'icon'=>'fa fa-pencil', "showIf"=>"[returns_status_1] == $to_ship_back"];
-			    $this->addaction[] = ['title'=>'Print','url'=>CRUDBooster::mainpath('ReturnsPulloutPrint/[id]'),'icon'=>'fa fa-print', "showIf"=>"[returns_status_1] == $pending"];
+			    $this->addaction[] = ['title'=>'Edit','url'=>CRUDBooster::mainpath('ReturnsTaggingEdit/[id]'),'color'=>'none','icon'=>'fa fa-pencil', "showIf"=>"[returns_status_1] == $requested"];
+			    $this->addaction[] = ['title'=>'Edit','url'=>CRUDBooster::mainpath('ReturnsDeliveryEdit/[id]'),'color'=>'none','icon'=>'fa fa-pencil', "showIf"=>"[returns_status_1] == $return_delivery_date"];
+			    $this->addaction[] = ['title'=>'Edit','url'=>CRUDBooster::mainpath('ReturnsSchedulingEdit/[id]'),'color'=>'none','icon'=>'fa fa-pencil', "showIf"=>"[returns_status_1] == $to_schedule_aftersales or [returns_status_1] == $to_schedule_logistics"];
+			    $this->addaction[] = ['title'=>'Edit','url'=>CRUDBooster::mainpath('ReturnsCloseRejectEdit/[id]'),'color'=>'none','icon'=>'fa fa-pencil', "showIf"=>"[returns_status_1] == $to_ship_back"];
+			    $this->addaction[] = ['title'=>'Print','url'=>CRUDBooster::mainpath('ReturnsPulloutPrint/[id]'),'color'=>'none','icon'=>'fa fa-print', "showIf"=>"[returns_status_1] == $pending"];
 			    
 			}
 
@@ -295,7 +319,8 @@ use App\TransactionTypeList;
 	        |
 	        */
 	        $this->load_js = array();
-	        
+			$this->load_js[] = "https://unpkg.com/timeago.js/dist/timeago.min.js";
+			$this->load_js[] = asset("js/time_ago.js");
 	        
 	        
 	        /*
@@ -319,6 +344,7 @@ use App\TransactionTypeList;
 	        |
 	        */
 	        $this->load_css = array();
+			$this->load_css[] = asset('css/last_message.css');
 	        
 	        
 	    }
@@ -346,6 +372,16 @@ use App\TransactionTypeList;
 	    |
 	    */
 	    public function hook_query_index(&$query) {
+
+			// Chatbox
+			$query->leftJoin('ecomm_last_comments', 'ecomm_last_comments.returns_header_id', 'returns_header.id')
+			->leftJoin('chat_ecomms', 'chat_ecomms.id', 'ecomm_last_comments.chats_id')
+			->leftJoin('cms_users as sender', 'sender.id', 'chat_ecomms.created_by')
+			->addSelect('chat_ecomms.message as last_message',
+				'chat_ecomms.file_name as last_image',
+				'sender.name as sender_name',
+				'chat_ecomms.created_at as date_send'
+			);
 
 			if(CRUDBooster::myPrivilegeName() == "Logistics"){ 
 					//Your code here
@@ -420,7 +456,7 @@ use App\TransactionTypeList;
 			$to_schedule_logistics = 	ReturnsStatus::where('id','23')->value('warranty_status');
 			$pending =                  ReturnsStatus::where('id','19')->value('warranty_status');
 			$return_delivery_date =     ReturnsStatus::where('id','33')->value('warranty_status');
-			if($column_index == 1){
+			if($column_index == 2){
 				if($column_value == $requested){
 					$column_value = '<span class="label label-warning">'.$requested.'</span>';
 			
@@ -483,10 +519,10 @@ use App\TransactionTypeList;
 	    */
 	    public function hook_before_edit(&$postdata,$id) {        
 			//Your code here
-
+			
 			$ReturnRequest = ReturnsHeader::where('id',$id)->first();
 			$requested = ReturnsStatus::where('id','1')->value('id');
-
+			
 			if($ReturnRequest->returns_status_1 == $requested){
 				$returns_fields = Input::all();
 				$field_1 		= $returns_fields['customer_location'];
@@ -648,7 +684,7 @@ use App\TransactionTypeList;
 					
 					
 					$ReturnRequest = ReturnsHeader::where('id',$id)->first();
-		
+
 					$ReturnItems = Input::all();
 		
 					$digitsCode 		= $ReturnItems['digits_code'];
@@ -668,7 +704,7 @@ use App\TransactionTypeList;
 					
 					$Itemproblem_details_text	 		= $ReturnItems['problem_details_text'];
 					$Itemproblem_details_other_text	 	= $ReturnItems['problem_details_other_text'];
-		
+					// dd($deliver_to);
 					for($x=0; $x < count($digitsCode); $x++){
 					    
 					    
@@ -686,6 +722,7 @@ use App\TransactionTypeList;
 
 										$postdata['stores_id'] =            DB::table("stores")->where('store_name', $deliver_to)->value('id');
 
+										$postdata['sc_location_id'] = 			DB::table("stores")->where('store_name', $deliver_to)->value('id');
 									}
 									
 
@@ -956,7 +993,7 @@ use App\TransactionTypeList;
 						$postdata['level6_personnel_edited']=		date('Y-m-d H:i:s');
 						$postdata['returns_status']=				$to_ship_back;
 						$postdata['returns_status_1']=				$to_ship_back;
-    					$postdata['return_delivery_date']=			$delivery_date;
+    					$postdata['return_delivery_date']=			(new DateTime($delivery_date))->format('Y-m-d');
     					
     					
     					 $user_info =   DB::table("cms_users")->where('cms_users.id', $ReturnRequest->received_by)->first();
@@ -1012,10 +1049,9 @@ use App\TransactionTypeList;
 
 						//$indicate_store = ReturnsStatus::where('warranty_status','INDICATE STORE')->value('id');
 						$dataLines = array();
-			
 						$postdata['level2_personnel'] = 					CRUDBooster::myId();
 						$postdata['level2_personnel_edited']=				date('Y-m-d H:i:s');
-						$postdata['return_schedule'] = 						$field_1;
+						$postdata['return_schedule'] = 						(new DateTime($field_1))->format('Y-m-d');
 						
 						$postdata['dr_number'] = 						    $dr_number;
 						
@@ -1545,13 +1581,15 @@ use App\TransactionTypeList;
 			'returns_serial.*'					
 			)
 			->where('returns_body_item.returns_header_id',$data['row']->id)->whereNotNull('returns_body_item.category')->groupby('returns_body_item.digits_code')->get();
+			
+			$data['comments_data'] = (new ChatController)->getCommentsEcomm($id);
 
 			if(CRUDBooster::myPrivilegeName() == "Logistics"){ 
-
 				$this->cbView("returns.edit_scheduling_logistics", $data);
 
 			}else{
-				$this->cbView("returns.edit_scheduling", $data);
+				$this->cbView("components.ecomm.to_schedule", $data);
+				// $this->cbView("returns.edit_scheduling", $data);
 			}
 		}
 		
@@ -1603,8 +1641,10 @@ use App\TransactionTypeList;
 			)
 			->where('returns_body_item.returns_header_id',$data['row']->id)->whereNotNull('returns_body_item.category')->groupby('returns_body_item.digits_code')->get();
 
+			$data['comments_data'] = (new ChatController)->getCommentsEcomm($id);
 
-			$this->cbView("returns.edit_delivery_logistics", $data);
+			$this->cbView("components.ecomm.return_delivery_date", $data);
+			// $this->cbView("returns.edit_delivery_logistics", $data);
 
 		}
 
@@ -2597,17 +2637,13 @@ use App\TransactionTypeList;
 			    
 		}
 
-
-
 		public function ReturnPulloutUpdateONL(){
 			$data = Input::all();		
 			$request_id = $data['return_id']; 
-			//$comments_variable = $data['comments']; 			
 			
 			$to_diagnose = ReturnsStatus::where('id','5')->value('id');
 
 			$return_request =  ReturnsHeader::where('id',$request_id)->first();
-
 
 			$to_receive_rma = ReturnsStatus::where('id','34')->value('id');
 
@@ -2616,22 +2652,18 @@ use App\TransactionTypeList;
 			//enhancement
 			
 			if($return_request->returns_status_1 != $to_diagnose){
-
-			
-				DB::beginTransaction();
-	
 				try {
-
+					
 					if($return_request->deliver_to == "WAREHOUSE.RMA.DEP"){
 					    
+						DB::beginTransaction();
 						ReturnsHeader::where('id',$request_id)
 						->update([
-							'returns_status_1'=> 		$to_receive_rma
+							'returns_status_1'=> $to_receive_rma
 						]);	
 						
 								$to_receive_sc_frontend = ReturnsStatus::where('id','36')->value('id');
 
-								DB::beginTransaction();
 				
 								try {
 					
@@ -2643,6 +2675,8 @@ use App\TransactionTypeList;
 									]);
 
 									DB::commit();
+
+									CRUDBooster::redirect(CRUDBooster::mainpath(), 'Successful!', 'success');
 					
 								}catch (\Exception $e) {
 									DB::rollback();
@@ -2651,8 +2685,11 @@ use App\TransactionTypeList;
 					
 								DB::disconnect('mysql_front_end');						
 						
-					}else{
+					}
+					
+					else{
 					    
+						DB::beginTransaction();
 						ReturnsHeader::where('id',$request_id)
 						->update([
 							'returns_status_1'=> 		$to_receive_sc
@@ -2660,7 +2697,6 @@ use App\TransactionTypeList;
 						
 								$to_receive_sc_frontend = ReturnsStatus::where('id','36')->value('id');
 
-								DB::beginTransaction();
 				
 								try {
 					
@@ -2672,6 +2708,8 @@ use App\TransactionTypeList;
 									]);
 
 									DB::commit();
+
+									CRUDBooster::redirect(CRUDBooster::mainpath(), 'Successful!', 'success');
 					
 								}catch (\Exception $e) {
 									DB::rollback();
@@ -2681,9 +2719,7 @@ use App\TransactionTypeList;
 								DB::disconnect('mysql_front_end');	
 								
 					}
-	
-						
-					DB::commit();
+				
 	
 				}catch (\Exception $e) {
 					DB::rollback();
@@ -2699,47 +2735,49 @@ use App\TransactionTypeList;
 		public function ReturnPulloutUpdateONLDTD(){
 			$data = Input::all();		
 			$request_id = $data['return_id']; 
-			//$comments_variable = $data['comments']; 			
 			
 			$to_diagnose = ReturnsStatus::where('id','5')->value('id');
 			$return_request =  ReturnsHeader::where('id',$request_id)->first();
-			
-			$to_schedule_logistics = 	ReturnsStatus::where('id','23')->value('id');
+			$to_pickup = ReturnsStatus::where('warranty_status','TO PICKUP')->value('id');
+			$to_schedule_logistics = ReturnsStatus::where('id','23')->value('id');
 
-			
 			if($return_request->returns_status_1 != $to_schedule_logistics){
 			    
-				DB::beginTransaction();
-	
+				
 				try {
-
 
 					if($return_request->via_id == 1){
 
+						DB::beginTransaction();
+
 						ReturnsHeader::where('id',$request_id)
 						->update([
-						'returns_status_1'=> 		$to_schedule_logistics
+						'returns_status_1'=> $to_schedule_logistics
 						]);
 
+						DB::commit();
 
-					}else{
+						CRUDBooster::redirect(CRUDBooster::mainpath(), 'Successful!', 'success');
+
+
+					}
+					else{
 
 						$to_receive_rma = ReturnsStatus::where('id','34')->value('id');
-
+						
 						$to_receive_sc = ReturnsStatus::where('id','35')->value('id');
 
-
 						if($return_request->deliver_to == "WAREHOUSE.RMA.DEP"){
+							
+							DB::beginTransaction();
 
 							ReturnsHeader::where('id',$request_id)
 							->update([
-							'returns_status_1'=> 		$to_receive_rma
+								'returns_status_1'=> $to_receive_rma
 							]);
-							
-							
+														
 								$to_receive_sc_frontend = ReturnsStatus::where('id','36')->value('id');
 
-								DB::beginTransaction();
 				
 								try {
 					
@@ -2751,6 +2789,8 @@ use App\TransactionTypeList;
 									]);
 
 									DB::commit();
+
+									CRUDBooster::redirect(CRUDBooster::mainpath(), 'Successful!', 'success');
 					
 								}catch (\Exception $e) {
 									DB::rollback();
@@ -2762,15 +2802,15 @@ use App\TransactionTypeList;
 
 						}else{
 
+							DB::beginTransaction();
+
 							ReturnsHeader::where('id',$request_id)
 							->update([
-							'returns_status_1'=> 		$to_receive_sc
+								'returns_status_1'=> $to_receive_sc
 							]);
-
 
 								$to_receive_sc_frontend = ReturnsStatus::where('id','36')->value('id');
 
-								DB::beginTransaction();
 				
 								try {
 					
@@ -2782,6 +2822,8 @@ use App\TransactionTypeList;
 									]);
 
 									DB::commit();
+
+									CRUDBooster::redirect(CRUDBooster::mainpath(), 'Successful!', 'success');
 					
 								}catch (\Exception $e) {
 									DB::rollback();
@@ -2790,28 +2832,15 @@ use App\TransactionTypeList;
 					
 								DB::disconnect('mysql_front_end');	
 								
-								
+							
 						}
+
+					
 
 					}
 
-					$fullname = $ReturnRequest->customer_first_name." ".$ReturnRequest->customer_last_name;
-						
-					$data = ['name'=>$fullname,'status_return'=>$to_pickup,'ref_no'=>$ReturnRequest->return_reference_no,'return_schedule'=>$ReturnRequest->return_schedule,'store_name'=>$ReturnRequest->store];
-							
-							
-					//CRUDBooster::sendEmail(['to'=>$ReturnRequest->email_address,'data'=>$data,'template'=>'details_return_pick_up','attachments'=>[]]);
-				
-
-					//logistics
-					//$fullname = $ReturnRequest->customer_first_name." ".$ReturnRequest->customer_last_name;
-					//'name'=>$fullname,
-					$data = ['status_return'=>$to_schedule_logistics,'ref_no'=>$ReturnRequest->return_reference_no,'store_name'=>$ReturnRequest->store];
-									
-					//CRUDBooster::sendEmail(['to'=>'lewieadona@digits.ph','data'=>$data,'template'=>'details_return_update','attachments'=>[]]);
-									
-					DB::commit();
-	
+			
+					
 				}catch (\Exception $e) {
 					DB::rollback();
 					CRUDBooster::redirect(CRUDBooster::mainpath(), trans("crudbooster.alert_database_error",['database_error'=>$e]), 'danger');
@@ -2941,7 +2970,10 @@ use App\TransactionTypeList;
 
 			$data['via'] =  DB::table('via')->where('status', 'ACTIVE')->get();
 
-			$this->cbView("returns.edit_tagging", $data);
+			$data['comments_data'] = (new ChatController)->getCommentsEcomm($id);
+
+			// $this->cbView("returns.edit_tagging", $data);
+			$this->cbView("components.ecomm.to_verify", $data);
 		}
 		
 		

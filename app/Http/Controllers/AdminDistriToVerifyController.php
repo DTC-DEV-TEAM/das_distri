@@ -24,6 +24,7 @@ use PHPExcel_Style_Border;
 use PHPExcel_Style_Fill;
 use App\Item;
 use App\ItemsIncluded;
+use App\ModeOfReturn;
 use App\TransactionTypeList;
 
 	class AdminDistriToVerifyController extends \crocodicstudio\crudbooster\controllers\CBController {
@@ -58,6 +59,28 @@ use App\TransactionTypeList;
 			# START COLUMNS DO NOT REMOVE THIS LINE
 			$this->col = [];
 			$this->col[] = ["label"=>"Status","name"=>"returns_status_1","join"=>"warranty_statuses,warranty_status"];
+			$this->col[] = ["label"=>"Last Chat", "name"=>"id", 'callback'=>function($row){
+				$img_url = asset("chat_img/$row->last_image");
+				;
+				$str = '';
+				
+				$str .= "<div class='sender_name'>$row->sender_name</div>";
+				$str .= "<div class='time_ago' datetime='$row->date_send'>$row->date_send</div>";
+				
+				if ($row->last_message) {
+					// Truncate the message if it's longer than 150 characters
+					$truncatedMessage = strlen($row->last_message) > 41 ? substr($row->last_message, 0, 41) . '...' : $row->last_message;
+					$str .= "<div class='text-msg'>$truncatedMessage</div>";
+				}
+				if($row->last_image){
+					$str .= "<div class='last_msg'><img src='$img_url'></div>";
+				}
+				if($row->sender_name){
+					return $str;
+				}else{
+					return '<div class="no-message">No messages available at the moment.</div>';
+				}
+			}];
 			$this->col[] = ["label"=>"Created Date","name"=>"created_at"];
 			//$this->col[] = ["label"=>"Pickup Schedule","name"=>"return_schedule"];
 			$this->col[] = ["label"=>"Return Reference#","name"=>"return_reference_no"];
@@ -173,9 +196,9 @@ use App\TransactionTypeList;
 			$to_print_srr  =     ReturnsStatus::where('id','19')->value('id');
 			$to_schedule = 	ReturnsStatus::where('id','18')->value('id');
 
-			$this->addaction[] = ['title'=>'Edit','url'=>CRUDBooster::mainpath('ReturnsTaggingDISTRIEdit/[id]'),'icon'=>'fa fa-pencil', "showIf"=>"[returns_status_1] == $requested"];
-			$this->addaction[] = ['title'=>'Print','url'=>CRUDBooster::mainpath('ReturnsSRRPrint/[id]'),'icon'=>'fa fa-print', "showIf"=>"[returns_status_1] == $to_print_srr"];
-			$this->addaction[] = ['title'=>'Edit','url'=>CRUDBooster::mainpath('ReturnsSchedulingDISTRIEdit/[id]'),'icon'=>'fa fa-pencil', "showIf"=>"[returns_status_1] == $to_schedule"];
+			$this->addaction[] = ['title'=>'Edit','url'=>CRUDBooster::mainpath('ReturnsTaggingDISTRIEdit/[id]'),'color'=>'none','icon'=>'fa fa-pencil', "showIf"=>"[returns_status_1] == $requested"];
+			$this->addaction[] = ['title'=>'Print','url'=>CRUDBooster::mainpath('ReturnsSRRPrint/[id]'),'color'=>'none','icon'=>'fa fa-print', "showIf"=>"[returns_status_1] == $to_print_srr"];
+			$this->addaction[] = ['title'=>'Edit','url'=>CRUDBooster::mainpath('ReturnsSchedulingDISTRIEdit/[id]'),'color'=>'none','icon'=>'fa fa-pencil', "showIf"=>"[returns_status_1] == $to_schedule"];
 
 
 	        /* 
@@ -287,6 +310,9 @@ use App\TransactionTypeList;
 	        |
 	        */
 	        $this->load_js = array();
+			$this->load_js[] = "https://unpkg.com/timeago.js/dist/timeago.min.js";
+			$this->load_js[] = asset("js/time_ago.js");
+	        
 	        
 	        
 	        
@@ -311,6 +337,7 @@ use App\TransactionTypeList;
 	        |
 	        */
 	        $this->load_css = array();
+			$this->load_css[] = asset('css/last_message.css');
 	        
 	        
 	    }
@@ -339,6 +366,15 @@ use App\TransactionTypeList;
 	    */
 	    public function hook_query_index(&$query) {
 			//Your code here
+			$query->leftJoin('distri_last_comments', 'distri_last_comments.returns_header_distri_id', 'returns_header_distribution.id')
+			->leftJoin('chat_distri', 'chat_distri.id', 'distri_last_comments.chats_id')
+			->leftJoin('cms_users as sender', 'sender.id', 'chat_distri.created_by')
+			->addSelect('chat_distri.message as last_message',
+				'chat_distri.file_name as last_image',
+				'sender.name as sender_name',
+				'chat_distri.created_at as date_send'
+			);
+			
 		    if(CRUDBooster::myPrivilegeName() == "Distri Store Ops" || CRUDBooster::myPrivilegeName() == "Distri Ops"){ 
 
 				$query->where(function($sub_query){
@@ -379,7 +415,7 @@ use App\TransactionTypeList;
 			$to_print_srr  =            ReturnsStatus::where('id','19')->value('warranty_status');
 			$to_schedule = 				ReturnsStatus::where('id','18')->value('warranty_status');
 
-			if($column_index == 1){
+			if($column_index == 2){
 				if($column_value == $requested){
 					$column_value = '<span class="label label-warning">'.$requested.'</span>';
 			
@@ -737,10 +773,8 @@ use App\TransactionTypeList;
 				$data['resultlist'] = ReturnsBodyDISTRI::
 				leftjoin('returns_serial_distribution', 'returns_body_item_distribution.id', '=', 'returns_serial_distribution.returns_body_item_id')					
 				->select('returns_body_item_distribution.*', 'returns_serial_distribution.*')
-				->where('returns_body_item_distribution.returns_header_id',$data['row']->id)->get();
-		
-			// dd($data['resultlist']);
-			
+        ->where('returns_body_item_distribution.returns_header_id',$data['row']->id)->whereNull('returns_body_item_distribution.category')->get();
+
 			$channels = Channel::where('channel_name', 'ONLINE')->first();
 
 			foreach ($data['resultlist'] as $sku){ 
@@ -777,22 +811,38 @@ use App\TransactionTypeList;
 
 			$data['branch'] = Stores::select('branch_id')->where('stores_frontend_id',  $store_id->id )->where('store_status', 'ACTIVE')
 			->distinct()->orderBy('branch_id', 'asc')->get();
+
+			$cn_id =  DB::table(env('DB_DATABASE').'.stores_frontend')
+				->select('id', 'store_name', 'channels_id')
+				->where('store_name', $data['row']->store_dropoff)
+				->first();
 			
-			$data['store_drop_off'] =  DB::table(env('DB_DATABASE').'.stores')
+			if($cn_id->channels_id == 7){
+				$data['store_drop_off'] =  DB::table(env('DB_DATABASE').'.stores_frontend')
+				->select('id', 'store_name')
+				->where('store_status','=','ACTIVE')
+				->where('channels_id', $cn_id->channels_id)
+				->where('store_types_id', 2)
+				->orderBy('store_name', 'ASC')
+				->get();
+			}else{
+				$data['store_drop_off'] =  DB::table(env('DB_DATABASE').'.stores')
 				->leftjoin('stores_frontend', 'stores.stores_frontend_id','=', 'stores_frontend.id')
-				->select('stores_frontend.store_name as store_name')
+				->select('stores_frontend.id', 'stores_frontend.store_name as store_name')
 				->where('stores.store_status','=','ACTIVE')
-				->where('stores_frontend.store_name','!=','BASEUS')
-				->where('stores_frontend.store_name','!=','OMG')
-				->where('stores.channels_id', 6)
+				->where('stores_frontend.store_name', 'DIGITAL WALKER')
+				->where('stores.channels_id', $cn_id->channels_id)
 				->orderBy('stores_frontend.store_name', 'ASC')
-				->groupby('stores_frontend.store_name')->get();
-                                            
+				->groupby('stores_frontend.store_name')
+				->get();
+			}
+
 			$storefrontend = StoresFrontEnd::where('channels_id',  4)->where('store_name', $data['row']->store_dropoff )->where('store_status', 'ACTIVE')->orderBy('store_name','asc')->first();
 			
-			$data['branch_dropoff'] = Stores::select('branch_id')->where('store_status','ACTIVE')
-				// ->where('branch_id', $data['row']->branch_dropoff)
-				->distinct()->orderBy('branch_id', 'asc')->get();
+			$data['branch_dropoff'] = Stores::where('stores_frontend_id',$cn_id->id)
+			->where('store_status', 'ACTIVE')
+			->orderBy('branch_id', 'ASC')
+			->get();
 				
 			$data['transaction_type'] = TransactionTypeList::where('id', 5)->orderBy('transaction_type_name','desc')->get();
 			$data['warranty_status'] = DiagnoseWarranty::orderBy('warranty_name','asc')->get();
@@ -801,8 +851,11 @@ use App\TransactionTypeList;
 
 			$data['SCLocation'] = DB::table('sc_location')->where('status', "ACTIVE")->orderBy('sc_location_name', 'ASC')->get();
 			
+			$data['comments_data'] = (new ChatController)->getCommentsDistri($id);
+
+			$data['mor_data'] = ModeOfReturn::where('id', '!=', 3)->get();
+
 			$this->cbView("returns.edit_tagging_distri", $data);
-			
 		}
 
 		public function GetExtractReturnsTaggingRTL(){
@@ -1007,7 +1060,7 @@ use App\TransactionTypeList;
 							$verified_date = $orderRow->level7_personnel_edited;
 							
                             $scheduled_by = $orderRow->scheduled_logistics_by;
-                            $scheduled_date = $orderRow->level7_personnel_edited;
+							$scheduled_date = $orderRow->level1_personnel_edited;
 							if($orderRow->diagnose == "REFUND"){
 								$printed_by = $orderRow->printed_by;
 								$printed_date = $orderRow->level3_personnel_edited;
@@ -1215,12 +1268,15 @@ use App\TransactionTypeList;
 		{
 			if(!empty($request->drop_off_store))
 			{
-				$store_id =	StoresFrontEnd::where('store_name', $request->drop_off_store)->where('channels_id', 6)->where('store_status', 'ACTIVE')->first();
-
+				$store_id =	StoresFrontEnd::where('store_name', $request->drop_off_store)->where('store_status', 'ACTIVE')->first();
+				
 				if($request->location == 6){
 					$customer_location = Stores::where('stores_frontend_id',$store_id->id)->where('store_status', 'ACTIVE')->orderBy('branch_id', 'ASC')->get();
 				}else{
-					$customer_location = Stores::where('stores_frontend_id',$store_id->id)->where('store_status', 'ACTIVE')->where('store_dropoff_privilege', 'YES')->orderBy('branch_id', 'ASC')->get();
+					$customer_location = Stores::where('stores_frontend_id',$store_id->id)
+					->where('store_status', 'ACTIVE')
+					->orderBy('branch_id', 'ASC')
+					->get();
 				}
 			}else{
 	
@@ -1346,6 +1402,8 @@ use App\TransactionTypeList;
 					]);	
 						
 					DB::commit();
+
+					CRUDBooster::redirect(CRUDBooster::mainpath(), 'Success', 'success');
 	
 				}catch (\Exception $e) {
 					DB::rollback();

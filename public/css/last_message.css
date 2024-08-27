@@ -1,0 +1,33 @@
+.sender_name{
+    font-weight: bold;
+    font-size: 13px;
+    color: #2E3138;
+    max-width: 150px;
+
+}
+
+.last_msg img{
+    object-fit: contain;
+    max-width: 150px;
+    width: 100%;
+}
+
+.time_ago{
+    color: #44a5da;
+    font-weight: bold;
+    max-width: 150px;
+    font-size: 12px;
+}
+
+.text-msg, .no-message{
+    box-shadow: rgba(5, 5, 10, 0.3) 0px 2px 5px, rgba(5, 5, 10, 0.05) 0px 2px 5px;
+    padding: 5px;
+    font-weight: 600;
+    border-radius: 5px;
+    max-width: 150px;
+    font-size: 13px;
+}
+
+.text-msg{
+    margin: 5px 0;
+}

@@ -1,6 +1,9 @@
 <!-- First, extends to the CRUDBooster Layout -->
 @extends('crudbooster::admin_template')
 
+@include('plugins.plugins')
+<link rel="stylesheet" href="{{ asset('css/sweet_alert_size.css') }}">
+
 @section('content')
 @if(g('return_url'))
 	<p class="noprint"><a title='Return' href='{{g("return_url")}}'><i class='fa fa-chevron-circle-left '></i> &nbsp; {{trans("crudbooster.form_back_to_list",['module'=>CRUDBooster::getCurrentModule()->name])}}</a></p>       
@@ -10,6 +13,19 @@
   <!-- Your html goes here -->
 <div class='panel panel-default'>
     <div class='panel-heading'>Details Form</div>
+        <div class="message-pos">
+            <div class="message-circ">
+                <i class="fa fa-envelope" style="color: #fff; font-size: 20px;"></i>
+            </div>
+            <div class="chat-container">
+                <div class="chat-content" style="display: none;">
+                    <div class="hide-chat">
+                        <i class="fa fa-close" style="color: #fff;"></i>
+                    </div>
+                    @include('components.ecomm.chat-app', $comments_data)
+                </div>
+            </div>
+        </div>
         <form method='post' id="myform" action='{{CRUDBooster::mainpath('edit-save/'.$row->id)}}'>
             <input type="hidden" value="{{csrf_token()}}" name="_token" id="token">
             <input type="hidden"  name="diagnose" id="diagnose">
@@ -92,7 +108,7 @@
                             <!--<div class="table-responsive">
                                 <div class="pic-container">
                                     <div class="pic-row"> -->
-                                        <table  class='table table-striped table-bordered'>
+                                        <table  class='table table-striped table-bordered table-font'>
                                             <thead>
                                                 <tr>
                                                     <th width="10%" class="text-center">{{ trans('message.table.digits_code') }}</th>
@@ -140,6 +156,7 @@
 
                     </div>
                 </div>
+                
                 <div class='panel-footer'>
                     <a href="{{ CRUDBooster::mainpath() }}" class="btn btn-default">{{ trans('message.form.cancel') }}</a>
                     @if ($row->transaction_type == 0 )
@@ -147,15 +164,62 @@
                         @else
                             <button class="btn btn-primary pull-right" type="submit" id="btnSubmit"> <i class="fa fa-circle-o" ></i> {{ trans('message.form.proceed') }}</button>
                     @endif
-                            
+                    {{-- <button class="btn btn-primary pull-right f-btn" type="submit" id="btnSubmit"> <i class="fa {{ $row->transaction_type == 0 ? 'fa-save' : 'fa-circle-o'}}" ></i> {{ $row->transaction_type == 0 ? trans('message.form.save') : trans('message.form.proceed') }}</button> --}}
                 </div>
-
-        </form>
+            </form>
 </div>
 @endsection
 
 @push('bottom')
 <script type="text/javascript">
+
+const modeOfReturn = "{{ $row->sor_number == null ||  $row->sor_number == "" }}"
+
+function chatBox(){
+
+    $('.hide-chat').on('click', function(){
+        $(this).hide();
+        $('.chat-content').hide();
+    })
+
+    $('.message-circ').on('click', function(){
+        const scrollBody = $('.scroll-body');
+
+        $('.hide-chat').show();
+        $('.chat-content').show();
+
+        scrollBody.ready(function() {
+            scrollBody.animate({scrollTop: scrollBody.prop('scrollHeight')}, 1000)
+            reloadInfo();
+        });
+        
+        $('.type-message').focus();
+    })
+}
+
+chatBox();
+
+$(".f-btn").on('click', function(){
+
+    const btnText = $(this).text();
+
+    Swal.fire({
+        title: `Are you sure you want to <span style="color: #3085D6">${btnText}</span> this transaction?`,
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#3085d6',
+        cancelButtonColor: '#d33',
+        confirmButtonText: 'Yes',
+        reverseButtons: true,
+        returnFocus: false,
+        allowOutsideClick: true,
+    }).then((result) => {
+        if (result.isConfirmed) {
+            $('#btnSubmit').click();
+        }
+    });
+})
+
 function AvoidSpace(event) {
     var k = event ? event.which : window.event.keyCode;
     if (k == 32) return false;
@@ -203,11 +267,11 @@ $("#btnSubmit").on('click',function() {
             }
             
         }
-        
-        if(deliver != "WAREHOUSE.RMA.DEP"){
+
+            if(deliver != "WAREHOUSE.RMA.DEP"){
             
-            if($("#pos_crf_number").val().includes("CRF#")){
-                    
+                if($("#pos_crf_number").val().includes("CRF#")){
+                        
                     if($("#pos_crf_number").val().includes(" ")){
                         signal = 0;
                         alert_message = 1;
@@ -218,15 +282,52 @@ $("#btnSubmit").on('click',function() {
                         signal =1;
                         restriction = 0;
                     }
-                    
-            }else{
-                    
+                        
+                }else{
+                        
                     signal = 0;
-                    alert("Incorrect POS CRF# format! e.g. CRF#1001");
-        
+                    // alert("Incorrect POS CRF# format! e.g. CRF#1001");
+                    Swal.fire({
+                        title: "Incorrect POS CRF# format! e.g. CRF#1001",
+                        icon: 'error',
+                        showCancelButton: false,
+                        confirmButtonColor: '#3085d6',
+                        confirmButtonText: 'Ok',
+                        returnFocus: false,
+                        allowOutsideClick: false,
+                    }).then((result) => {
+                        if (result.isConfirmed) {
+                            $('#pos_crf_number').css({border: '2px solid #FE4A49'});
+                            $('#pos_crf_number').focus();
+                        }
+                    })
                     return false;  
                 }  
         }
+        
+        // if(deliver != "WAREHOUSE.RMA.DEP"){
+            
+        //     if($("#pos_crf_number").val().includes("CRF#")){
+                    
+        //             if($("#pos_crf_number").val().includes(" ")){
+        //                 signal = 0;
+        //                 alert_message = 1;
+        //             }else if(text_length <= 4){
+        //                     signal = 0;
+        //                     alert_message = 1;
+        //             }else{
+        //                 signal =1;
+        //                 restriction = 0;
+        //             }
+                    
+        //     }else{
+                    
+        //             signal = 0;
+        //             alert("Incorrect POS CRF# format! e.g. CRF#1001");
+        
+        //             return false;  
+        //         }  
+        // }
 
        if(signal != 0){
             return true;   

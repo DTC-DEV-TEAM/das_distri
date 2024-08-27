@@ -1,5 +1,7 @@
 <!-- First, extends to the CRUDBooster Layout -->
 @extends('crudbooster::admin_template')
+@include('plugins.plugins')
+<link rel="stylesheet" href="{{ asset('css/sweet_alert_size.css') }}">
 @push('head')
 <style type="text/css">   
 .pic-container {
@@ -35,6 +37,19 @@
   <!-- Your html goes here -->
 <div class='panel panel-default'>
     <div class='panel-heading'>Details Form</div>
+        <div class="message-pos">
+            <div class="message-circ">
+                <i class="fa fa-envelope" style="color: #fff; font-size: 20px;"></i>
+            </div>
+            <div class="chat-container">
+                <div class="chat-content" style="display: none;">
+                    <div class="hide-chat">
+                        <i class="fa fa-close" style="color: #fff;"></i>
+                    </div>
+                    @include('components.distribution.chat-app', $comments_data)
+                </div>
+            </div>
+        </div>
         <form method='post' id="myform" action='{{CRUDBooster::mainpath('edit-save/'.$row->id)}}'>
             <input type="hidden" value="{{csrf_token()}}" name="_token" id="token">
             <input type="hidden"  name="remarks" id="remarks">
@@ -42,7 +57,7 @@
                     <div> 
                         <div class="row">                           
                             <label class="control-label col-md-2"  style="margin-top:4px;">{{ trans('message.form-label.customer_location') }}</label>
-                            <div class="col-md-5">
+                            <div class="col-md-4">
                                 <select class="js-example-basic-single" name="customer_location" id="customer_location" required style="width:100%">
                                                 <option value="" disabled>-- Select Customer Location Name --</option>
                                         @foreach($store_list as $datas)    
@@ -56,7 +71,7 @@
                         <div id="locations"> 
                             <div class="row">                           
                                 <label class="control-label col-md-2"  style="margin-top:4px;" >Service Center Location:</label>
-                                <div class="col-md-5">
+                                <div class="col-md-4">
                                     <select class="js-example-basic-single" name="deliver_to" id="deliver_to" required style="width:100%">
                                             <option value="" selected id="">-- Select Service Center Location --</option>
                                             @foreach($SCLocation as $datas)    
@@ -78,12 +93,12 @@
 
                                 @if($data->id == 1)
                                             <div class="col-md-5">
-                                                <label class="radio-inline control-label col-md-5" ><input type="radio" required checked  class="via_class" name="via_id" value="{{$data->id}}" >{{$data->via_name}}</label>
+                                                <label class="radio-inline control-label col-md-5" ><input type="radio" required class="via_class" name="via_id" value="{{$data->id}}" >{{$data->via_name}}</label>
                                                 <br>
                                             </div>
                                     @else
                                             <div class="col-md-5">
-                                                <label class="radio-inline control-label col-md-5"><input type="radio" required  class="via_class" name="via_id" value="{{$data->id}}" >{{$data->via_name}}</label>
+                                                <label class="radio-inline control-label col-md-5"><input type="radio" class="via_class" name="via_id" value="{{$data->id}}" >{{$data->via_name}}</label>
                                                 <br>
                                             </div>
                                 @endif
@@ -115,12 +130,12 @@
 
                                     @if($data->warranty_name =="IN WARRANTY")
                                                 <div class="col-md-5">
-                                                    <label class="radio-inline control-label col-md-5" ><input type="radio" required checked    name="warranty_status_val" value="{{$data->warranty_name}}" >{{$data->warranty_name}}</label>
+                                                    <label class="radio-inline control-label col-md-5" ><input type="radio" required name="warranty_status_val" value="{{$data->warranty_name}}" >{{$data->warranty_name}}</label>
                                                     <br>
                                                 </div>
                                         @else
                                                 <div class="col-md-5">
-                                                    <label class="radio-inline control-label col-md-5"><input type="radio" required  name="warranty_status_val" value="{{$data->warranty_name}}" >{{$data->warranty_name}}</label>
+                                                    <label class="radio-inline control-label col-md-5"><input type="radio" required name="warranty_status_val" value="{{$data->warranty_name}}" >{{$data->warranty_name}}</label>
                                                     <br>
                                                 </div>
                                     @endif
@@ -150,12 +165,12 @@
 
                                     @if($data->id == 5)
                                                 <div class="col-md-5">
-                                                    <label class="radio-inline control-label col-md-12" ><input type="radio" class="transactionradio"  required checked  name="transaction_type_id" id="transaction_type_id" value="{{$data->id}}" >{{$data->transaction_type_name}}</label>
+                                                    <label class="radio-inline control-label col-md-12" ><input type="radio" class="transactionradio" required checked name="transaction_type_id" id="transaction_type_id" value="{{$data->id}}" >{{$data->transaction_type_name}}</label>
                                                     <br>
                                                 </div>
                                         @else
                                                 <div class="col-md-5">
-                                                    <label class="radio-inline control-label col-md-12"><input type="radio"  class="transactionradio"  required  name="transaction_type_id" id="transaction_type_id" value="{{$data->id}}" >{{$data->transaction_type_name}}</label>
+                                                    <label class="radio-inline control-label col-md-12"><input type="radio"  class="transactionradio" required name="transaction_type_id" id="transaction_type_id" value="{{$data->id}}" >{{$data->transaction_type_name}}</label>
                                                     <br>
                                                 </div>
                                     @endif
@@ -236,21 +251,12 @@
                                         </select>  
                                     </div>    
                                  @endif      
-
                                  <label class="control-label col-md-2"  style="margin-top:4px;">{{ trans('message.form-label.mode_of_return') }}</label>
                                  <div class="col-md-4">
-                                    <!-- <p>{{$row->mode_of_return}}</p> -->
-
                                      <select class="js-example-basic-single" name="mode_of_return" id="mode_of_return" required style="width:100%">
-                                       
-                                            @if(  $row->mode_of_return == "STORE DROP-OFF")
-                                                  
-                                                        <option  selected value="STORE DROP-OFF">Store Drop-Off</option>
-                                                @else
-                                                        <option   value="STORE DROP-OFF">Store Drop-Off</option>
-                                            @endif
-
-                                    
+                                        @foreach ($mor_data as $mor)
+                                                <option value="{{ $mor->name }}" {{ $row->mode_of_return == $mor->name ? 'selected' : '' }}>{{ $mor->name }}</option>
+                                        @endforeach
                                     </select>  
                                  </div>
                             </div>      
@@ -259,15 +265,13 @@
                                 @if ($row->store_dropoff != null || $row->store_dropoff != "")
                                     <label class="control-label col-md-2"  style="margin-top:4px;">{{ trans('message.form-label.store_dropoff') }}</label>
                                     <div class="col-md-4">
-                                    <!-- <p>{{$row->store_dropoff}}</p> -->
                                             <select class="js-example-basic-single" name="store_dropoff" id="store_dropoff" onchange="showBranch()"  required style="width:100%">
                                                 @foreach($store_drop_off as $datas)    
                                                     @if( $datas->store_name == $row->store_dropoff)
-                                                                <option selected value="{{$datas->store_name}}">{{$datas->store_name}}</option>
+                                                            <option selected value="{{$datas->store_name}}">{{$datas->store_name}}</option>
                                                         @else
-                                                                <option  value="{{$datas->store_name}}">{{$datas->store_name}}</option>
+                                                            <option  value="{{$datas->store_name}}">{{$datas->store_name}}</option>
                                                     @endif
-        
                                                 @endforeach
                                             </select> 
                                     </div>
@@ -278,7 +282,7 @@
                                 <div class="col-md-4">
                                     {{-- {{$row->branch_dropoff}} --}}
                                     
-                                    <select class="js-example-basic-single" name="branch_dropoff" id="branch_dropoff"  style="width:100%">
+                                    <select class="js-example-basic-single" name="branch_dropoff" id="branch_dropoff"  style="width:100%" required>
                                             
                                         @foreach($branch_dropoff as $datas)    
                                             @if( $datas->branch_id == $row->branch_dropoff)
@@ -687,6 +691,30 @@
 @push('bottom')
 <script type="text/javascript">
 
+function chatBox(){
+    $('.hide-chat').on('click', function(){
+        $(this).hide();
+        $('.chat-content').hide();
+    })
+
+    $('.message-circ').on('click', function(){
+        const scrollBody = $('.scroll-body');
+
+        $('.hide-chat').show();
+        $('.chat-content').show();
+
+        scrollBody.ready(function() {
+            scrollBody.animate({scrollTop: scrollBody.prop('scrollHeight')}, 1000)
+            reloadInfo();
+        });
+        
+        $('.type-message').focus();
+    })
+}
+
+chatBox();
+
+
 $('#carried').hide();
 $('#carried_by').removeAttr('required');
 
@@ -841,9 +869,11 @@ function branchChange(){
     {
         var drop_off_store = document.getElementById("store_dropoff").value;
         var location = document.getElementById("purchase_location").value;
+        $('#branch_dropoff').val('');
+        
         $.ajax
         ({ 
-            url: '{{ url('admin/retail_for_verification/branch_drop_off') }}',
+            url: '{{ url('admin/distri_to_verify/branch_drop_off') }}',
             type: "POST",
             data: {
                 'drop_off_store': drop_off_store,

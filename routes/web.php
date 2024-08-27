@@ -49,10 +49,10 @@ Route::group(['middleware' => ['web']], function() {
     Route::get('/admin/scheduling/GetExtractReturnsScheduling','AdminReturnsHeaderController@GetExtractReturnsScheduling')->name('GetExtractReturnsScheduling');
     Route::get('/sendmail', 'AdminReturnsHeaderController@sendmail');
     Route::get('/admin/scheduling/ReturnsPulloutPrint/{id}','AdminReturnsHeaderController@ReturnsPulloutPrint'); 
-    Route::get('admin/scheduling/ReturnPulloutUpdateONL','AdminReturnsHeaderController@ReturnPulloutUpdateONL');
+    Route::get('admin/scheduling/ReturnPulloutUpdateONL','AdminReturnsHeaderController@ReturnPulloutUpdateONL')->name('ReturnPulloutUpdateONL');
     Route::get('/admin/scheduling/ReturnsTaggingEdit/{id}','AdminReturnsHeaderController@ReturnsTaggingEdit');
     
-    Route::get('admin/scheduling/ReturnPulloutUpdateONLDTD','AdminReturnsHeaderController@ReturnPulloutUpdateONLDTD');
+    Route::get('admin/scheduling/ReturnPulloutUpdateONLDTD','AdminReturnsHeaderController@ReturnPulloutUpdateONLDTD')->name('ReturnPulloutUpdateONLDTD');
     
     Route::get('/admin/scheduling/ReturnsDeliveryEdit/{id}','AdminReturnsHeaderController@ReturnsDeliveryEdit'); 
     
@@ -67,13 +67,12 @@ Route::group(['middleware' => ['web']], function() {
     Route::get('/admin/returns_diagnosing/ReturnsDiagnosingEdit/{id}','AdminReturnsDiagnosingController@ReturnsDiagnosingEdit'); 
     Route::get('/admin/returns_diagnosing/ReturnsDiagnosingDetail/{id}','AdminReturnsDiagnosingController@ReturnsDiagnosingDetail'); 
     Route::get('/admin/returns_diagnosing/ReturnsSORReceivingEdit/{id}','AdminReturnsDiagnosingController@ReturnsSORReceivingEdit'); 
+    Route::get('/admin/returns_diagnosing/TechLeadECOMM/{id}','AdminReturnsDiagnosingController@TechLeadECOMM');
     Route::get('/admin/returns_diagnosing/ReturnsReturnFormPrint/{id}','AdminReturnsDiagnosingController@ReturnsReturnFormPrint');
     Route::get('admin/returns_diagnosing/FormRejectUpdateStatus','AdminReturnsDiagnosingController@FormRejectUpdateStatus');
     Route::get('admin/returns_diagnosing/FormRepairUpdateStatus','AdminReturnsDiagnosingController@FormRepairUpdateStatus');
-    Route::get('/admin/returns_diagnosing/GetExtractReturnsDiagnosing','AdminReturnsDiagnosingController@GetExtractReturnsDiagnosing')->name('GetExtractReturnsDiagnosing');
+    Route::get('/admin/returns_diagnosing/export_return_diagnosing_ecomm','AdminReturnsDiagnosingController@exportReturnDiagnosingECOMM');
 
-
-    Route::get('/admin/returns_diagnosing/GetExtractReturnsDiagnosingSC','AdminReturnsDiagnosingController@GetExtractReturnsDiagnosingSC')->name('GetExtractReturnsDiagnosingSC');
 
     Route::get('/admin/returns_diagnosing/ReturnsDiagnosingEditSC/{id}','AdminReturnsDiagnosingController@ReturnsDiagnosingEditSC'); 
     Route::get('/admin/returns_diagnosing/ReturnsReturnFormPrintSC/{id}','AdminReturnsDiagnosingController@ReturnsReturnFormPrintSC'); 
@@ -87,10 +86,12 @@ Route::group(['middleware' => ['web']], function() {
 
     //level5
     Route::get('/admin/returns_sor/ReturnsSOREdit/{id}','AdminReturnsSorController@ReturnsSOREdit'); 
-    Route::get('/admin/returns_sor/GetExtractReturnsSOR','AdminReturnsSorController@GetExtractReturnsSOR')->name('GetExtractReturnsSOR');
+    Route::get('/admin/returns_sor/export_return_sor_ecomm','AdminReturnsSorController@exportReturnSOREcomm');
     Route::get('/admin/returns_sor/ViewSOR/{id}','AdminReturnsSorController@ViewSOR'); 
     //history
     Route::get('/admin/returns_history/ReturnsHistoryDetail/{id}','AdminReturnsHistoryController@ReturnsHistoryDetail');
+    Route::get('/admin/returns_history/ReturnsHistoryEditEcomm/{id}','AdminReturnsHistoryController@ReturnsHistoryEditEcomm');
+    Route::post('/admin/returns_history/SuccessEditEcomm/{id}','AdminReturnsHistoryController@updateReturnEcoms')->name('edit-return-ecoms');
     Route::get('/admin/returns_history/ReturnsReturnFormPrint/{id}','AdminReturnsHistoryController@ReturnsReturnFormPrint'); 
     Route::get('/admin/returns_history/ReturnsCRFPrint/{id}','AdminReturnsHistoryController@ReturnsCRFPrint');   
     Route::get('/admin/returns_history/ReturnsHistoryEdit/{id}','AdminReturnsHistoryController@ReturnsHistoryEdit');   
@@ -98,14 +99,14 @@ Route::group(['middleware' => ['web']], function() {
     Route::get('/admin/returns_history/EditHistoryEcomm/{id}','AdminReturnsHistoryController@EditHistoryEcomm');  
     
     //export
-    Route::get('/admin/returns_history/GetExtractReturns','AdminReturnsHistoryController@GetExtractReturns')->name('GetExtractReturns');
+    Route::get('/admin/returns_history/export_return_history_ecomm','AdminReturnsHistoryController@exportReturnHistoryEcomm');
     
     Route::get('/admin/returns_history/GetExtractReturnsSC','AdminReturnsHistoryController@GetExtractReturnsSC')->name('GetExtractReturnsSC');
 
     //retailscheduling
     Route::get('/admin/returns_retail_scheduling/ReturnsSchedulingRetailEdit/{id}','AdminReturnsRetailSchedulingController@ReturnsSchedulingRetailEdit'); 
     Route::get('/admin/returns_retail_scheduling/ReturnsPulloutPrint/{id}','AdminReturnsRetailSchedulingController@ReturnsPulloutPrint'); 
-    Route::get('admin/returns_retail_scheduling/ReturnPulloutUpdate','AdminReturnsRetailSchedulingController@ReturnPulloutUpdate');
+    Route::get('admin/returns_retail_scheduling/ReturnPulloutUpdate','AdminReturnsRetailSchedulingController@ReturnPulloutUpdate')->name('ReturnPulloutUpdateRTL');
     
     Route::get('/admin/returns_retail_scheduling/ReturnsDeliveryEditRTL/{id}','AdminReturnsRetailSchedulingController@ReturnsDeliveryEditRTL'); 
 
@@ -114,12 +115,11 @@ Route::group(['middleware' => ['web']], function() {
     //retaildiagnosing
     Route::get('/admin/retail_return_diagnosing/ReturnsDiagnosingRTLEdit/{id}','AdminRetailReturnDiagnosingController@ReturnsDiagnosingRTLEdit');
     Route::get('/admin/retail_return_diagnosing/ReturnsReturnFormPrintRTL/{id}','AdminRetailReturnDiagnosingController@ReturnsReturnFormPrintRTL');  
+    Route::get('/admin/retail_return_diagnosing/TechLeadRTL/{id}','AdminRetailReturnDiagnosingController@TechLeadRTL');
     Route::get('/admin/retail_return_diagnosing/FormRejectUpdateStatusRTL','AdminRetailReturnDiagnosingController@FormRejectUpdateStatusRTL'); 
     Route::get('/admin/retail_return_diagnosing/FormRepairUpdateStatusRTL','AdminRetailReturnDiagnosingController@FormRepairUpdateStatusRTL'); 
     
-    Route::get('/admin/retail_return_diagnosing/GetExtractDiagnosingReturnsRTL','AdminRetailReturnDiagnosingController@GetExtractDiagnosingReturnsRTL')->name('GetExtractDiagnosingReturnsRTL');
-    Route::get('/admin/retail_return_diagnosing/GetExtractDiagnosingReturnsRTLSC','AdminRetailReturnDiagnosingController@GetExtractDiagnosingReturnsRTLSC')->name('GetExtractDiagnosingReturnsRTLSC');
-
+    Route::get('/admin/retail_return_diagnosing/export_return_diagnosing_rtl','AdminRetailReturnDiagnosingController@exportReturnDiagnosingRTL');
 
     Route::get('/admin/retail_return_diagnosing/ReturnsDiagnosingRTLEditSC/{id}','AdminRetailReturnDiagnosingController@ReturnsDiagnosingRTLEditSC');
     Route::get('/admin/retail_return_diagnosing/ReturnsReturnFormPrintRTLSC/{id}','AdminRetailReturnDiagnosingController@ReturnsReturnFormPrintRTLSC');  
@@ -137,7 +137,7 @@ Route::group(['middleware' => ['web']], function() {
     
     //retailsor
     Route::get('/admin/retail_return_sor/ReturnsSOREditRTL/{id}','AdminRetailReturnSorController@ReturnsSOREditRTL');
-    Route::get('/admin/retail_return_sor/GetExtractSORReturnsRTL','AdminRetailReturnSorController@GetExtractSORReturnsRTL')->name('GetExtractSORReturnsRTL');
+    Route::get('/admin/retail_return_sor/export_return_sor_rtl','AdminRetailReturnSorController@exportReturnSORRTL');
     Route::get('/admin/retail_return_sor/ViewSORRTL/{id}','AdminRetailReturnSorController@ViewSORRTL');
     //retailclosing
     Route::get('/admin/retail_return_closing/ReturnsClosingEditRTLOPS/{id}','AdminRetailReturnClosingController@ReturnsClosingEditRTLOPS');
@@ -146,12 +146,15 @@ Route::group(['middleware' => ['web']], function() {
     
     //retailhistory
     Route::get('/admin/retail_return_history/ReturnsHistoryDetailRTL/{id}','AdminRetailReturnHistoryController@ReturnsHistoryDetailRTL');
+    Route::get('/admin/retail_return_history/ReturnsHistoryEditRTL/{id}','AdminRetailReturnHistoryController@ReturnsHistoryEditRTL');
+
+    Route::post('/admin/retail_return_history/SuccessEditRetail/{id}','AdminRetailReturnHistoryController@updateReturnRetail')->name('edit-return-retail');
 
     Route::get('/admin/retail_return_history/ReturnsPulloutPrint/{id}','AdminRetailReturnHistoryController@ReturnsPulloutPrint');   
     Route::get('/admin/retail_return_history/ReturnsCRFPrintRTL/{id}','AdminRetailReturnHistoryController@ReturnsCRFPrintRTL');   
     Route::get('/admin/retail_return_history/ReturnsReturnFormPrintRTL/{id}','AdminRetailReturnHistoryController@ReturnsReturnFormPrintRTL');   
     
-    Route::get('/admin/retail_return_history/GetExtractReturnsRTL','AdminRetailReturnHistoryController@GetExtractReturnsRTL')->name('GetExtractReturnsRTL');
+    Route::get('/admin/retail_return_history/export_return_history_rtl','AdminRetailReturnHistoryController@exportReturnHistoryRTL');
     
     Route::get('/admin/retail_return_history/GetExtractReturnsRTLSC','AdminRetailReturnHistoryController@GetExtractReturnsRTLSC')->name('GetExtractReturnsRTLSC');
 
@@ -173,7 +176,7 @@ Route::group(['middleware' => ['web']], function() {
     Route::get('/admin/for_receiving_returns/GetExtractReturnsReceiving','AdminForReceivingReturnsController@GetExtractReturnsReceiving')->name('GetExtractReturnsReceiving');
     
     Route::get('/admin/for_receiving_returns/ReturnsSRRPrint/{id}','AdminForReceivingReturnsController@ReturnsSRRPrint');
-    Route::get('admin/for_receiving_returns/ReturnsSRRUpdate','AdminForReceivingReturnsController@ReturnsSRRUpdate');
+    Route::get('admin/for_receiving_returns/ReturnsSRRUpdate','AdminForReceivingReturnsController@ReturnsSRRUpdate')->name('ReturnsSRRUpdate');
     
     //to close
     Route::get('/admin/returns_to_close/ReturnsCloseRejectEdit/{id}','AdminReturnsToCloseController@ReturnsCloseRejectEdit');
@@ -208,7 +211,7 @@ Route::group(['middleware' => ['web']], function() {
     
     Route::get('/admin/to_receive_ecomm/ReturnsSRRPrintSC/{id}','AdminToReceiveEcommController@ReturnsSRRPrintSC');
     
-    Route::get('admin/to_receive_ecomm/ReturnsSRRUpdateSC','AdminToReceiveEcommController@ReturnsSRRUpdateSC');
+    Route::get('admin/to_receive_ecomm/ReturnsSRRUpdateSC','AdminToReceiveEcommController@ReturnsSRRUpdateSC')->name('ReturnsSRRUpdateSC');
         
     Route::get('/admin/to_receive_ecomm/ReturnsDiagnosingEditSC/{id}','AdminToReceiveEcommController@ReturnsDiagnosingEditSC');
     Route::get('/admin/to_receive_ecomm/ReturnsSORReceivingEditSC/{id}','AdminToReceiveEcommController@ReturnsSORReceivingEditSC');
@@ -224,11 +227,11 @@ Route::group(['middleware' => ['web']], function() {
     Route::get('/admin/to_receive_retail/GetExtractReturnsToReceiveSCRTL','AdminToReceiveRetailController@GetExtractReturnsToReceiveSCRTL')->name('GetExtractReturnsToReceiveSCRTL');  
       
     Route::get('/admin/to_receive_retail/ReturnsDiagnosingRTLEditSC/{id}','AdminToReceiveRetailController@ReturnsDiagnosingRTLEditSC');
-     Route::get('/admin/to_receive_retail/ReturnsReturnFormPrintRTLSC/{id}','AdminToReceiveRetailController@ReturnsReturnFormPrintRTLSC');
+    Route::get('/admin/to_receive_retail/ReturnsReturnFormPrintRTLSC/{id}','AdminToReceiveRetailController@ReturnsReturnFormPrintRTLSC');
      
     Route::get('/admin/to_receive_retail/ReturnsSRRPrintSC/{id}','AdminToReceiveRetailController@ReturnsSRRPrintSC');
     
-    Route::get('/admin/to_receive_retail/ReturnsSRRUpdateSCRTL','AdminToReceiveRetailController@ReturnsSRRUpdateSCRTL');
+    Route::get('/admin/to_receive_retail/ReturnsSRRUpdateSCRTL','AdminToReceiveRetailController@ReturnsSRRUpdateSCRTL')->name('ReturnsSRRUpdateSCRTL');
 
     Route::get('/admin/to_receive_retail/ToReceiveRTL/{id}','AdminToReceiveRetailController@ToReceiveRTL'); 
 
@@ -243,7 +246,7 @@ Route::group(['middleware' => ['web']], function() {
     
     
     Route::get('/admin/retail_for_verification/ReturnsSRRPrint/{id}','AdminRetailForVerificationController@ReturnsSRRPrint');
-    Route::get('admin/retail_for_verification/ReturnsSRRUpdateRTL','AdminRetailForVerificationController@ReturnsSRRUpdateRTL');
+    Route::get('admin/retail_for_verification/ReturnsSRRUpdateRTL','AdminRetailForVerificationController@ReturnsSRRUpdateRTL')->name('ReturnsSRRUpdateRTL');
     
     Route::get('/admin/retail_for_verification/ReturnsSRRPrintForRTL/{id}','AdminRetailForVerificationController@ReturnsSRRPrintForRTL');
         
@@ -269,7 +272,7 @@ Route::group(['middleware' => ['web']], function() {
     Route::post('/admin/distri_to_verify/branch_drop_off', 'AdminDistriToVerifyController@branch_drop_off'); 
     Route::post('/admin/distri_to_verify/branch_change', 'AdminDistriToVerifyController@branch_change'); 
     Route::get('/admin/distri_to_verify/ReturnsSRRPrint/{id}','AdminDistriToVerifyController@ReturnsSRRPrint');
-    Route::get('admin/distri_to_verify/ReturnsSRRUpdateDISTRI','AdminDistriToVerifyController@ReturnsSRRUpdateDISTRI');
+    Route::get('admin/distri_to_verify/ReturnsSRRUpdateDISTRI','AdminDistriToVerifyController@ReturnsSRRUpdateDISTRI')->name('ReturnsSRRUpdateDISTRI');
     Route::get('/admin/distri_to_verify/ReturnsSRRPrintForDISTRI/{id}','AdminDistriToVerifyController@ReturnsSRRPrintForDISTRI');
     Route::get('/admin/distri_to_verify/ReturnsSchedulingEdit/{id}','AdminDistriToVerifyController@ReturnsSchedulingEdit'); 
     Route::post('/admin/distri_for_verification/backend_stores', 'AdminDistriToVerifyController@backend_stores');  
@@ -279,25 +282,26 @@ Route::group(['middleware' => ['web']], function() {
 
     //distrihistory
     Route::get('/admin/distri_return_history/ReturnsHistoryDetailDISTRI/{id}','AdminDistriReturnHistoryController@ReturnsHistoryDetailDISTRI');
+    Route::get('/admin/distri_return_history/ReturnsHistoryEditDISTRI/{id}','AdminDistriReturnHistoryController@ReturnsHistoryEditDISTRI');
     Route::get('/admin/distri_return_history/ReturnsPulloutPrint/{id}','AdminDistriReturnHistoryController@ReturnsPulloutPrint');   
     Route::get('/admin/distri_return_history/ReturnsCRFPrintDISTRI/{id}','AdminDistriReturnHistoryController@ReturnsCRFPrintDISTRI');   
     Route::get('/admin/distri_return_history/ReturnsReturnFormPrintDISTRI/{id}','AdminDistriReturnHistoryController@ReturnsReturnFormPrintDISTRI');     
-    Route::get('/admin/distri_return_history/GetExtractReturnsDISTRI','AdminDistriReturnHistoryController@GetExtractReturnsDISTRI')->name('GetExtractReturnsDISTRI');
+    Route::get('/admin/distri_return_history/export_return_history_distri','AdminDistriReturnHistoryController@exportReturnHistoryDISTRI');
     Route::get('/admin/distri_return_history/GetExtractReturnsDISTRISC','AdminDistriReturnHistoryController@GetExtractReturnsDISTRISC')->name('GetExtractReturnsDISTRISC');
     Route::get('/admin/distri_return_history/ReturnsHistoryEdit/{id}','AdminDistriReturnHistoryController@ReturnsHistoryEdit');  
     //distrischeduling
     Route::get('/admin/returns_distri_scheduling/ReturnsSchedulingDISTRIEdit/{id}','AdminReturnsDistriSchedulingController@ReturnsSchedulingDISTRIEdit'); 
     Route::get('/admin/returns_distri_scheduling/ReturnsPulloutPrint/{id}','AdminReturnsDistriSchedulingController@ReturnsPulloutPrint'); 
-    Route::get('admin/returns_distri_scheduling/ReturnPulloutUpdate','AdminReturnsDistriSchedulingController@ReturnPulloutUpdate');
+    Route::get('admin/returns_distri_scheduling/ReturnPulloutUpdate','AdminReturnsDistriSchedulingController@ReturnPulloutUpdate')->name('ReturnPulloutUpdateDISTRI');
     Route::get('/admin/returns_distri_scheduling/ReturnsDeliveryEditDISTRI/{id}','AdminReturnsDistriSchedulingController@ReturnsDeliveryEditDISTRI'); 
     Route::get('/admin/returns_distri_scheduling/GetExtractSchedulingReturnsDISTRI','AdminReturnsDistriSchedulingController@GetExtractSchedulingReturnsDISTRI')->name('GetExtractSchedulingReturnsDISTRI');
     //distridiagnosing
     Route::get('/admin/distri_return_diagnosing/ReturnsDiagnosingDISTRIEdit/{id}','AdminDistriReturnDiagnosingController@ReturnsDiagnosingDISTRIEdit');
     Route::get('/admin/distri_return_diagnosing/ReturnsReturnFormPrintDISTRI/{id}','AdminDistriReturnDiagnosingController@ReturnsReturnFormPrintDISTRI');  
+    Route::get('/admin/distri_return_diagnosing/TechLeadDISTRI/{id}','AdminDistriReturnDiagnosingController@TechLeadDISTRI');  
     Route::get('/admin/distri_return_diagnosing/FormRejectUpdateStatusDISTRI','AdminDistriReturnDiagnosingController@FormRejectUpdateStatusDISTRI'); 
     Route::get('/admin/distri_return_diagnosing/FormRepairUpdateStatusDISTRI','AdminDistriReturnDiagnosingController@FormRepairUpdateStatusDISTRI');  
-    Route::get('/admin/distri_return_diagnosing/GetExtractDiagnosingReturnsDISTRI','AdminDistriReturnDiagnosingController@GetExtractDiagnosingReturnsDISTRI')->name('GetExtractDiagnosingReturnsDISTRI');
-    Route::get('/admin/distri_return_diagnosing/GetExtractDiagnosingReturnsDISTRISC','AdminDistriReturnDiagnosingController@GetExtractDiagnosingReturnsDISTRISC')->name('GetExtractDiagnosingReturnsDISTRISC');
+    Route::get('/admin/distri_return_diagnosing/export_return_diagnosing_distri','AdminDistriReturnDiagnosingController@exportReturnDiagnosingDISTRI');
     Route::get('/admin/distri_return_diagnosing/ReturnsDiagnosingDISTRIEditSC/{id}','AdminDistriReturnDiagnosingController@ReturnsDiagnosingDISTRIEditSC');
     Route::get('/admin/distri_return_diagnosing/ReturnsReturnFormPrintDISTRISC/{id}','AdminDistriReturnDiagnosingController@ReturnsReturnFormPrintDISTRISC');  
     Route::get('/admin/distri_return_diagnosing/FormRejectUpdateStatusDISTRISC','AdminDistriReturnDiagnosingController@FormRejectUpdateStatusDISTRISC'); 
@@ -313,7 +317,7 @@ Route::group(['middleware' => ['web']], function() {
 
     //toSORDISTRI
     Route::get('/admin/to_sor_distri/ReturnsSOREditDISTRI/{id}','AdminToSorDistriController@ReturnsSOREditDISTRI');
-    Route::get('/admin/to_sor_distri/GetExtractSORReturnsDISTRI','AdminToSorDistriController@GetExtractSORReturnsRTL')->name('GetExtractSORReturnsDISTRI');
+    Route::get('/admin/to_sor_distri/export_return_sor_distri','AdminToSorDistriController@exportReturnSORDISTRI');
     Route::get('/admin/to_sor_distri/ViewSORDISTRI/{id}','AdminToSorDistriController@ViewSORDISTRI');
     //toreceiveDISTRI
     Route::get('/admin/to_receive_distri/ReturnsToReceiveEditDISTRI/{id}','AdminToReceiveDistriController@ReturnsToReceiveEditDISTRI');
@@ -323,7 +327,7 @@ Route::group(['middleware' => ['web']], function() {
     Route::get('/admin/to_receive_distri/ReturnsSRRPrintSC/{id}','AdminToReceiveDistriController@ReturnsSRRPrintSC');
     Route::get('/admin/to_receive_distri/ReturnsSRRPrint/{id}','AdminToReceiveDistriController@ReturnsSRRPrint');
     Route::get('/admin/to_receive_distri/ReturnsSchedulingDISTRIEdit/{id}','AdminDistriToVerifyController@ReturnsSchedulingDISTRIEdit');
-    Route::get('/admin/to_receive_distri/ReturnsSRRUpdateSCDISTRI','AdminToReceiveDistriController@ReturnsSRRUpdateSCDISTRI');
+    Route::get('/admin/to_receive_distri/ReturnsSRRUpdateSCDISTRI','AdminToReceiveDistriController@ReturnsSRRUpdateSCDISTRI')->name('ReturnsSRRUpdateSCDISTRI');
     Route::get('/admin/to_receive_distri/ToReceiveDistri/{id}','AdminToReceiveDistriController@ToReceiveDistri');
     
     
@@ -338,13 +342,21 @@ Route::group(['middleware' => ['web']], function() {
 
 
 
- Route::get('/admin/scheduling/ReturnsSchedulingEdit/{id}','AdminReturnsHeaderController@ReturnsSchedulingEdit'); 
+    Route::get('/admin/scheduling/ReturnsSchedulingEdit/{id}','AdminReturnsHeaderController@ReturnsSchedulingEdit'); 
     
     Route::get('admin/returns_history/import-ecomm', 'AdminReturnsHistoryController@importPage');
 
     Route::post('admin/returns_history/import-ecomms','AdminReturnsHistoryController@importExcel')->name('upload.importECOMM');
 
-
-
+    // Step that can reuse, no editing of data
+    // Turnover Process
+    Route::post('/admin/to_receive_retail/ReturnsToReceiveEditRTL/turnover','AdminToReceiveRetailController@toTurnOverProcess')->name('turnover');
+    Route::get('/admin/to_receive_retail/ReturnsToReceiveEditRTL/custom_reference_number/{ref_number}/{module_mainpath}','AdminToReceiveRetailController@returnReferenceNumber')->name('custom_reference_number');
+    // For Warranty Claim
+    Route::post('/admin/to_receive_retail/ReturnsDiagnosingRTLEdit/for_warranty_claim','AdminRetailReturnDiagnosingController@forWarrantyClaim')->name('for_warranty_claim');
+    Route::get('/admin/to_receive_retail/ReturnsDiagnosingRTLEdit/custom_reference_number/{id}/{diagnosing}/{ref_number}/{module_mainpath}','AdminRetailReturnDiagnosingController@returnReferenceNumber')->name('fwc_custom_reference_number');
+    // Chatbox
+    Route::post('/admin/chatbox/send-msg','ChatController@addComments')->name('send_msg');
+    Route::post('/admin/chatbox/send-msg-ecomm','ChatController@addCommentsEcomm')->name('send_msg_ecomm');
+    Route::post('/admin/chatbox/send-msg-distri','ChatController@addCommentsDistri')->name('send_msg_distri');
 });
-

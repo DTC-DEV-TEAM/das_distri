@@ -361,9 +361,9 @@
 		
 			
 			if($postdata['store_dropoff_privilege'] == "NO"){
-			     $h = "";
+				$h = "";
 			}else{
-			    $h = $postdata['store_dropoff_privilege'];
+				$h = $postdata['store_dropoff_privilege'];
 			}
 
 		

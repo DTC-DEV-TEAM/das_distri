@@ -148,6 +148,7 @@ return [
         'reject'  =>  'Reject',
         'repair'  =>  'Repair',
         'receive'  =>  'Receive',
+        'turnover'  =>  'Turnover',
         'close'  =>  'Close',
 
         'replace'  =>  'Replace',

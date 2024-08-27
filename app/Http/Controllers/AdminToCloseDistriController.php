@@ -52,9 +52,34 @@ use PHPExcel_Style_Fill;
 			# START COLUMNS DO NOT REMOVE THIS LINE
 			$this->col = [];
 			$this->col[] = ["label"=>"Status","name"=>"returns_status_1","join"=>"warranty_statuses,warranty_status"];
+			$this->col[] = ["label"=>"Last Chat", "name"=>"id", 'callback'=>function($row){
+				$img_url = asset("chat_img/$row->last_image");
+				;
+				$str = '';
+				
+				$str .= "<div class='sender_name'>$row->sender_name</div>";
+				$str .= "<div class='time_ago' datetime='$row->date_send'>$row->date_send</div>";
+				
+				if ($row->last_message) {
+					// Truncate the message if it's longer than 150 characters
+					$truncatedMessage = strlen($row->last_message) > 41 ? substr($row->last_message, 0, 41) . '...' : $row->last_message;
+					$str .= "<div class='text-msg'>$truncatedMessage</div>";
+				}
+				if($row->last_image){
+					$str .= "<div class='last_msg'><img src='$img_url'></div>";
+				}
+				if($row->sender_name){
+					return $str;
+				}else{
+					return '<div class="no-message">No messages available at the moment.</div>';
+				}
+			}];
+
 			$this->col[] = ["label"=>"Created Date","name"=>"created_at"];
 			$this->col[] = ["label"=>"Pickup Schedule","name"=>"return_schedule"];
 			$this->col[] = ["label"=>"Return Reference#","name"=>"return_reference_no"];
+			$this->col[] = ["label"=>"INC#","name"=>"inc_number"];
+			$this->col[] = ["label"=>"RMA#","name"=>"rma_number"];
 			$this->col[] = ["label"=>"Order#","name"=>"order_no"];
 			//$this->col[] = ["label"=>"Customer Location","name"=>"customer_location"];
 			$this->col[] = ["label"=>"Purchase Location","name"=>"purchase_location"];
@@ -240,8 +265,8 @@ use PHPExcel_Style_Fill;
 			$for_replacement = 	  ReturnsStatus::where('id','20')->value('id');
 			$for_replacement_sdm = 	  ReturnsStatus::where('id','26')->value('id');
 
-			$this->addaction[] = ['title'=>'Edit','url'=>CRUDBooster::mainpath('ReturnsClosingEditDISTRIOPS/[id]'),'icon'=>'fa fa-pencil', "showIf"=>"[returns_status_1] == $to_ship_back or [returns_status_1] == $for_replacement"];
-			$this->addaction[] = ['title'=>'Edit','url'=>CRUDBooster::mainpath('ReturnsClosingEditDISTRIOPS/[id]'),'icon'=>'fa fa-pencil', "showIf"=>"[returns_status_1] == $for_replacement_sdm"];
+			$this->addaction[] = ['title'=>'Edit','url'=>CRUDBooster::mainpath('ReturnsClosingEditDISTRIOPS/[id]'),'color'=>'none','icon'=>'fa fa-pencil', "showIf"=>"[returns_status_1] == $to_ship_back or [returns_status_1] == $for_replacement"];
+			$this->addaction[] = ['title'=>'Edit','url'=>CRUDBooster::mainpath('ReturnsClosingEditDISTRIOPS/[id]'),'color'=>'none','icon'=>'fa fa-pencil', "showIf"=>"[returns_status_1] == $for_replacement_sdm"];
 
 
 	        /* 
@@ -355,7 +380,8 @@ use PHPExcel_Style_Fill;
 	        |
 	        */
 	        $this->load_js = array();
-	        
+			$this->load_js[] = "https://unpkg.com/timeago.js/dist/timeago.min.js";
+			$this->load_js[] = asset("js/time_ago.js");
 	        
 	        
 	        /*
@@ -379,6 +405,7 @@ use PHPExcel_Style_Fill;
 	        |
 	        */
 	        $this->load_css = array();
+			$this->load_css[] = asset('css/last_message.css');
 	        
 	        
 	    }
@@ -407,6 +434,15 @@ use PHPExcel_Style_Fill;
 	    */
 	    public function hook_query_index(&$query) {
 			//Your code here
+			$query->leftJoin('distri_last_comments', 'distri_last_comments.returns_header_distri_id', 'returns_header_distribution.id')
+			->leftJoin('chat_distri', 'chat_distri.id', 'distri_last_comments.chats_id')
+			->leftJoin('cms_users as sender', 'sender.id', 'chat_distri.created_by')
+			->addSelect('chat_distri.message as last_message',
+				'chat_distri.file_name as last_image',
+				'sender.name as sender_name',
+				'chat_distri.created_at as date_send'
+			);
+
 			if(CRUDBooster::myPrivilegeName() == "SDM"){
 				$query->where(function($sub_query){
 
@@ -471,7 +507,7 @@ use PHPExcel_Style_Fill;
 			$for_replacement = 	  		ReturnsStatus::where('id','20')->value('warranty_status');
 			$for_replacement_sdm = 	  	ReturnsStatus::where('id','26')->value('warranty_status');
 
-			if($column_index == 1){
+			if($column_index == 2){
 				if($column_value == $to_ship_back){
 					$column_value = '<span class="label label-warning">'.$to_ship_back.'</span>';
 			
@@ -790,6 +826,8 @@ use PHPExcel_Style_Fill;
 
 			$data['store_list'] = Stores::where('channels_id',$channels->id)->get();
 			
+			$data['comments_data'] = (new ChatController)->getCommentsDistri($id);
+			
 			if(CRUDBooster::myPrivilegeName() == "SDM"){
 				$this->cbView("returns.edit_closing_retail_sdm", $data);
 			}else{
@@ -1064,7 +1102,7 @@ use PHPExcel_Style_Fill;
 						    $verified_date = $orderRow->level7_personnel_edited;
 						    
                             $scheduled_by = $orderRow->scheduled_logistics_by;
-                            $scheduled_date = $orderRow->level7_personnel_edited;
+							$scheduled_date = $orderRow->level1_personnel_edited;
     						if($orderRow->diagnose == "REFUND"){
     								$printed_by = $orderRow->printed_by;
     								$printed_date = $orderRow->level3_personnel_edited;

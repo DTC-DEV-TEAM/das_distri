@@ -5,6 +5,7 @@ use Session;
 use DB;
 use CRUDBooster;
 use App\ReturnsStatus;
+use App\CaseStatus;
 use App\ReturnsHeader;
 use App\ReturnsBody;
 use App\ReturnsSerials;
@@ -54,33 +55,49 @@ use PHPExcel_Style_Fill;
 
 			# START COLUMNS DO NOT REMOVE THIS LINE
 			$this->col = [];
-			if(CRUDBooster::myPrivilegeName() == "Service Center"){ 
-        			$this->col[] = ["label"=>"Status","name"=>"returns_status_1","join"=>"warranty_statuses,warranty_status"];
-        			$this->col[] = ["label"=>"Created Date","name"=>"created_at"];
-        			$this->col[] = ["label"=>"Pickup Schedule","name"=>"return_schedule"];
-        			$this->col[] = ["label"=>"Return Reference#","name"=>"return_reference_no"];
-        			$this->col[] = ["label"=>"Order#","name"=>"order_no"];
-        			$this->col[] = ["label"=>"Customer Location","name"=>"customer_location"];
-        			$this->col[] = ["label"=>"Purchase Location","name"=>"purchase_location"];
-        			$this->col[] = ["label"=>"Store","name"=>"store"];
-        		    $this->col[] = ["label"=>"Warranty Status","name"=>"warranty_status"];
-        			$this->col[] = ["label"=>"Customer Last Name","name"=>"customer_last_name"];
-        			$this->col[] = ["label"=>"Customer First Name","name"=>"customer_first_name"];
-        			$this->col[] = ["label"=>"Mode Of Payment","name"=>"mode_of_payment"];
-			}else{
-				$this->col[] = ["label"=>"Status","name"=>"returns_status_1","join"=>"warranty_statuses,warranty_status"];
-				$this->col[] = ["label"=>"Created Date","name"=>"created_at"];
-				$this->col[] = ["label"=>"Pickup Schedule","name"=>"return_schedule"];
-				$this->col[] = ["label"=>"Return Reference#","name"=>"return_reference_no"];
-				$this->col[] = ["label"=>"Order#","name"=>"order_no"];
-				$this->col[] = ["label"=>"Customer Location","name"=>"customer_location"];
-				$this->col[] = ["label"=>"Purchase Location","name"=>"purchase_location"];
-				$this->col[] = ["label"=>"Store","name"=>"store"];
-				$this->col[] = ["label"=>"Warranty Status","name"=>"warranty_status"];
-				$this->col[] = ["label"=>"Customer Last Name","name"=>"customer_last_name"];
-				$this->col[] = ["label"=>"Customer First Name","name"=>"customer_first_name"];
-				$this->col[] = ["label"=>"Mode Of Payment","name"=>"mode_of_payment"];
-			}
+			$this->col[] = ["label"=>"Brand","name"=>"id", 'callback'=>function($row){
+				
+				$id = $row->id;
+
+				$brand = DB::table('returns_body_item')->where('returns_header_id', $id)->orderBy('id', 'desc')->first()->brand;
+
+				return $brand;
+			}];
+			$this->col[] = ["label"=>"Status","name"=>"returns_status_1","join"=>"warranty_statuses,warranty_status"];
+			$this->col[] = ["label"=>"Last Chat", "name"=>"id", 'callback'=>function($row){
+				$img_url = asset("chat_img/$row->last_image");
+				;
+				$str = '';
+				
+				$str .= "<div class='sender_name'>$row->sender_name</div>";
+				$str .= "<div class='time_ago' datetime='$row->date_send'>$row->date_send</div>";
+				
+				if ($row->last_message) {
+					// Truncate the message if it's longer than 150 characters
+					$truncatedMessage = strlen($row->last_message) > 41 ? substr($row->last_message, 0, 41) . '...' : $row->last_message;
+					$str .= "<div class='text-msg'>$truncatedMessage</div>";
+				}
+				if($row->last_image){
+					$str .= "<div class='last_msg'><img src='$img_url'></div>";
+				}
+				if($row->sender_name){
+					return $str;
+				}else{
+					return '<div class="no-message">No messages available at the moment.</div>';
+				}
+			}];
+			$this->col[] = ["label"=>"Return Reference#","name"=>"return_reference_no"];
+			$this->col[] = ["label"=>"Created Date","name"=>"created_at"];
+			$this->col[] = ["label"=>"Pickup Schedule","name"=>"return_schedule"];
+			$this->col[] = ["label"=>"Order#","name"=>"order_no"];
+			$this->col[] = ["label"=>"Customer Location","name"=>"customer_location"];
+			$this->col[] = ["label"=>"Purchase Location","name"=>"purchase_location"];
+			$this->col[] = ["label"=>"Store","name"=>"store"];
+			$this->col[] = ["label"=>"Warranty Status","name"=>"warranty_status"];
+			$this->col[] = ["label"=>"Customer Last Name","name"=>"customer_last_name"];
+			$this->col[] = ["label"=>"Customer First Name","name"=>"customer_first_name"];
+			$this->col[] = ["label"=>"Mode Of Payment","name"=>"mode_of_payment"];
+
 			# END COLUMNS DO NOT REMOVE THIS LINE
 
 			# START FORM DO NOT REMOVE THIS LINE
@@ -107,7 +124,7 @@ use PHPExcel_Style_Fill;
 			$this->form[] = ['label'=>'Items Included Others','name'=>'items_included_others','type'=>'text','validation'=>'required|min:1|max:255','width'=>'col-sm-10'];
 			$this->form[] = ['label'=>'Comments','name'=>'comments','type'=>'textarea','validation'=>'required|string|min:5|max:5000','width'=>'col-sm-10'];
 			$this->form[] = ['label'=>'Customer Location','name'=>'customer_location','type'=>'text','validation'=>'required|min:1|max:255','width'=>'col-sm-10'];
-			$this->form[] = ['label'=>'Sor No','name'=>'sor_no','type'=>'text','validation'=>'required|min:1|max:255','width'=>'col-sm-10'];
+			// $this->form[] = ['label'=>'Sor No','name'=>'sor_no','type'=>'text','validation'=>'required|min:1|max:255','width'=>'col-sm-10'];
 			$this->form[] = ['label'=>'Total Quantity','name'=>'total_quantity','type'=>'number','validation'=>'required|integer|min:0','width'=>'col-sm-10'];
 			$this->form[] = ['label'=>'Created By','name'=>'created_by','type'=>'number','validation'=>'required|integer|min:0','width'=>'col-sm-10'];
 			$this->form[] = ['label'=>'Updated By','name'=>'updated_by','type'=>'number','validation'=>'required|integer|min:0','width'=>'col-sm-10'];
@@ -199,15 +216,24 @@ use PHPExcel_Style_Fill;
 	        */
 	        $this->addaction = array();
 			$to_diagnose = ReturnsStatus::where('id','5')->value('id');
+			$to_for_action = ReturnsStatus::where('id','38')->value('id');
 			$to_receive_sor = ReturnsStatus::where('id','10')->value('id');
 			$to_print_return_form = ReturnsStatus::where('id','13')->value('id');
 			$requested = ReturnsStatus::where('id','1')->value('id');
+			$to_assign_inc = ReturnsStatus::where('id','39')->value('id');
+			$to_ongoing_testing = ReturnsStatus::where('id','40')->value('id');
 
-
-				$this->addaction[] = ['title'=>'Edit','url'=>CRUDBooster::mainpath('ReturnsDiagnosingEdit/[id]'),'icon'=>'fa fa-pencil', "showIf"=>"[returns_status_1] == $to_diagnose"];
-				$this->addaction[] = ['title'=>'Edit','url'=>CRUDBooster::mainpath('ReturnsSORReceivingEdit/[id]'),'icon'=>'fa fa-pencil', "showIf"=>"[returns_status_1] == $to_receive_sor"];
-				$this->addaction[] = ['title'=>'Print','url'=>CRUDBooster::mainpath('ReturnsReturnFormPrint/[id]'),'icon'=>'fa fa-print', "showIf"=>"[returns_status_1] == $to_print_return_form"];
-		
+			if(CRUDBooster::myPrivilegeName() == "Tech Lead") {
+				$this->addaction[] = ['title'=>'Edit','url'=>CRUDBooster::mainpath('TechLeadECOMM/[id]'),'color'=>'none','icon'=>'fa fa-pencil', "showIf"=>"[returns_status_1] == $to_assign_inc"];
+				$this->addaction[] = ['title'=>'Edit','url'=>CRUDBooster::mainpath('TechLeadECOMM/[id]'),'color'=>'none','icon'=>'fa fa-pencil', "showIf"=>"[returns_status_1] == $to_ongoing_testing"];
+				$this->addaction[] = ['title'=>'Edit','url'=>CRUDBooster::mainpath('ReturnsDiagnosingEdit/[id]'),'color'=>'none','icon'=>'fa fa-pencil', "showIf"=>"[returns_status_1] == $to_diagnose"];
+			}else {
+				$this->addaction[] = ['title'=>'Edit','url'=>CRUDBooster::mainpath('TechLeadECOMM/[id]'),'color'=>'none','icon'=>'fa fa-pencil', "showIf"=>"[returns_status_1] == $to_ongoing_testing"];
+				$this->addaction[] = ['title'=>'Edit','url'=>CRUDBooster::mainpath('ReturnsDiagnosingEdit/[id]'),'color'=>'none','icon'=>'fa fa-pencil', "showIf"=>"[returns_status_1] == $to_diagnose"];
+				$this->addaction[] = ['title'=>'Edit','url'=>CRUDBooster::mainpath('ReturnsDiagnosingEdit/[id]'),'color'=>'none','icon'=>'fa fa-pencil', "showIf"=>"[returns_status_1] == $to_for_action"];
+				$this->addaction[] = ['title'=>'Edit','url'=>CRUDBooster::mainpath('ReturnsSORReceivingEdit/[id]'),'color'=>'none','icon'=>'fa fa-pencil', "showIf"=>"[returns_status_1] == $to_receive_sor"];
+				$this->addaction[] = ['title'=>'Print','url'=>CRUDBooster::mainpath('ReturnsReturnFormPrint/[id]'),'color'=>'none','icon'=>'fa fa-print', "showIf"=>"[returns_status_1] == $to_print_return_form"];
+			}
 			//$this->addaction[] = ['title'=>'Detail','url'=>CRUDBooster::mainpath('ReturnsDiagnosingDetail/[id]'),'icon'=>'fa fa-eye'];
 
 	        /* 
@@ -245,21 +271,12 @@ use PHPExcel_Style_Fill;
 	        | 
 	        */
 	        $this->index_button = array();
-
-			if(CRUDBooster::getCurrentMethod() == 'getIndex' && (CRUDBooster::myPrivilegeName()=="Service Center")){
-
+			
+			if(CRUDBooster::getCurrentMethod() == 'getIndex'){
 				$this->index_button[] = ["title"=>"Export Returns",
 				"label"=>"Export Returns",
-				"icon"=>"fa fa-download","url"=>CRUDBooster::mainpath('GetExtractReturnsDiagnosingSC').'?'.urldecode(http_build_query(@$_GET))];
-				//$this->index_button[] = ["label"=>"Export Returns","icon"=>"fa fa-download","url"=>CRUDBooster::mainpath('GetExtractReturns'),"color"=>"success"];
-			}else{
-				if(CRUDBooster::getCurrentMethod() == 'getIndex'){
-					$this->index_button[] = ["title"=>"Export Returns",
-					"label"=>"Export Returns",
-					"icon"=>"fa fa-download","url"=>CRUDBooster::mainpath('GetExtractReturnsDiagnosing').'?'.urldecode(http_build_query(@$_GET))];		
-				}		
-			}
-
+				"icon"=>"fa fa-download","url"=>CRUDBooster::mainpath('export_return_diagnosing_ecomm').'?'.urldecode(http_build_query(@$_GET))];		
+			}		
 
 
 	        /* 
@@ -328,8 +345,8 @@ use PHPExcel_Style_Fill;
 	        |
 	        */
 	        $this->load_js = array();
-	        
-	        
+			$this->load_js[] = "https://unpkg.com/timeago.js/dist/timeago.min.js";
+			$this->load_js[] = asset("js/time_ago.js");
 	        
 	        /*
 	        | ---------------------------------------------------------------------- 
@@ -352,7 +369,7 @@ use PHPExcel_Style_Fill;
 	        |
 	        */
 	        $this->load_css = array();
-	        
+			$this->load_css[] = asset('css/last_message.css');
 	        
 	    }
 
@@ -380,48 +397,70 @@ use PHPExcel_Style_Fill;
 	    */
 	    public function hook_query_index(&$query) {
 	        //Your code here
-		
+			
+			// Chatbox
+			$query->leftJoin('ecomm_last_comments', 'ecomm_last_comments.returns_header_id', 'returns_header.id')
+			->leftJoin('chat_ecomms', 'chat_ecomms.id', 'ecomm_last_comments.chats_id')
+			->leftJoin('cms_users as sender', 'sender.id', 'chat_ecomms.created_by')
+			->addSelect('chat_ecomms.message as last_message',
+				'chat_ecomms.file_name as last_image',
+				'sender.name as sender_name',
+				'chat_ecomms.created_at as date_send'
+			);
+
+
 			if(CRUDBooster::myPrivilegeName() == "Service Center"){ 
-				$query->where(function($sub_query){
-	 
-					//$to_indicate_store = ReturnsStatus::where('warranty_status','TO DIAGNOSE')->value('id');
-					//$to_indicate_store = 	ReturnsStatus::where('id','3')->value('id');
-					$to_diagnose = ReturnsStatus::where('id','5')->value('id');
-					$to_receive_sor = 		ReturnsStatus::where('id','10')->value('id');
-					$to_print_return_form = ReturnsStatus::where('id','13')->value('id');
-					
-					
-					    $approvalMatrix = DB::table("cms_users")->where('cms_users.id', CRUDBooster::myId())->get();
-        				$approval_array = array();
-        				foreach($approvalMatrix as $matrix){
-        				    array_push($approval_array, $matrix->stores_id);
-        				}
-        				$approval_string = implode(",",$approval_array);
-        				$storeList = array_map('intval',explode(",",$approval_string));      
-	 
-					$sub_query->where('returns_status_1', $to_diagnose)->where('transaction_type', 1)->whereIn('returns_header.stores_id', $storeList)->orderBy('id', 'asc');  
-					$sub_query->orWhere('returns_status_1', $to_receive_sor)->where('transaction_type', 1)->whereIn('returns_header.stores_id', $storeList)->orderBy('id', 'asc');
-					$sub_query->orWhere('returns_status_1', $to_print_return_form)->where('transaction_type', 1)->whereIn('returns_header.stores_id', $storeList)->orderBy('id', 'asc');
+
+				$storeList = self::getStoreList();
+
+				$query->whereIn('returns_status_1', [
+					ReturnsStatus::TO_DIAGNOSE, 
+					ReturnsStatus::TO_RECEIVE_SOR, 
+					ReturnsStatus::TO_PRINT_SSR
+				])
+				->where('transaction_type', 1)
+				->where(function($query) use ($storeList) {
+					$query->whereIn('returns_header.stores_id', $storeList)
+					->orWhereIn('returns_header.stores_id', $storeList);
 				});
 
-			}else{
-			    
+			}else if (CRUDBooster::myPrivilegeName() == "Tech Lead") {
 
-				$query->where(function($sub_query){
-					//$to_indicate_store = ReturnsStatus::where('warranty_status','TO DIAGNOSE')->value('id');
-					//$to_indicate_store = 	ReturnsStatus::where('id','3')->value('id');
-					$to_diagnose = ReturnsStatus::where('id','5')->value('id');
-					$to_receive_sor = 		ReturnsStatus::where('id','10')->value('id');
-					$to_print_return_form = ReturnsStatus::where('id','13')->value('id');
-	
-					$sub_query->where('returns_status_1', $to_diagnose)->where('transaction_type', 0)->orderBy('id', 'asc');  
-					$sub_query->orWhere('returns_status_1', $to_receive_sor)->where('transaction_type', 0)->orderBy('id', 'asc');
-					$sub_query->orWhere('returns_status_1', $to_print_return_form)->where('transaction_type', 0)->orderBy('id', 'asc');
-				});
+				$query->whereIn('returns_status_1', [
+					ReturnsStatus::TO_ASSIGN_INC, 
+					ReturnsStatus::TO_DIAGNOSE, 
+					ReturnsStatus::TO_TEST
+				])
+				->where('transaction_type', 0);
 
+			}else if(CRUDBooster::myPrivilegeName() == "RMA Technician"){
+
+				$query->whereIn('returns_status_1', [
+					ReturnsStatus::TO_DIAGNOSE, 
+					ReturnsStatus::TO_TEST
+				])
+				->where('level3_personnel', CRUDBooster::myId())
+				->where('transaction_type', 0);
+
+			} else if(CRUDBooster::myPrivilegeName() == "RMA Specialist"){
+
+				$query->where('returns_status_1', ReturnsStatus::FOR_WARRANTY_CLAIM)
+				->where('transaction_type', 0);
+
+			} else{
+
+				$query->whereIn('returns_status_1', [
+					ReturnsStatus::TO_DIAGNOSE,
+					ReturnsStatus::FOR_WARRANTY_CLAIM,
+					ReturnsStatus::TO_PRINT_SSR,
+					ReturnsStatus::TO_ASSIGN_INC,
+					ReturnsStatus::TO_RECEIVE_SOR,
+				])
+				->where('transaction_type', 0);
 			}
 
 
+			$query->orderBy('created_at', 'desc');
 
 	    }
 
@@ -436,10 +475,13 @@ use PHPExcel_Style_Fill;
 			$requested = 				ReturnsStatus::where('id','1')->value('warranty_status');
 			$to_indicate_store = 		ReturnsStatus::where('id','3')->value('warranty_status');
 			$to_diagnose = 				ReturnsStatus::where('id','5')->value('warranty_status');
+			$to_for_action = ReturnsStatus::where('id','38')->value('warranty_status');
+			$to_ongoing_testing = ReturnsStatus::where('id','40')->value('warranty_status');
 			$to_receive_sor = ReturnsStatus::where('id','10')->value('warranty_status');
 			$to_print_return_form = ReturnsStatus::where('id','13')->value('warranty_status');
+			$to_assign_inc = ReturnsStatus::where('id','39')->value('warranty_status');
 
-			if($column_index == 1){
+			if($column_index == 3){
 				if($column_value == $requested){
 					$column_value = '<span class="label label-warning">'.$requested.'</span>';
 			
@@ -449,11 +491,20 @@ use PHPExcel_Style_Fill;
 				}elseif($column_value == $to_diagnose){
 					$column_value = '<span class="label label-warning">'.$to_diagnose.'</span>';
 			
+				}elseif($column_value == $to_for_action){
+					$column_value = '<span class="label label-warning">'.$to_for_action.'</span>';
+			
 				}elseif($column_value == $to_receive_sor){
 					$column_value = '<span class="label label-warning">'.$to_receive_sor.'</span>';
 			
 				}elseif($column_value == $to_print_return_form){
 					$column_value = '<span class="label label-warning">'.$to_print_return_form.'</span>';
+			
+				}elseif($column_value == $to_assign_inc){
+					$column_value = '<span class="label label-warning">'.$to_assign_inc.'</span>';
+			
+				}elseif($column_value == $to_ongoing_testing){
+					$column_value = '<span class="label label-warning">'.$to_ongoing_testing.'</span>';
 			
 				}
 			}
@@ -496,8 +547,11 @@ use PHPExcel_Style_Fill;
 			$ReturnRequest = ReturnsHeader::where('id',$id)->first();
 
 			$to_receive_sor = ReturnsStatus::where('id','10')->value('id');
+			$to_assign_inc = ReturnsStatus::where('id','39')->value('id');
+            $to_ongoing_testing = ReturnsStatus::where('id','40')->value('id');
+			$to_diagnose = ReturnsStatus::where('id','5')->value('id');
 
-            
+
 				if($ReturnRequest->returns_status_1 == $to_receive_sor){
 					$refund_in_process = ReturnsStatus::where('id','8')->value('id');
 
@@ -527,12 +581,25 @@ use PHPExcel_Style_Fill;
 		
 					DB::disconnect('mysql_front_end');
 
-				}else{
+				}else if ($ReturnRequest->returns_status_1 == $to_assign_inc) {
+					$returns_fields = Input::all();
+		
+					$postdata['level3_personnel'] = 					$returns_fields['technician'];
+					$postdata['returns_status_1'] = 					$to_ongoing_testing;
+					$postdata['assigned_by_tech_lead_id'] = 			CRUDBooster::myId();
+					$postdata['assigned_date_by_tech_lead']=			date('Y-m-d H:i:s');
+					
+				}else if ($ReturnRequest->returns_status_1 == $to_ongoing_testing) {
+					$postdata['returns_status_1'] = 					$to_diagnose;
+					$postdata['ongoing_testing_date']=					date('Y-m-d H:i:s');
+				}
+				else{
 
 					$returns_fields = Input::all();
+		
 					$field_1 		= $returns_fields['diagnose'];
 					$field_2 		= $returns_fields['diagnose_comments'];
-
+					$case_status 	= $returns_fields['case_status'];
 					$problem_details_lines = array();
 					$items_included_lines = array();
 
@@ -556,8 +623,68 @@ use PHPExcel_Style_Fill;
 					}
 
 					$items_included_lines = $items_included_lines;
+					
+					if ($field_1 == 'Save' && CRUDBooster::myPrivilegeName() == "RMA Specialist") {
 
-					if($field_1 == "Repair"){
+						$postdata['case_status'] =  $case_status;
+						
+					}else if($field_1 == 'Save'){
+						try {
+							
+								$postdata['case_status'] =  $case_status;
+								$postdata['diagnose_comments'] = $field_2;
+								$postdata['warranty_status'] = $warranty_status;
+	
+								$postdata['verified_items_included'] = implode(", ",$items_included_lines);
+								$postdata['verified_items_included_others'] = $items_included_others;
+		
+								ReturnsBody::where('returns_header_id',$ReturnRequest->id)->whereNotNull('brand')
+								->update([		
+									'problem_details'=> implode(", ",$problem_details_lines),
+									'problem_details_other'=> $problem_details_other
+								]);
+						}catch (\Exception $e) {
+							DB::rollback();
+							CRUDBooster::redirect(CRUDBooster::mainpath(), trans("crudbooster.alert_database_error",['database_error'=>$e]), 'danger');
+						}
+					}
+					else if($field_1 == 'PrintSSR'){
+	
+						$postdata['case_status'] =  						$case_status;
+						$postdata['diagnose'] = 							"Service Center Repair";
+						$postdata['rma_specialist_id'] = 					CRUDBooster::myId();
+						$postdata['rma_specialist_date_received']=			date('Y-m-d H:i:s');
+	
+					return redirect()->action('AdminReturnsDiagnosingController@ReturnsReturnFormPrint',['id'=>$ReturnRequest->id])->send();
+					}
+					else if ($field_1 == 'Test Done') {
+						if(in_array(CRUDBooster::myPrivilegeName(), ['Tech Lead', 'RMA Technician', 'SuperAdministrator'])){
+					
+							$to_for_action = ReturnsStatus::where('id','38')->value('id');
+			
+							$postdata['case_status'] =  						$case_status;
+							$postdata['returns_status_1'] = 					$to_for_action;
+							$postdata['diagnose_comments'] = 					$field_2;
+							$postdata['warranty_status'] = 						$warranty_status;
+							$postdata['diagnose'] = 							"Test Done";
+
+							// $postdata['rma_specialist_id'] = 					CRUDBooster::myId();
+							// $postdata['rma_specialist_date_received']=			date('Y-m-d H:i:s');
+							$postdata['level3_personnel'] = 					CRUDBooster::myId();
+							$postdata['level3_personnel_edited']=				date('Y-m-d H:i:s');
+		
+							$postdata['verified_items_included'] = implode(", ",$items_included_lines);
+							$postdata['verified_items_included_others'] = $items_included_others;
+		
+							ReturnsBody::where('returns_header_id',$ReturnRequest->id)->whereNotNull('brand')
+							->update([		
+								'problem_details'=> implode(", ",$problem_details_lines),
+								'problem_details_other'=> $problem_details_other
+							]);
+		
+						}
+					}
+					else if($field_1 == "Repair"){
 
 						$repair_approved = 	  ReturnsStatus::where('id','16')->value('id');
 						$to_print_return_form = ReturnsStatus::where('id','13')->value('id');
@@ -573,21 +700,30 @@ use PHPExcel_Style_Fill;
 							date('Y-m-d H:i:s')
 							]);
 				
-								$postdata['level3_personnel'] = 					CRUDBooster::myId();
-								$postdata['level3_personnel_edited']=				date('Y-m-d H:i:s');
+								if(CRUDBooster::myPrivilegeName() == "Service Center") {
+									$postdata['level3_personnel'] = 					CRUDBooster::myId();
+									$postdata['level3_personnel_edited']=				date('Y-m-d H:i:s');
+									$postdata['diagnose_comments'] = 					$field_2;
+									$postdata['verified_items_included'] = 				implode(", ",$items_included_lines);
+									$postdata['verified_items_included_others'] = 		$items_included_others;
+									$postdata['warranty_status'] = 						$warranty_status;
+
+									ReturnsBody::where('returns_header_id',$ReturnRequest->id)->whereNotNull('brand')
+									->update([		
+										'problem_details'=> implode(", ",$problem_details_lines),
+										'problem_details_other'=> $problem_details_other
+									]);
+								}
+								else {
+									$postdata['rma_specialist_id'] = 					CRUDBooster::myId();
+									$postdata['rma_specialist_date_received']=			date('Y-m-d H:i:s');
+								}
 								$postdata['returns_status'] = 						$repair_approved;
 								$postdata['returns_status_1'] = 					$to_print_return_form;
-								$postdata['diagnose_comments'] = 					$field_2;
 								$postdata['diagnose'] = 							"REPAIR";
-								$postdata['verified_items_included'] = 				implode(", ",$items_included_lines);
-								$postdata['verified_items_included_others'] = 		$items_included_others;
-								$postdata['warranty_status'] = 						$warranty_status;
-
-								ReturnsBody::where('returns_header_id',$ReturnRequest->id)->whereNotNull('brand')
-								->update([		
-									'problem_details'=> implode(", ",$problem_details_lines),
-									'problem_details_other'=> $problem_details_other
-								]);
+								$postdata['case_status'] =  						$case_status;
+				
+						
 
 							DB::commit();
 			
@@ -613,22 +749,29 @@ use PHPExcel_Style_Fill;
 							date('Y-m-d H:i:s')
 							]);
 				
-								$postdata['level3_personnel'] = 					CRUDBooster::myId();
-								$postdata['level3_personnel_edited']=				date('Y-m-d H:i:s');
+								if (CRUDBooster::myPrivilegeName() == "Service Center") {
+									$postdata['level3_personnel'] = 					CRUDBooster::myId();
+									$postdata['level3_personnel_edited']=				date('Y-m-d H:i:s');
+									$postdata['diagnose_comments'] = 					$field_2;
+									$postdata['verified_items_included'] = 				implode(", ",$items_included_lines);
+									$postdata['verified_items_included_others'] = 		$items_included_others;
+									$postdata['warranty_status'] = 						$warranty_status;
+
+									ReturnsBody::where('returns_header_id',$ReturnRequest->id)->whereNotNull('brand')
+									->update([		
+										'problem_details'=> implode(", ",$problem_details_lines),
+										'problem_details_other'=> $problem_details_other
+									]);
+								}else {
+									$postdata['rma_specialist_id'] = 					CRUDBooster::myId();
+									$postdata['rma_specialist_date_received']=			date('Y-m-d H:i:s');
+								}
+
 								$postdata['returns_status'] = 						$return_rejected;
 								$postdata['returns_status_1'] = 					$to_print_return_form;
-								$postdata['diagnose_comments'] = 					$field_2;
 								$postdata['diagnose'] = 							"REJECT";
-								$postdata['verified_items_included'] = 				implode(", ",$items_included_lines);
-								$postdata['verified_items_included_others'] = 		$items_included_others;
-								$postdata['warranty_status'] = 						$warranty_status;
-
-								ReturnsBody::where('returns_header_id',$ReturnRequest->id)->whereNotNull('brand')
-								->update([		
-									'problem_details'=> implode(", ",$problem_details_lines),
-									'problem_details_other'=> $problem_details_other
-								]);
-
+								$postdata['case_status'] =  						$case_status;
+				
 							DB::commit();
 			
 						}catch (\Exception $e) {
@@ -655,23 +798,29 @@ use PHPExcel_Style_Fill;
 							$to_refund_approved,
 							date('Y-m-d H:i:s')
 							]);
-				
-									$postdata['level3_personnel'] = 					CRUDBooster::myId();
-									$postdata['level3_personnel_edited']=				date('Y-m-d H:i:s');
+							
+							if (CRUDBooster::myPrivilegeName() == "Service Center") {
+								$postdata['level3_personnel'] = 					CRUDBooster::myId();
+								$postdata['level3_personnel_edited']=				date('Y-m-d H:i:s');
+								$postdata['diagnose_comments'] = 					$field_2;
+								$postdata['verified_items_included'] = 				implode(", ",$items_included_lines);
+								$postdata['verified_items_included_others'] = 		$items_included_others;
+								$postdata['warranty_status'] = 						$warranty_status;
+
+								ReturnsBody::where('returns_header_id',$ReturnRequest->id)->whereNotNull('brand')
+								->update([		
+									'problem_details'=> implode(", ",$problem_details_lines),
+									'problem_details_other'=> $problem_details_other
+								]);
+							} else {
+									$postdata['rma_specialist_id'] = 					CRUDBooster::myId();
+									$postdata['rma_specialist_date_received']=			date('Y-m-d H:i:s');
+								}
 									$postdata['returns_status'] = 						$to_refund_approved;
 									$postdata['returns_status_1'] = 					$to_create_crf;
-									$postdata['diagnose_comments'] = 					$field_2;
 									$postdata['diagnose'] = 							"REFUND";
-									$postdata['verified_items_included'] = 				implode(", ",$items_included_lines);
-									$postdata['verified_items_included_others'] = 		$items_included_others;
-									$postdata['warranty_status'] = 						$warranty_status;
+									$postdata['case_status'] =  						$case_status;
 
-									ReturnsBody::where('returns_header_id',$ReturnRequest->id)->whereNotNull('brand')
-									->update([		
-										'problem_details'=> implode(", ",$problem_details_lines),
-										'problem_details_other'=> $problem_details_other
-									]);
-			
 							DB::commit();
 			
 						}catch (\Exception $e) {
@@ -698,21 +847,32 @@ use PHPExcel_Style_Fill;
 									date('Y-m-d H:i:s')
 									]);
 						
-										$postdata['level3_personnel'] = 					CRUDBooster::myId();
-										$postdata['level3_personnel_edited']=				date('Y-m-d H:i:s');
-										$postdata['returns_status'] = 						$for_replacement_frontend;
-										$postdata['returns_status_1'] = 					$to_sor;
-										$postdata['diagnose_comments'] = 					$field_2;
-										$postdata['diagnose'] = 							"REPLACE";
-										$postdata['verified_items_included'] = 				implode(", ",$items_included_lines);
-										$postdata['verified_items_included_others'] = 		$items_included_others;
-										$postdata['warranty_status'] = 						$warranty_status;
 
-										ReturnsBody::where('returns_header_id',$ReturnRequest->id)->whereNotNull('brand')
+										if ((CRUDBooster::myPrivilegeName() == "Service Center")) {
+											$postdata['level3_personnel'] = 					CRUDBooster::myId();
+											$postdata['level3_personnel_edited']=				date('Y-m-d H:i:s');
+											$postdata['diagnose_comments'] = 					$field_2;
+											$postdata['verified_items_included'] = 				implode(", ",$items_included_lines);
+											$postdata['verified_items_included_others'] = 		$items_included_others;
+											$postdata['warranty_status'] = 						$warranty_status;
+											
+											ReturnsBody::where('returns_header_id',$ReturnRequest->id)->whereNotNull('brand')
 										->update([		
 											'problem_details'=> implode(", ",$problem_details_lines),
 											'problem_details_other'=> $problem_details_other
 										]);
+
+										}else {
+											$postdata['rma_specialist_id'] = 					CRUDBooster::myId();
+											$postdata['rma_specialist_date_received']=			date('Y-m-d H:i:s');
+										}
+						
+										$postdata['returns_status'] = 						$for_replacement_frontend;
+										$postdata['returns_status_1'] = 					$to_sor;
+										$postdata['diagnose'] = 							"REPLACE";
+										$postdata['case_status'] =  						$case_status;
+										
+										
 
 									DB::commit();
 					
@@ -838,6 +998,70 @@ use PHPExcel_Style_Fill;
 
 	    }
 
+		public function TechLeadECOMM($id)
+		{
+			$this->cbLoader();
+			if(!CRUDBooster::isUpdate() && $this->global_privilege==FALSE) {    
+				CRUDBooster::redirect(CRUDBooster::adminPath(),trans("crudbooster.denied_access"));
+			}
+
+			$data = array();
+
+
+			$data['problem_details_list'] = ProblemDetails::all();
+			
+			$data['technicians'] = DB::table('cms_users')->whereIn('id_cms_privileges', ['20', '22'])->where('status', "ACTIVE")->orderBy('id','asc')->get();
+			
+			$data['items_included_list'] = ItemsIncluded::orderBy('items_description_included','asc')->get();
+
+			$data['warranty_status'] = DiagnoseWarranty::orderBy('warranty_name','asc')->get();
+		
+			$data['row'] = ReturnsHeader::
+			//->leftjoin('stores', 'pullout_headers.pull_out_from', '=', 'stores.id')	
+			leftjoin('cms_users as scheduled', 'returns_header.level2_personnel','=', 'scheduled.id')			
+			->leftjoin('cms_users as tagged', 'returns_header.level1_personnel','=', 'tagged.id')
+			->leftjoin('cms_users as diagnosed', 'returns_header.level3_personnel','=', 'diagnosed.id')				
+			->leftjoin('cms_users as printed', 'returns_header.level4_personnel','=', 'printed.id')																	
+			->leftjoin('cms_users as transacted', 'returns_header.level5_personnel','=', 'transacted.id')
+			->leftjoin('cms_users as received', 'returns_header.level6_personnel','=', 'received.id')
+			->leftjoin('cms_users as closed', 'returns_header.level7_personnel','=', 'closed.id')	
+			->leftjoin('cms_users as scheduled_logistics', 'returns_header.level8_personnel','=', 'scheduled_logistics.id')																	
+			->leftjoin('transaction_type', 'returns_header.transaction_type_id', '=', 'transaction_type.id')
+			->select(
+			'returns_header.*',
+			'scheduled.name as scheduled_by',
+			'tagged.name as tagged_by',	
+			'tagged.name as diagnosed_by',
+			'printed.name as printed_by',	
+			'transacted.name as transacted_by',	
+			'received.name as received_by',
+			'closed.name as closed_by',
+			'scheduled_logistics.name as scheduled_by_logistics',
+			'transaction_type.transaction_type_name'					
+			)
+			->where('returns_header.id',$id)->first();
+
+
+
+			$data['resultlist'] = ReturnsBody::
+			leftjoin('returns_serial', 'returns_body_item.id', '=', 'returns_serial.returns_body_item_id')					
+			->select(
+			'returns_body_item.*',
+			'returns_serial.*'					
+			)
+			->where('returns_body_item.returns_header_id',$data['row']->id)->whereNotNull('returns_body_item.category')->groupby('returns_body_item.digits_code')->get();
+			
+			$channels = Channel::where('channel_name', 'ONLINE')->first();
+
+			$data['store_list'] = Stores::where('channels_id',$channels->id)->get();
+			
+
+			$data['comments_data'] = (new ChatController)->getCommentsEcomm($id);
+			
+			// $this->cbView("returns.to_receive_ecomm_rma", $data);
+			$this->cbView("components.ecomm.to_receive_rma", $data);
+
+		}
 
 
 	    //By the way, you can still create your own method in here... :) 
@@ -860,29 +1084,35 @@ use PHPExcel_Style_Fill;
 			$data['row'] = ReturnsHeader::
 			//->leftjoin('stores', 'pullout_headers.pull_out_from', '=', 'stores.id')	
 			leftjoin('cms_users as scheduled', 'returns_header.level2_personnel','=', 'scheduled.id')			
-			->leftjoin('cms_users as tagged', 'returns_header.level1_personnel','=', 'tagged.id')
+			// ->leftjoin('cms_users as tagged', 'returns_header.level1_personnel','=', 'tagged.id')
+			->leftjoin('cms_users as technician_assigned', 'returns_header.level3_personnel','=', 'technician_assigned.id')				
 			->leftjoin('cms_users as diagnosed', 'returns_header.level3_personnel','=', 'diagnosed.id')				
 			->leftjoin('cms_users as printed', 'returns_header.level4_personnel','=', 'printed.id')																	
 			->leftjoin('cms_users as transacted', 'returns_header.level5_personnel','=', 'transacted.id')
 			->leftjoin('cms_users as received', 'returns_header.level6_personnel','=', 'received.id')
 			->leftjoin('cms_users as closed', 'returns_header.level7_personnel','=', 'closed.id')	
 			->leftjoin('cms_users as received_item', 'returns_header.received_by_rma_sc','=', 'received_item.id')
+			->leftjoin('cms_users as turnover_by', 'returns_header.rma_receiver_id','=', 'turnover_by.id')																	
 			->leftjoin('cms_users as scheduled_logistics', 'returns_header.level8_personnel','=', 'scheduled_logistics.id')																	
+			->leftjoin('transaction_type', 'returns_header.transaction_type_id', '=', 'transaction_type.id')
 			->select(
 			'returns_header.*',
 			'scheduled.name as scheduled_by',
-			'tagged.name as tagged_by',	
+			// 'tagged.name as tagged_by',	
 			'received_item.name as received_item_by',	
-			'tagged.name as diagnosed_by',
+			'turnover_by.name as turnover_by',
+			'technician_assigned.name as technician_assigned',
+			'diagnosed.name as diagnosed_by',
 			'printed.name as printed_by',	
 			'transacted.name as transacted_by',	
 			'received.name as received_by',
 			'closed.name as closed_by',
+			'transaction_type.transaction_type_name',
 			'scheduled_logistics.name as scheduled_by_logistics'						
 			)
 			->where('returns_header.id',$id)->first();
-
-
+			$data['page_title'] = $data['row']->returns_status_1 == 5 ? 'Returns For Diagnosing' : 'Returns For Specialist';
+			$data['case_status'] = CaseStatus::where('status','=','ACTIVE')->pluck('case_status_name');
 
 			$data['resultlist'] = ReturnsBody::
 			leftjoin('returns_serial', 'returns_body_item.id', '=', 'returns_serial.returns_body_item_id')					
@@ -895,12 +1125,11 @@ use PHPExcel_Style_Fill;
 			$channels = Channel::where('channel_name', 'ONLINE')->first();
 
 			$data['store_list'] = Stores::where('channels_id',$channels->id)->get();
-			
 		
+			$data['comments_data'] = (new ChatController)->getCommentsEcomm($id);
 			
-	
-			
-			$this->cbView("returns.edit_diagnosing", $data);
+			// $this->cbView("returns.edit_diagnosing", $data);
+			$this->cbView("components.ecomm.to_diagnose", $data);
 		}
 
 
@@ -942,7 +1171,6 @@ use PHPExcel_Style_Fill;
 			'scheduled_logistics.name as scheduled_by_logistics'						
 			)
 			->where('returns_header.id',$id)->first();
-
 
 
 			$data['resultlist'] = ReturnsBody::
@@ -1424,599 +1652,570 @@ use PHPExcel_Style_Fill;
 			}
 		}
 
+		public function exportReturnDiagnosingECOMM()
+		{
+			$filename = 'Returns for Diagnosing ECOMM - ' . date("d M Y - h.i.sa");
+			$orderData = self::getQueryData();
 
+			if (CRUDBooster::myPrivilegeName() == "Service Center") {
 
-		public function GetExtractReturnsDiagnosing() {
+				$result = self::getServiceCenterResult($orderData);
+				$headers = self::getServiceCenterExportHeaders();
 
-            $filename = 'Returns - ' . date("d M Y - h.i.sa");
-			$sheetname = 'Returns'.date("d-M-Y");
-            ini_set('memory_limit', '512M');
-			Excel::create($filename, function ($excel) {
-				$excel->sheet('orders', function ($sheet) {	
-					// Set auto size for sheet
-					
-					$sheet->setAutoSize(true);
-					$sheet->setColumnFormat(array(
-					    'J' => '@',		//for upc code
-					    'AI' => '0.00',
-					    'AJ' => '0.00',
-					    'AK' => '0.00',
-					));
+			} elseif (CRUDBooster::myPrivilegeName() == "Tech Lead") {
 
-						$to_diagnose = ReturnsStatus::where('id','5')->value('id');
-						$to_receive_sor = 		ReturnsStatus::where('id','10')->value('id');
-						$to_print_return_form = ReturnsStatus::where('id','13')->value('id');
+				$result = self::getTechLeadResult($orderData);
+				$headers = self::getRMAExportHeaders();
 
-						$orderData = DB::table('returns_header')
-						->leftjoin('warranty_statuses', 'returns_header.returns_status_1','=', 'warranty_statuses.id')
-						->leftjoin('cms_users as verified', 'returns_header.level1_personnel','=', 'verified.id')
-						->leftjoin('cms_users as scheduled', 'returns_header.level2_personnel','=', 'scheduled.id')		
-						->leftjoin('cms_users as scheduled_logistics', 'returns_header.level8_personnel','=', 'scheduled_logistics.id')		
-						->leftjoin('cms_users as diagnosed', 'returns_header.level3_personnel','=', 'diagnosed.id')				
-						->leftjoin('cms_users as printed', 'returns_header.level4_personnel','=', 'printed.id')																	
-						->leftjoin('cms_users as transacted', 'returns_header.level5_personnel','=', 'transacted.id')
-						->leftjoin('cms_users as received', 'returns_header.level6_personnel','=', 'received.id')
-						->leftjoin('cms_users as closed', 'returns_header.level7_personnel','=', 'closed.id')	
-						->leftJoin('returns_body_item', 'returns_header.id', '=', 'returns_body_item.returns_header_id')
-						->select(   'returns_header.*', 
-									'returns_body_item.*', 
-									'returns_body_item.id as body_id', 
-									'verified.name as verified_by',	
-									'scheduled.name as scheduled_by',
-									'scheduled_logistics.name as scheduled_logistics_by',
-									'diagnosed.name as diagnosed_by',
-									'printed.name as printed_by',	
-									'transacted.name as transacted_by',	
-									'received.name as received_by',
-									'closed.name as closed_by',
-									'warranty_statuses.*'
-						)->whereNotNull('returns_body_item.category')->where('transaction_type', 0)->where('returns_status_1', $to_diagnose)->groupby('returns_body_item.digits_code')
-						->orwhereNotNull('returns_body_item.category')->where('transaction_type', 0)->where('returns_status_1', $to_receive_sor)->groupby('returns_body_item.digits_code')
-						->orwhereNotNull('returns_body_item.category')->where('transaction_type', 0)->where('returns_status_1', $to_print_return_form)->groupby('returns_body_item.digits_code');
-					
+			} elseif (CRUDBooster::myPrivilegeName() == "RMA Technician") {
 
-		    						if(\Request::get('filter_column')) {
-    
-    						$filter_column = \Request::get('filter_column');
-    
-    						$orderData->where(function($w) use ($filter_column,$fc) {
-    							foreach($filter_column as $key=>$fc) {
-    
-    								$value = @$fc['value'];
-    								$type  = @$fc['type'];
-    
-    								if($type == 'empty') {
-    									$w->whereNull($key)->orWhere($key,'');
-    									continue;
-    								}
-    
-    								if($value=='' || $type=='') continue;
-    
-    								if($type == 'between') continue;
-    
-    								switch($type) {
-    									default:
-    										if($key && $type && $value) $w->where($key,$type,$value);
-    									break;
-    									case 'like':
-    									case 'not like':
-    										$value = '%'.$value.'%';
-    										if($key && $type && $value) $w->where($key,$type,$value);
-    									break;
-    									case 'in':
-    									case 'not in':
-    										if($value) {
-    											$value = explode(',',$value);
-    											if($key && $value) $w->whereIn($key,$value);
-    										}
-    									break;
-    								}
-    							}
-    						});
-    
-    						foreach($filter_column as $key=>$fc) {
-    							$value = @$fc['value'];
-    							$type  = @$fc['type'];
-    							$sorting = @$fc['sorting'];
-    
-    							if($sorting!='') {
-    								if($key) {
-    									$orderData->orderby($key,$sorting);
-    									$filter_is_orderby = true;
-    								}
-    							}
-    
-    							if ($type=='between') {
-    								if($key && $value) $orderData->whereBetween($key,$value);
-    							}
-    
-    							else {
-    								continue;
-    							}
-    						}
-    					}
-    
-    					$ordeDataLines = $orderData->orderBy('returns_header.id','asc')->get();
-    					$blank_field = '';
-    					$store_inv = '';
-    					$counter=0;
-    					$final_count = count((array)$ordeDataLines) + 1;
-    					foreach ($ordeDataLines as $orderRow) {
-    					    $counter++;
-    						/*$item = Item::where('digits_code', $orderRow->digits_code)->first();
-    						$itemBrand = Brand::where('id', $item->brand_id)->first();
-    						$itemStoreCategory = StoreCategory::where('id', $item->store_category_id)->first();
-    					    $itemCategory = Category::where('id', $item->category_id)->first();
-    						$itemWHCategory = WarehouseCategory::where('id', $item->warehouse_category_id)->first();
-    						*/
-    
-    			
-    						$serial_no = ReturnsSerials::where('returns_body_item_id', $orderRow->body_id)->first();
-    						
-    						if($orderRow->transaction_type == 2 ){
-    						    $closed_personnel = $orderRow->verified_by;
-    							$closed_date = 		$orderRow->level1_personnel_edited;
-    							
-    						}else{
-    
-            						if($orderRow->diagnose == "REFUND"){
-            							$transacted_personnel = $orderRow->transacted_by;
-            							$transacted_date = 		$orderRow->level5_personnel_edited;
-            							$closed_personnel = 	$orderRow->closed_by;
-            							$closed_date = 			$orderRow->level7_personnel_edited;
-            						}else{
-            							$transacted_personnel = "";
-            							$transacted_date = "";
-            							$closed_personnel = $orderRow->transacted_by;
-            							$closed_date = 		$orderRow->level5_personnel_edited;
-            						}
-            						
-            						if($orderRow->mode_of_return == "STORE DROP-OFF"){
-            								$scheduled_by = 	$orderRow->scheduled_logistics_by;
-            								$scheduled_date =	$orderRow->level8_personnel_edited;
-            						}else{
-            								$scheduled_by = 	$orderRow->scheduled_by;
-            								$scheduled_date =	$orderRow->level2_personnel_edited;
-            						}
-    						
-    						}
-    						
-    						$orderItems[] = array(
-    							//is_null($orderRow->approved_at) ? "" : Carbon::parse($orderRow->approved_at)->toDateString(),	//'APPROVED DATE',
-    							//is_null($orderRow->approved_at) ? "" : Carbon::parse($orderRow->approved_at)->toTimeString(), //'APPROVED TIME',
-    							$orderRow->warranty_status, 		
-    							$orderRow->diagnose, 	
-    							$orderRow->created_at,				
-    							$orderRow->return_reference_no,					
-    							$orderRow->purchase_location,				
-    							$orderRow->customer_last_name,		
-    							$orderRow->customer_first_name,	
-    							$orderRow->address,		            
-    							$orderRow->email_address,      
-    							$orderRow->contact_no,    
-    							$orderRow->order_no,		
-    							$orderRow->purchase_date,			
-    							$orderRow->mode_of_payment,		
-    							//$orderRow->mode_of_refund,	
-    							//$orderRow->bank_name,                  
-    							//$orderRow->bank_account_no,                   
-    							//$orderRow->bank_account_name,		
-    							$orderRow->items_included,                      
-    							$orderRow->items_included_others, 
-    							$orderRow->verified_items_included,                      
-    							$orderRow->verified_items_included_others, 
-    							$orderRow->customer_location,  
-    							$orderRow->deliver_to,                 
-    				 			$orderRow->return_schedule,                     
-    							$orderRow->pickup_schedule,   
-    							$orderRow->refunded_date,  
-    							$orderRow->sor_number,      
-    				 			$orderRow->digits_code,               
-    				 			$orderRow->upc_code,                 
-    				 			$orderRow->item_description,            
-    				 			$orderRow->cost,          
-    							$orderRow->brand,
-    							$serial_no->serial_number,
-    							$orderRow->problem_details,
-    				 			$orderRow->problem_details_other,                
-    							$orderRow->quantity,
-    							$orderRow->warranty_status,
-    							$orderRow->ship_back_status,
-    							$orderRow->claimed_status,
-    							$orderRow->credit_memo_number,
-    							$orderRow->verified_by,
-    							$orderRow->level1_personnel_edited,
-    							$scheduled_by,
-    							$scheduled_date,
-    							$orderRow->diagnosed_by,
-    							$orderRow->level3_personnel_edited,
-    							$orderRow->printed_by,
-    							$orderRow->level4_personnel_edited,
-    							$transacted_personnel,							
-    							$transacted_date,
-    							$closed_personnel,
-    							$closed_date,
-    							$orderRow->comments,
-    							$orderRow->diagnose_comments
-    						);
-    					}
-    
-    					$headings = array(
-    						'RETURN STATUS',
-    						'DIAGNOSE',
-    						'CREATED DATE',
-    						'RETURN REFERENCE#',
-    						'PURCHASE LOCATION',
-    						'CUSTOMER LAST NAME',
-    						'CUSTOMER FIRST NAME',
-    						'ADDRESS',
-    						'EMAIL ADDRESS',
-    						'CONTACT#',
-    						'ORDER#',
-    						'PURCHASE DATE',
-    						'ORIGINAL MODE OF PAYMENT',
-    						//'MODE OF REFUND',
-    						//'BANK NAME',    //yellow
-    						//'BANK ACCOUNT#',      //red
-    						//'BANK ACCOUNT NAME',         //red
-    						'ITEMS INCLUDED',         //red
-    						'ITEMS INCLUDED OTHERS',//green
-    						'VERIFIED ITEMS INCLUDED',         //red
-    						'VERIFIED ITEMS INCLUDED OTHERS',//green
-    						'CUSTOMER LOCATION',               //green
-    						'DELIVER TO',               //green
-    						'RETURN SCHEDULE',               //green
-    						'PICKUP SCHEDULE',               //green
-    						'REFUNDED DATE',               //green
-    						'SOR#',               //green
-    						'DIGITS CODE',                 //green
-    						'UPC CODE',      //blue
-    						'ITEM DESCRIPTION',               //blue
-    						'COST',                 //bue
-    						'BRAND',              //blue  //additional code 20200121
-                            'SERIAL#',                //bue   //additional code 20200121
-    						'PROBLEM DETAILS',       //additional code 20200207
-    						'PROBLEM DETAILS OTHERS',       //additional code 20200207
-    						'QUANTITY',           //blue  //additional code 20200205
-    						'WARRANTY STATUS',
-    						'SHIP BACK STATUS',           //blue  //additional code 20200205
-    						'CLAIMED STATUS',           //blue  //additional code 20200205
-    						'CREDIT MEMO#',           //blue  //additional code 20200205
-    						'VERIFIED BY',           //blue  //additional code 20200205
-    						'VERIFIED DATE',           //blue  //additional code 20200205
-    						'SCHEDULED BY',           //blue  //additional code 20200205
-    						'SCHEDULED DATE',           //blue  //additional code 20200205
-    						'DIAGNOSED BY',           //blue  //additional code 20200205
-    						'DIAGNOSED DATE',           //blue  //additional code 20200205
-    						'PRINTED BY',           //blue  //additional code 20200205
-    						'PRINTED DATE',           //blue  //additional code 20200205
-    						'SOR BY',           //blue  //additional code 20200205
-    						'SOR DATE',           //blue  //additional code 20200205
-    						'CLOSED BY',           //blue  //additional code 20200205
-    						'CLOSED DATE',           //blue  //additional code 20200205
-    						'COMMENTS',
-    						'DIAGNOSED COMMENTS'
-    					);		
+				$result = self::getRMATechnicianResult($orderData);
+				$headers = self::getRMAExportHeaders();
 
-					$sheet->fromArray($orderItems, null, 'A1', false, false);
-					$sheet->prependRow(1, $headings);
+			}  elseif (CRUDBooster::myPrivilegeName() == "RMA Specialist") {
 
-                             
-                    $sheet->getStyle('A1:BA1')->applyFromArray(array(
-                        'fill' => array(
-                            'type'  => PHPExcel_Style_Fill::FILL_SOLID,
-                            'color' => array('rgb' => '8DB4E2') //141,180,226->8DB4E2
-                        )
-                    ));
-                    $sheet->cells('A1:BA1'.$final_count, function($cells) {
-                    	$cells->setAlignment('left');
-                    	
-                    });
- 
-				});
-			})->export('xlsx');
-			
+				$result = self::getRMASpecialistResult($orderData);
+				$headers = self::getRMAExportHeaders();
+
+			} else {
+				$result = self::getOthersResult($orderData);
+				$headers = self::getRMAExportHeaders();
+			}
+
+			$finalData = self::filterFinalData($result);
+
+			$orderItems = self::processOrderData($finalData);
+
+			self::exportToExcel($filename, $orderItems, $headers);
 		}
 
+		private function getQueryData(){
 
-		public function GetExtractReturnsDiagnosingSC() {
+			$orderData = DB::table('returns_header')
+			->leftjoin('warranty_statuses', 'returns_header.returns_status_1','=', 'warranty_statuses.id')
+			->leftjoin('cms_users as verified', 'returns_header.level1_personnel','=', 'verified.id')
+			->leftjoin('cms_users as scheduled', 'returns_header.level2_personnel','=', 'scheduled.id')		
+			->leftjoin('cms_users as scheduled_logistics', 'returns_header.level8_personnel','=', 'scheduled_logistics.id')		
+			->leftjoin('cms_users as diagnosed', 'returns_header.level3_personnel','=', 'diagnosed.id')				
+			->leftjoin('cms_users as printed', 'returns_header.level4_personnel','=', 'printed.id')																	
+			->leftjoin('cms_users as transacted', 'returns_header.level5_personnel','=', 'transacted.id')
+			->leftjoin('cms_users as received', 'returns_header.level6_personnel','=', 'received.id')
+			->leftjoin('cms_users as received1', 'returns_header.received_by_rma_sc','=', 'received1.id')
+			->leftjoin('cms_users as turnover', 'returns_header.rma_receiver_id','=', 'turnover.id')
+			->leftjoin('cms_users as specialist', 'returns_header.rma_specialist_id','=', 'specialist.id')
+			->leftjoin('cms_users as closed', 'returns_header.level7_personnel','=', 'closed.id')	
+			->leftJoin('returns_body_item', 'returns_header.id', '=', 'returns_body_item.returns_header_id')
+			->select(   'returns_header.created_at as rh_created_at',
+						'returns_header.*', 
+						'returns_body_item.*', 
+						'returns_body_item.id as body_id', 
+						'verified.name as verified_by',	
+						'scheduled.name as scheduled_by',
+						'scheduled_logistics.name as scheduled_logistics_by',
+						'diagnosed.name as diagnosed_by',
+						'printed.name as printed_by',	
+						'transacted.name as transacted_by',	
+						'received.name as received_by',
+						'received1.name as received_by1',
+						'turnover.name as turnover_by',
+						'specialist.name as specialist_by',
+						'closed.name as closed_by',
+						'warranty_statuses.*'
+			);
+				
 
-            $filename = 'Returns - ' . date("d M Y - h.i.sa");
-			$sheetname = 'Returns'.date("d-M-Y");
-            ini_set('memory_limit', '512M');
-			Excel::create($filename, function ($excel) {
-				$excel->sheet('orders', function ($sheet) {	
-					// Set auto size for sheet
-					
+			return $orderData;
+		}
+
+		private function filterData($query){
+
+			$filter_column = \Request::get('filter_column');
+
+			$query->where(function($query) use ($filter_column) {
+
+				foreach($filter_column as $key => $fc) {
+
+					$value = @$fc['value'];
+					$type  = @$fc['type'];
+
+					if($value == '' && ($type == '' || $type == null)) continue;
+
+					if($type == 'empty') {
+						$query->whereNull($key)->orWhere($key,'');
+						continue;
+					}
+
+					if($type == 'between') {
+						$query->whereBetween($key, [$value[0], $value[1]]);
+						continue;
+					}
+
+					switch($type) {
+						case 'like':
+						case 'not like':
+							$value = '%'.$value.'%';
+							if($key && $type && $value) $query->where($key,$type,$value);
+						break;
+
+						case 'in':
+						case 'not in':
+							if($value) {
+								$value = explode(',',$value);
+								if($key && $value) $query->whereIn($key,$value);
+							}
+						break;
+
+						default:
+							if($key && $type && $value) $query->where($key,$type,$value);
+						break;
+					}
+				}
+			});
+
+			foreach($filter_column as $key=>$fc) {
+				$sorting = @$fc['sorting'];
+
+				if($sorting!='') {
+					if($key) {
+						$query->orderBy($key,$sorting);
+					}
+				}
+
+			}
+
+			return $query;
+		
+		}
+
+		private function filterFinalData($result)
+		{
+			if (\Request::get('filter_column')) {
+				return self::filterData($result);
+			} else {
+				return $result->orderBy('returns_header.id', 'asc')->get();
+			}
+		}
+
+		private function processOrderData($finalData)
+		{
+			$orderItems = [];
+
+			$privilegeName = CRUDBooster::myPrivilegeName();
+
+			foreach ($finalData as $orderLine) {
+
+
+				switch($privilegeName){
+				
+					case 'RMA Inbound':
+					case 'Tech Lead':
+					case 'RMA Technician':
+					case 'RMA Specialist':
+						$orderItems[] = self::getRMAData($orderLine);
+					break;
+
+					case 'Service Center':
+						$orderItems[] = self::getServiceCenterData($orderLine);
+					break;
+
+					default:
+						$orderItems[] = [];
+					break;
+				}
+
+			}
+
+			return $orderItems;
+		}
+
+		private function exportToExcel($filename, $orderItems, $headers)
+		{
+			Excel::create($filename, function ($excel) use ($orderItems, $headers) {
+				$excel->sheet('orders', function ($sheet) use ($orderItems, $headers) {
 					$sheet->setAutoSize(true);
-					$sheet->setColumnFormat(array(
-					    'J' => '@',		//for upc code
-					    'AI' => '0.00',
-					    'AJ' => '0.00',
-					    'AK' => '0.00',
-					));
-
-						$to_diagnose = ReturnsStatus::where('id','5')->value('id');
-						$to_receive_sor = 		ReturnsStatus::where('id','10')->value('id');
-						$to_print_return_form = ReturnsStatus::where('id','13')->value('id');
-						
-						
-						$approvalMatrix = DB::table("cms_users")->where('cms_users.id', CRUDBooster::myId())->get();
-        				$approval_array = array();
-        				foreach($approvalMatrix as $matrix){
-        				    array_push($approval_array, $matrix->stores_id);
-        				}
-        				$approval_string = implode(",",$approval_array);
-        				$storeList = array_map('intval',explode(",",$approval_string));    
-
-						$orderData = DB::table('returns_header')
-						->leftjoin('warranty_statuses', 'returns_header.returns_status_1','=', 'warranty_statuses.id')
-						->leftjoin('cms_users as verified', 'returns_header.level1_personnel','=', 'verified.id')
-						->leftjoin('cms_users as scheduled', 'returns_header.level2_personnel','=', 'scheduled.id')		
-						->leftjoin('cms_users as scheduled_logistics', 'returns_header.level8_personnel','=', 'scheduled_logistics.id')		
-						->leftjoin('cms_users as diagnosed', 'returns_header.level3_personnel','=', 'diagnosed.id')				
-						->leftjoin('cms_users as printed', 'returns_header.level4_personnel','=', 'printed.id')																	
-						->leftjoin('cms_users as transacted', 'returns_header.level5_personnel','=', 'transacted.id')
-						->leftjoin('cms_users as received', 'returns_header.level6_personnel','=', 'received.id')
-						->leftjoin('cms_users as closed', 'returns_header.level7_personnel','=', 'closed.id')	
-						->leftJoin('returns_body_item', 'returns_header.id', '=', 'returns_body_item.returns_header_id')
-						->select(   'returns_header.*', 
-									'returns_body_item.*', 
-									'returns_body_item.id as body_id', 
-									'verified.name as verified_by',	
-									'scheduled.name as scheduled_by',
-									'scheduled_logistics.name as scheduled_logistics_by',
-									'diagnosed.name as diagnosed_by',
-									'printed.name as printed_by',	
-									'transacted.name as transacted_by',	
-									'received.name as received_by',
-									'closed.name as closed_by',
-									'warranty_statuses.*'
-						)->whereNotNull('returns_body_item.category')->where('transaction_type', 1)->where('returns_status_1', $to_diagnose)->whereIn('returns_header.stores_id', $storeList)->groupby('returns_body_item.digits_code')
-						->orwhereNotNull('returns_body_item.category')->where('transaction_type', 1)->where('returns_status_1', $to_receive_sor)->whereIn('returns_header.stores_id', $storeList)->groupby('returns_body_item.digits_code')
-						->orwhereNotNull('returns_body_item.category')->where('transaction_type', 1)->where('returns_status_1', $to_print_return_form)->whereIn('returns_header.stores_id', $storeList)->groupby('returns_body_item.digits_code');
-					
-
-		    						if(\Request::get('filter_column')) {
-    
-    						$filter_column = \Request::get('filter_column');
-    
-    						$orderData->where(function($w) use ($filter_column,$fc) {
-    							foreach($filter_column as $key=>$fc) {
-    
-    								$value = @$fc['value'];
-    								$type  = @$fc['type'];
-    
-    								if($type == 'empty') {
-    									$w->whereNull($key)->orWhere($key,'');
-    									continue;
-    								}
-    
-    								if($value=='' || $type=='') continue;
-    
-    								if($type == 'between') continue;
-    
-    								switch($type) {
-    									default:
-    										if($key && $type && $value) $w->where($key,$type,$value);
-    									break;
-    									case 'like':
-    									case 'not like':
-    										$value = '%'.$value.'%';
-    										if($key && $type && $value) $w->where($key,$type,$value);
-    									break;
-    									case 'in':
-    									case 'not in':
-    										if($value) {
-    											$value = explode(',',$value);
-    											if($key && $value) $w->whereIn($key,$value);
-    										}
-    									break;
-    								}
-    							}
-    						});
-    
-    						foreach($filter_column as $key=>$fc) {
-    							$value = @$fc['value'];
-    							$type  = @$fc['type'];
-    							$sorting = @$fc['sorting'];
-    
-    							if($sorting!='') {
-    								if($key) {
-    									$orderData->orderby($key,$sorting);
-    									$filter_is_orderby = true;
-    								}
-    							}
-    
-    							if ($type=='between') {
-    								if($key && $value) $orderData->whereBetween($key,$value);
-    							}
-    
-    							else {
-    								continue;
-    							}
-    						}
-    					}
-    
-    					$ordeDataLines = $orderData->orderBy('returns_header.id','asc')->get();
-    					$blank_field = '';
-    					$store_inv = '';
-    					$counter=0;
-    					$final_count = count((array)$ordeDataLines) + 1;
-    					foreach ($ordeDataLines as $orderRow) {
-    					    $counter++;
-    						/*$item = Item::where('digits_code', $orderRow->digits_code)->first();
-    						$itemBrand = Brand::where('id', $item->brand_id)->first();
-    						$itemStoreCategory = StoreCategory::where('id', $item->store_category_id)->first();
-    					    $itemCategory = Category::where('id', $item->category_id)->first();
-    						$itemWHCategory = WarehouseCategory::where('id', $item->warehouse_category_id)->first();
-    						*/
-    
-    			
-    						$serial_no = ReturnsSerials::where('returns_body_item_id', $orderRow->body_id)->first();
-    						
-    						if($orderRow->transaction_type == 2 ){
-    						    $closed_personnel = $orderRow->verified_by;
-    							$closed_date = 		$orderRow->level1_personnel_edited;
-    							
-    						}else{
-    
-            						if($orderRow->diagnose == "REFUND"){
-            							$transacted_personnel = $orderRow->transacted_by;
-            							$transacted_date = 		$orderRow->level5_personnel_edited;
-            							$closed_personnel = 	$orderRow->closed_by;
-            							$closed_date = 			$orderRow->level7_personnel_edited;
-            						}else{
-            							$transacted_personnel = "";
-            							$transacted_date = "";
-            							$closed_personnel = $orderRow->transacted_by;
-            							$closed_date = 		$orderRow->level5_personnel_edited;
-            						}
-            						
-            						if($orderRow->mode_of_return == "STORE DROP-OFF"){
-            								$scheduled_by = 	$orderRow->scheduled_logistics_by;
-            								$scheduled_date =	$orderRow->level8_personnel_edited;
-            						}else{
-            								$scheduled_by = 	$orderRow->scheduled_by;
-            								$scheduled_date =	$orderRow->level2_personnel_edited;
-            						}
-    						
-    						}
-    						
-    						$orderItems[] = array(
-    							//is_null($orderRow->approved_at) ? "" : Carbon::parse($orderRow->approved_at)->toDateString(),	//'APPROVED DATE',
-    							//is_null($orderRow->approved_at) ? "" : Carbon::parse($orderRow->approved_at)->toTimeString(), //'APPROVED TIME',
-    							$orderRow->warranty_status, 		
-    							$orderRow->diagnose, 	
-    							$orderRow->created_at,				
-    							$orderRow->return_reference_no,					
-    							$orderRow->purchase_location,				
-    							$orderRow->customer_last_name,		
-    							$orderRow->customer_first_name,	
-    							$orderRow->address,		            
-    							$orderRow->email_address,      
-    							$orderRow->contact_no,    
-    							$orderRow->order_no,		
-    							$orderRow->purchase_date,			
-    							$orderRow->mode_of_payment,		
-    							//$orderRow->mode_of_refund,	
-    							//$orderRow->bank_name,                  
-    							//$orderRow->bank_account_no,                   
-    							//$orderRow->bank_account_name,		
-    							$orderRow->items_included,                      
-    							$orderRow->items_included_others, 
-    							$orderRow->verified_items_included,                      
-    							$orderRow->verified_items_included_others, 
-    							$orderRow->customer_location,  
-    							$orderRow->deliver_to,                 
-    				 			$orderRow->return_schedule,                     
-    							$orderRow->pickup_schedule,   
-    							$orderRow->refunded_date,  
-    							$orderRow->sor_number,      
-    				 			$orderRow->digits_code,               
-    				 			$orderRow->upc_code,                 
-    				 			$orderRow->item_description,            
-    				 			$orderRow->cost,          
-    							$orderRow->brand,
-    							$serial_no->serial_number,
-    							$orderRow->problem_details,
-    				 			$orderRow->problem_details_other,                
-    							$orderRow->quantity,
-    							$orderRow->warranty_status,
-    							$orderRow->ship_back_status,
-    							$orderRow->claimed_status,
-    							$orderRow->credit_memo_number,
-    							$orderRow->verified_by,
-    							$orderRow->level1_personnel_edited,
-    							$scheduled_by,
-    							$scheduled_date,
-    							$orderRow->diagnosed_by,
-    							$orderRow->level3_personnel_edited,
-    							$orderRow->printed_by,
-    							$orderRow->level4_personnel_edited,
-    							$transacted_personnel,							
-    							$transacted_date,
-    							$closed_personnel,
-    							$closed_date,
-    							$orderRow->comments,
-    							$orderRow->diagnose_comments
-    						);
-    					}
-    
-    					$headings = array(
-    						'RETURN STATUS',
-    						'DIAGNOSE',
-    						'CREATED DATE',
-    						'RETURN REFERENCE#',
-    						'PURCHASE LOCATION',
-    						'CUSTOMER LAST NAME',
-    						'CUSTOMER FIRST NAME',
-    						'ADDRESS',
-    						'EMAIL ADDRESS',
-    						'CONTACT#',
-    						'ORDER#',
-    						'PURCHASE DATE',
-    						'ORIGINAL MODE OF PAYMENT',
-    						//'MODE OF REFUND',
-    						//'BANK NAME',    //yellow
-    						//'BANK ACCOUNT#',      //red
-    						//'BANK ACCOUNT NAME',         //red
-    						'ITEMS INCLUDED',         //red
-    						'ITEMS INCLUDED OTHERS',//green
-    						'VERIFIED ITEMS INCLUDED',         //red
-    						'VERIFIED ITEMS INCLUDED OTHERS',//green
-    						'CUSTOMER LOCATION',               //green
-    						'DELIVER TO',               //green
-    						'RETURN SCHEDULE',               //green
-    						'PICKUP SCHEDULE',               //green
-    						'REFUNDED DATE',               //green
-    						'SOR#',               //green
-    						'DIGITS CODE',                 //green
-    						'UPC CODE',      //blue
-    						'ITEM DESCRIPTION',               //blue
-    						'COST',                 //bue
-    						'BRAND',              //blue  //additional code 20200121
-                            'SERIAL#',                //bue   //additional code 20200121
-    						'PROBLEM DETAILS',       //additional code 20200207
-    						'PROBLEM DETAILS OTHERS',       //additional code 20200207
-    						'QUANTITY',           //blue  //additional code 20200205
-    						'WARRANTY STATUS',
-    						'SHIP BACK STATUS',           //blue  //additional code 20200205
-    						'CLAIMED STATUS',           //blue  //additional code 20200205
-    						'CREDIT MEMO#',           //blue  //additional code 20200205
-    						'VERIFIED BY',           //blue  //additional code 20200205
-    						'VERIFIED DATE',           //blue  //additional code 20200205
-    						'SCHEDULED BY',           //blue  //additional code 20200205
-    						'SCHEDULED DATE',           //blue  //additional code 20200205
-    						'DIAGNOSED BY',           //blue  //additional code 20200205
-    						'DIAGNOSED DATE',           //blue  //additional code 20200205
-    						'PRINTED BY',           //blue  //additional code 20200205
-    						'PRINTED DATE',           //blue  //additional code 20200205
-    						'SOR BY',           //blue  //additional code 20200205
-    						'SOR DATE',           //blue  //additional code 20200205
-    						'CLOSED BY',           //blue  //additional code 20200205
-    						'CLOSED DATE',           //blue  //additional code 20200205
-    						'COMMENTS',
-    						'DIAGNOSED COMMENTS'
-    					);		
+					$sheet->setColumnFormat([
+						'J' => '@', // for upc code
+						'AI' => '0.00',
+						'AJ' => '0.00',
+						'AK' => '0.00',
+					]);
 
 					$sheet->fromArray($orderItems, null, 'A1', false, false);
-					$sheet->prependRow(1, $headings);
-
-                             
-                    $sheet->getStyle('A1:AH1')->applyFromArray(array(
-                        'fill' => array(
-                            'type'  => PHPExcel_Style_Fill::FILL_SOLID,
-                            'color' => array('rgb' => '8DB4E2') //141,180,226->8DB4E2
-                        )
-                    ));
-                    $sheet->cells('A1:AH1'.$final_count, function($cells) {
-                    	$cells->setAlignment('left');
-                    	
-                    });
- 
+					$sheet->prependRow(1, $headers);
 				});
 			})->export('xlsx');
-			
 		}
+
+		private function getTechLeadResult($orderData) {
+			return $orderData->whereIn('returns_status_1', [
+				ReturnsStatus::TO_ASSIGN_INC, 
+				ReturnsStatus::TO_DIAGNOSE, 
+				ReturnsStatus::TO_TEST
+			])
+			->where('transaction_type', 0)
+			->groupby('return_reference_no')
+			->orderBy('rh_created_at', 'desc');
+		}
+
+		private function getRMATechnicianResult($orderData) {
+			return $orderData->whereIn('returns_status_1', [
+				ReturnsStatus::TO_DIAGNOSE, 
+				ReturnsStatus::TO_TEST
+			])
+			->where('level3_personnel', CRUDBooster::myId())
+			->where('transaction_type', 0)
+			->groupby('return_reference_no')
+			->orderBy('rh_created_at', 'desc');
+		}
+
+		private function getRMASpecialistResult($orderData)
+		{
+			return $orderData->where('returns_status_1', ReturnsStatus::FOR_WARRANTY_CLAIM)
+			->where('transaction_type', 0)
+			->groupby('return_reference_no')
+			->orderBy('rh_created_at', 'desc');
+
+		}
+
+		private function getOthersResult($orderData)
+		{
+			return $orderData->whereIn('returns_status_1', [
+				ReturnsStatus::TO_DIAGNOSE,
+				ReturnsStatus::FOR_WARRANTY_CLAIM,
+				ReturnsStatus::TO_PRINT_SSR,
+				ReturnsStatus::TO_ASSIGN_INC,
+				ReturnsStatus::TO_RECEIVE_SOR,
+			])
+			->where('transaction_type', 0)
+			->groupby('return_reference_no')
+			->orderBy('rh_created_at', 'desc');
+
+		}
+
+		private function getServiceCenterResult($orderData)
+		{
+			$storeList = self::getStoreList();
+
+			return 	$orderData->whereIn('returns_status_1', [
+				ReturnsStatus::TO_DIAGNOSE, 
+				ReturnsStatus::TO_RECEIVE_SOR, 
+				ReturnsStatus::TO_PRINT_SSR
+			])
+			->where('transaction_type', 1)
+			->where(function($query) use ($storeList) {
+				$query->whereIn('returns_header.stores_id', $storeList)
+				->orWhereIn('returns_header.stores_id', $storeList);
+			})
+			->groupby('return_reference_no')
+			->orderBy('rh_created_at', 'desc');
+
+		}
+
+		private function getServiceCenterData($orderLine){
+			$serial_no = ReturnsSerials::where('returns_body_item_id', $orderLine->body_id)->first();
+
+			return [
+				$orderLine->warranty_status, 		
+				$orderLine->diagnose, 	
+				$orderLine->rh_created_at,				
+				$orderLine->return_reference_no,					
+				$orderLine->purchase_location,				
+				$orderLine->customer_last_name,		
+				$orderLine->customer_first_name,	
+				$orderLine->address,		            
+				$orderLine->email_address,      
+				$orderLine->contact_no,    
+				$orderLine->order_no,		
+				$orderLine->purchase_date,			
+				$orderLine->mode_of_payment,		
+				$orderLine->items_included,                      
+				$orderLine->items_included_others, 
+				$orderLine->verified_items_included,                      
+				$orderLine->verified_items_included_others, 
+				$orderLine->customer_location,  
+				$orderLine->deliver_to,                 
+				$orderLine->return_schedule,                     
+				$orderLine->pickup_schedule,   
+				$orderLine->refunded_date,  
+				$orderLine->sor_number,      
+				$orderLine->digits_code,               
+				$orderLine->upc_code,                 
+				$orderLine->item_description,            
+				$orderLine->cost,          
+				$orderLine->brand,
+				$serial_no->serial_number,
+				$orderLine->problem_details,
+				$orderLine->problem_details_other,                
+				$orderLine->quantity,
+				$orderLine->warranty_status,
+				$orderLine->ship_back_status,
+				$orderLine->claimed_status,
+				$orderLine->credit_memo_number,
+				$orderLine->verified_by,
+				$orderLine->level1_personnel_edited,
+				self::getScheduledBy($orderLine),
+				self::getScheduledDate($orderLine),
+				$orderLine->diagnosed_by,
+				$orderLine->level3_personnel_edited,
+				$orderLine->printed_by,
+				$orderLine->level4_personnel_edited,
+				self::getTransactedPersonnel($orderLine),					
+				self::getTransactedDate($orderLine),
+				self::getClosedPersonnel($orderLine),
+				self::getClosedDate($orderLine),
+				$orderLine->comments,
+				$orderLine->diagnose_comments
+			];
+		}
+
+		private function getRMAData($orderLine){
+
+			$serial_no = ReturnsSerials::where('returns_body_item_id', $orderLine->body_id)->first();
+
+			return [
+				$orderLine->warranty_status, 		
+				$orderLine->diagnose, 	
+				$orderLine->rh_created_at,				
+				$orderLine->return_reference_no,					
+				$orderLine->inc_number,		
+				$orderLine->purchase_location,				
+				$orderLine->customer_last_name,		
+				$orderLine->customer_first_name,	
+				$orderLine->address,		            
+				$orderLine->email_address,      
+				$orderLine->contact_no,    
+				$orderLine->order_no,		
+				$orderLine->purchase_date,			
+				$orderLine->mode_of_payment,		
+				$orderLine->items_included,                      
+				$orderLine->items_included_others, 
+				$orderLine->verified_items_included,                      
+				$orderLine->verified_items_included_others, 
+				$orderLine->customer_location,  
+				$orderLine->deliver_to,                 
+				$orderLine->return_schedule,                     
+				$orderLine->pickup_schedule,   
+				$orderLine->refunded_date,  
+				$orderLine->sor_number,      
+				$orderLine->digits_code,               
+				$orderLine->upc_code,                 
+				$orderLine->item_description,            
+				$orderLine->cost,          
+				$orderLine->brand,
+				$serial_no->serial_number,
+				$orderLine->problem_details,
+				$orderLine->problem_details_other,                
+				$orderLine->quantity,
+				$orderLine->warranty_status,
+				$orderLine->ship_back_status,
+				$orderLine->claimed_status,
+				$orderLine->credit_memo_number,
+				$orderLine->verified_by,
+				$orderLine->level1_personnel_edited,
+				self::getScheduledBy($orderLine),
+				self::getScheduledDate($orderLine),
+				$orderLine->turnover_by,
+				$orderLine->rma_receiver_date_received,
+				$orderLine->received_by1,
+				$orderLine->received_at_rma_sc,
+				$orderLine->diagnosed_by,
+				$orderLine->level3_personnel_edited,
+				$orderLine->specialist_by,
+				$orderLine->rma_specialist_date_received,
+				$orderLine->printed_by,
+				$orderLine->level4_personnel_edited,
+				self::getTransactedPersonnel($orderLine),					
+				self::getTransactedDate($orderLine),
+				self::getClosedPersonnel($orderLine),
+				self::getClosedDate($orderLine),
+				$orderLine->comments,
+				$orderLine->diagnose_comments
+			];
+		}
+
+		private function getServiceCenterExportHeaders(){	
+			
+			return [
+				'RETURN STATUS',
+				'DIAGNOSE',
+				'CREATED DATE',
+				'RETURN REFERENCE#',
+				'PURCHASE LOCATION',
+				'CUSTOMER LAST NAME',
+				'CUSTOMER FIRST NAME',
+				'ADDRESS',
+				'EMAIL ADDRESS',
+				'CONTACT#',
+				'ORDER#',
+				'PURCHASE DATE',
+				'ORIGINAL MODE OF PAYMENT',
+				'ITEMS INCLUDED',         
+				'ITEMS INCLUDED OTHERS',
+				'VERIFIED ITEMS INCLUDED',         
+				'VERIFIED ITEMS INCLUDED OTHERS',
+				'CUSTOMER LOCATION',               
+				'DELIVER TO',               
+				'RETURN SCHEDULE',               
+				'PICKUP SCHEDULE',               
+				'REFUNDED DATE',               
+				'SOR#',               
+				'DIGITS CODE',                 
+				'UPC CODE',      
+				'ITEM DESCRIPTION',               
+				'COST',                 
+				'BRAND',                
+				'SERIAL#',                   
+				'PROBLEM DETAILS',       
+				'PROBLEM DETAILS OTHERS',       
+				'QUANTITY',             
+				'WARRANTY STATUS',
+				'SHIP BACK STATUS',             
+				'CLAIMED STATUS',             
+				'CREDIT MEMO#',             
+				'VERIFIED BY',             
+				'VERIFIED DATE',             
+				'SCHEDULED BY',             
+				'SCHEDULED DATE',             
+				'DIAGNOSED BY',             
+				'DIAGNOSED DATE',             
+				'PRINTED BY',             
+				'PRINTED DATE',             
+				'SOR BY',             
+				'SOR DATE',             
+				'CLOSED BY',             
+				'CLOSED DATE',             
+				'COMMENTS',
+				'DIAGNOSED COMMENTS'
+			];		
+
+		}
+
+		private function getRMAExportHeaders(){	
+			
+			return [
+				'RETURN STATUS',
+				'DIAGNOSE',
+				'CREATED DATE',
+				'RETURN REFERENCE#',
+				'INC#',
+				'PURCHASE LOCATION',
+				'CUSTOMER LAST NAME',
+				'CUSTOMER FIRST NAME',
+				'ADDRESS',
+				'EMAIL ADDRESS',
+				'CONTACT#',
+				'ORDER#',
+				'PURCHASE DATE',
+				'ORIGINAL MODE OF PAYMENT',
+				'ITEMS INCLUDED',         
+				'ITEMS INCLUDED OTHERS',
+				'VERIFIED ITEMS INCLUDED',         
+				'VERIFIED ITEMS INCLUDED OTHERS',
+				'CUSTOMER LOCATION',               
+				'DELIVER TO',               
+				'RETURN SCHEDULE',               
+				'PICKUP SCHEDULE',               
+				'REFUNDED DATE',               
+				'SOR#',               
+				'DIGITS CODE',                 
+				'UPC CODE',      
+				'ITEM DESCRIPTION',               
+				'COST',                 
+				'BRAND',                
+				'SERIAL#',                   
+				'PROBLEM DETAILS',       
+				'PROBLEM DETAILS OTHERS',       
+				'QUANTITY',             
+				'WARRANTY STATUS',
+				'SHIP BACK STATUS',             
+				'CLAIMED STATUS',             
+				'CREDIT MEMO#',             
+				'VERIFIED BY',             
+				'VERIFIED DATE',             
+				'SCHEDULED BY',             
+				'SCHEDULED DATE',             
+				'RECEIVED BY',
+				'RECEIVED DATE',
+				'TURNOVER BY',
+				'TURNOVER DATE',
+				'DIAGNOSED BY',             
+				'DIAGNOSED DATE',             
+				'PROCESSED BY',             
+				'PROCESSED DATE',  
+				'PRINTED BY',             
+				'PRINTED DATE',             
+				'SOR BY',             
+				'SOR DATE',             
+				'CLOSED BY',             
+				'CLOSED DATE',             
+				'COMMENTS',
+				'DIAGNOSED COMMENTS'
+			];		
+
+		}
+
+		private function getStoreList()
+		{
+			$userStores = DB::table("cms_users")->where('cms_users.id', CRUDBooster::myId())->pluck('stores_id')->toArray();
+			return array_map('intval', explode(",", implode(",", $userStores)));
+		}
+
+		private function getClosedPersonnel($orderRow)
+		{
+			if ($orderRow->transaction_type == 2) {
+				return $orderRow->verified_by;
+			} elseif ($orderRow->diagnose == "REFUND") {
+				return $orderRow->closed_by;
+			} else {
+				return $orderRow->transacted_by;
+			}
+		}
+
+		private function getClosedDate($orderRow)
+		{
+			if ($orderRow->transaction_type == 2) {
+				return $orderRow->level1_personnel_edited;
+			} elseif ($orderRow->diagnose == "REFUND") {
+				return $orderRow->level7_personnel_edited;
+			} else {
+				return $orderRow->level5_personnel_edited;
+			}
+		}
+
+		private function getTransactedPersonnel($orderRow)
+		{
+			if ($orderRow->diagnose == "REFUND") {
+				return $orderRow->transacted_by;
+			} else {
+				return "";
+			}
+		}
+
+		private function getTransactedDate($orderRow)
+		{
+			if ($orderRow->diagnose == "REFUND") {
+				return $orderRow->level5_personnel_edited;
+			} else {
+				return "";
+			}
+		}
+
+		private function getScheduledBy($orderRow)
+		{
+			if ($orderRow->mode_of_return == "STORE DROP-OFF") {
+				return $orderRow->scheduled_logistics_by;
+			} else {
+				return $orderRow->scheduled_by;
+			}
+		}
+
+		private function getScheduledDate($orderRow)
+		{
+			if ($orderRow->mode_of_return == "STORE DROP-OFF") {
+				return $orderRow->level8_personnel_edited;
+			} else {
+				return $orderRow->level2_personnel_edited;
+			}
+		}
+
 	}

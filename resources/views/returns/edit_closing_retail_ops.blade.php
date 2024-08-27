@@ -2,6 +2,37 @@
 @extends('crudbooster::admin_template')
 
 @section('content')
+
+@include('plugins.plugins')
+<link rel="stylesheet" href="{{ asset('css/sweet_alert_size.css') }}">
+
+<style>
+	#swal_table {
+		width: 100%;
+		border-collapse: collapse;
+		margin-bottom: 20px;
+	}
+
+	#swal_table th,
+	#swal_table td {
+		border: 1px solid #ddd;
+		padding: 8px;
+		text-align: center;
+	}
+
+	@media (max-width: 767px) {
+		#swal_table {
+			overflow-x: auto;
+			white-space: nowrap;
+		}
+
+		#swal_table th,
+		#swal_table td {
+			white-space: nowrap;
+		}
+	}
+</style>
+
 @if(g('return_url'))
 	<p class="noprint"><a title='Return' href='{{g("return_url")}}'><i class='fa fa-chevron-circle-left '></i> &nbsp; {{trans("crudbooster.form_back_to_list",['module'=>CRUDBooster::getCurrentModule()->name])}}</a></p>       
 @else
@@ -52,34 +83,32 @@
                             <hr/>-->
                             
                             @if($row->diagnose == "REPLACE")
-                                <div class="row" id="replacement">                           
-                                    <label class="control-label col-md-2" style="margin-top:-5px;">{{ trans('message.form-label.negative_positive_invoice') }}</label>
+                            <div class="row" id="replacement">        
+                                <div class="col-md-2" style="min-height: 35px; max-height: 35px; display: flex; align-items: center;">
+                                        <label class="control-label">{{ trans('message.form-label.negative_positive_invoice') }}</label>
+                                    </div>                         
                                     <div class="col-md-4">
-                                            <input type='input' name='negative_positive_invoice' id="negative_positive_invoice" class='form-control' autocomplete="off" maxlength="50" placeholder="INV#" onkeypress="return AvoidSpace(event)"  required/>                             
+                                        <input type='input' name='negative_positive_invoice' id="negative_positive_invoice" class='form-control' autocomplete="off" maxlength="50" placeholder="INV#" onkeypress="return AvoidSpace(event)" />                             
                                     </div>
-                                     
-    
                                 </div> 
-                                
-                                <div class="row" id="replacement1">
-                                    <label class="control-label col-md-2" style="margin-top:7px;">{{ trans('message.form-label.pos_replacement_ref') }}</label>
+                                <br>
+                                <div class="row" id="replacement1">        
+                                    <div class="col-md-2" style="min-height: 35px; display: flex; align-items: center;">
+                                        <label class="control-label">{{ trans('message.form-label.pos_replacement_ref') }}</label>
+                                    </div>
                                     <div class="col-md-4">
-                                            <input type='input' name='pos_replacement_ref' id="pos_replacement_ref" class='form-control' autocomplete="off" maxlength="50"  onkeypress="return AvoidSpace(event)"  required placeholder="REP#" />                             
+                                        <input type='input' name='pos_replacement_ref' id="pos_replacement_ref" class='form-control' autocomplete="off" maxlength="50"  onkeypress="return AvoidSpace(event)"  placeholder="REP#" />                             
                                     </div>
                                     
-                                    <div class="col-md-6">
-                                            
-                                            <p style="color:red;"><label style="color:black;">Notes:</label>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;*PLEASE CREATE POS REPLACEMENT STOCK ADJUSTMENT TRANSACTION. 
-                                              
-                                            </p>
-                                              
-                                            
-                                            
+                                    {{-- <div class="col-md-6">
+                                        <br>
+                                        <p style="color:red;"><label style="color:black;">Notes:</label>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;*PLEASE CREATE POS REPLACEMENT STOCK ADJUSTMENT TRANSACTION. </p>
+                                    </div> --}}
+                                    <div class="col-md-6" style="min-height: 35px; display: flex; align-items: center;">
+                                        <label class="control-label">Notes: <span style="color: red;">*PLEASE CREATE POS REPLACEMENT STOCK ADJUSTMENT TRANSACTION.</span> </label>
                                     </div>
+                                </div>
                                 
-                                </div>                  
-                            
-                            
                                 <hr/>
                             @endif
                             
@@ -364,10 +393,8 @@
                 <div class='panel-footer'>
                     <a href="{{ CRUDBooster::mainpath() }}" class="btn btn-default">{{ trans('message.form.cancel') }}</a>
                     
-                    <button class="btn btn-primary pull-right" type="submit" id="btnSubmit"> <i class="fa fa-save" ></i> {{ trans('message.form.close') }}</button>
-                    @if($row->diagnose == "REPLACE")
-                     <!-- <button class="btn btn-warning pull-right" type="submit" id="check" style="margin-right:10px; width:135px;"> <i class="fa fa-circle-o" ></i> {{ trans('message.form.check') }}</button> -->
-                    @endif
+                    <button class="btn btn-primary pull-right hide" type="submit" id="btnSubmit"> <i class="fa fa-save" ></i> {{ trans('message.form.close') }}</button>
+                    <button class="btn btn-primary pull-right f-btn" type="button"><i class="fa fa-save" ></i> {{ trans('message.form.close') }}</button>
                 </div>
 
         </form>
@@ -376,101 +403,210 @@
 
 @push('bottom')
 <script type="text/javascript">
-function AvoidSpace(event) {
-    var k = event ? event.which : window.event.keyCode;
-    if (k == 32) return false;
-}
 
-function preventBack() {
-    window.history.forward();
-}
- window.onunload = function() {
-    null;
-};
-setTimeout("preventBack()", 0);
+    function validationNpiPos(){
+
+        let validation = false;
+
+        let invStartsWith = false;
+        let repStartsWith = false;
+        let invNumberLength = false;
+        let repNumberLength = false;
+
+        const invNumber = $('#negative_positive_invoice').val();
+        const repNumber = $('#pos_replacement_ref').val();
+        const borderColor = {border: '2px solid #FE4A49'};
+        const removeBorderColor = {border: ''};
+
+        invStartsWith = invNumber.startsWith('INV#') ? true : false;
+        invNumberLength = invNumber.length >= 8 ? true : false;
+
+        repStartsWith = repNumber.startsWith('REP#') ? true : false;
+        repNumberLength = repNumber.length >= 8 ? true : false;
+
+        if ((!invStartsWith && !repStartsWith) || (!invNumberLength && !repNumberLength)){
+            $('#negative_positive_invoice').css(borderColor);
+            $('#pos_replacement_ref').css(borderColor);
+        }else{
+            $('#pos_replacement_ref').css('border', '');
+            $('#negative_positive_invoice').css('border', '');
+        }
+
+        if(!invStartsWith){
+            Swal.fire({
+                title: "Incorrect Negative/Positive Invoice format! e.g. INV#1001",
+                icon: 'error',
+                showCancelButton: false,
+                confirmButtonColor: '#3085d6',
+                confirmButtonText: 'Ok',
+                returnFocus: false,
+                allowOutsideClick: false,
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    $('#negative_positive_invoice').css(borderColor);
+                    $('#negative_positive_invoice').focus();
+                }
+            })
+        }else if(!invNumberLength){
+            Swal.fire({
+                title: "Please make sure the input is at least 8 characters long in INV#",
+                icon: 'error',
+                showCancelButton: false,
+                confirmButtonColor: '#3085d6',
+                confirmButtonText: 'Ok',
+                returnFocus: false,
+                allowOutsideClick: false,
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    $('#negative_positive_invoice').css(borderColor);
+                    $('#negative_positive_invoice').focus();
+                }
+            })
+        }else if(!repStartsWith){
+            Swal.fire({
+                title: "Incorrect POS Replacement Ref# format! e.g. REP#1001",
+                icon: 'error',
+                showCancelButton: false,
+                confirmButtonColor: '#3085d6',
+                confirmButtonText: 'Ok',
+                returnFocus: false,
+                allowOutsideClick: false,
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    $('#pos_replacement_ref').css(borderColor);
+                    $('#pos_replacement_ref').focus();
+                }
+            })
+        }else if(!repNumberLength){
+            Swal.fire({
+                title: "Please make sure the input is at least 8 characters long in REP#",
+                icon: 'error',
+                showCancelButton: false,
+                confirmButtonColor: '#3085d6',
+                confirmButtonText: 'Ok',
+                returnFocus: false,
+                allowOutsideClick: false,
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    $('#pos_replacement_ref').css(borderColor);
+                    $('#pos_replacement_ref').focus();
+                }
+            })
+        }
+
+        if (invStartsWith && repStartsWith && invNumberLength && repNumberLength) {
+            validation = true;
+        }else{
+            validation = false;
+        }
+
+        return validation;
+    }
+
+    function AvoidSpace(event) {
+        var k = event ? event.which : window.event.keyCode;
+        if (k == 32) return false;
+    }
+
+    function preventBack() {
+        window.history.forward();
+    }
+
+    window.onunload = function() {
+        null;
+    };
+
+    setTimeout("preventBack()", 0);
 
 
-$("#check").on('click',function() {
-    var strconfirm = confirm("Are you sure you want to check with SDM?");
-        if (strconfirm == true) {
+    $("#check").on('click',function() {
+        var strconfirm = confirm("Are you sure you want to check with SDM?");
+            if (strconfirm == true) {
                 $("#closing").val("Check with SDM");
                 return true;
-        }else{
+            }else{
                 return false;
                 window.stop();
-        }
-});
-
-$("#btnSubmit").on('click',function() {
-        var signal = 0;
-        var alert_message = 0;
-        var text_length = $("#negative_positive_invoice").val().length;
-        
-        if($("#negative_positive_invoice").val().includes("INV#")){
-            
-            if($("#negative_positive_invoice").val().includes(" ")){
-                signal = 0;
-                alert_message = 1;
-            }else if(text_length <= 4){
-                    signal = 0;
-                    alert_message = 1;
-            }else{
-                signal =1;
-                restriction = 0;
             }
-            
-        }else{
-            signal = 0;
-            alert_message = 1;
-        }
+    });
 
+	
+    // Swal
+    $(".f-btn").on('click', function(){
 
-       if($("#pos_replacement_ref").val().includes("REP#") ){
-                
-                if($("#pos_replacement_ref").val().includes(" ")){
-                    signal = 0;
-                   // alert_message = 1;
-                    alert("Incorrect POS Replacement Ref# format! e.g. REP#1001");
-                    return false;
-                }else if(text_length <= 4){
-                        signal = 0;
-                        //alert_message = 1;
-                        alert("Incorrect POS Replacement Ref# format! e.g. REP#1001");
-                        return false;
-                }else{
-                    signal =    1;
-                }
-                
-        }else{
-                signal = 0;
-               // alert_message = 1;
-                alert("Incorrect POS Replacement Ref# format! e.g. REP#1001");
-                return false;
-        }
-            
+		const invNumber = $('#negative_positive_invoice').val();
+        const repNumber = $('#pos_replacement_ref').val();
+		
+		const wrapper = $('<div>');
+		const table = $('<table id="swal_table">');
+		const thead = $('<thead>');
+		const tbody = $('<tbody>');
+		const tr = $('<tr>'); // Create a table row
 
-       if(signal != 0){
-            return true;   
-        }else{
-            if(alert_message == 1){
-                alert("Incorrect Negative/Positive Invoice format! e.g. INV#1001");
+		// Use th (table header) for the headers
+		tr.append($('<th>').text('INV Number'), $('<th>').text('REP Number'));
+
+		thead.append(tr);
+
+		// Create another row for the data
+		const dataRow = $('<tr style="color: #2C78C1; font-weight: 600;">').append($('<td>').text(invNumber), $('<td>').text(repNumber));
+		tbody.append(dataRow);
+
+		table.append(thead, tbody);
+
+		let p = $('<p style="color: red;">');
+
+		if (invNumber == '' || repNumber == ''){
+			p.text('Please fill up required fields');
+		} else {
+			p.text('');
+		}
+
+		wrapper.append(table, p);
+
+        Swal.fire({
+            title: "Are you sure you want to close this transaction?",
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#3085d6',
+            cancelButtonColor: '#d33',
+            confirmButtonText: 'Yes',
+            // html: wrapper,
+            reverseButtons: true,
+            returnFocus: false,
+            allowOutsideClick: true,
+        }).then((result) => {
+            if (result.isConfirmed) {
+                $('#btnSubmit').click();
             }
-            return false;  
+        });
+    })
+
+    $('#btnSubmit').on('click', function(event){
+
+        event.preventDefault();
+
+        if("{{ CrudBooster::myPrivilegeName() != 'Store Ops' }}"){
+            let validated = validationNpiPos();
+        }else{
+            validated = true;
         }
-        
-        
 
-        
-    $("#closing").val("Close");
-});
+        if(validated){
+            $("#closing").val("Close");
+            $('#myform').submit();
+        }
+    })
 
+    // $("#btnSubmit").on('click',function(event) {
 
-$(document).ready(function(){
-  $("myform").submit(function(){
-        $('#btnSubmit').attr('disabled', true);
-  });
-});
+    // });
 
+    $(document).ready(function(){
+        $("myform").submit(function(){
+                $('#btnSubmit').attr('disabled', true);
+        });
+    });
 
 </script>
 @endpush 

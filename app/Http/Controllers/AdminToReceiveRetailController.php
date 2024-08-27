@@ -24,6 +24,7 @@ use PHPExcel_Style_Border;
 use PHPExcel_Style_Fill;
 use App\Item;
 use App\ItemsIncluded;
+use App\ReferenceCounter;
 use App\TransactionTypeList;
 
 
@@ -58,8 +59,32 @@ use App\TransactionTypeList;
 
 			# START COLUMNS DO NOT REMOVE THIS LINE
 			$this->col = [];
+			$this->col[] = ["label"=>"Status","name"=>"returns_status_1","join"=>"warranty_statuses,warranty_status"];
+			$this->col[] = ["label"=>"Last Chat", "name"=>"id", 'callback'=>function($row){
+
+				$img_url = asset("chat_img/$row->last_image");
+
+				$str = '';
+
+				$str .= "<div class='sender_name'>$row->sender_name</div>";
+				$str .= "<div class='time_ago' datetime='$row->date_send'>$row->date_send</div>";
+				
+				if ($row->last_message) {
+					// Truncate the message if it's longer than 150 characters
+					$truncatedMessage = strlen($row->last_message) > 41 ? substr($row->last_message, 0, 41) . '...' : $row->last_message;
+					$str .= "<div class='text-msg'>$truncatedMessage</div>";
+				}
+				if($row->last_image){
+					$str .= "<div class='last_msg'><img src='$img_url'></div>";
+				}
+				if($row->sender_name){
+					return $str;
+				}else{
+					return '<div class="no-message">No messages available at the moment.</div>';
+				}
+			}];
+
 			if(CRUDBooster::myPrivilegeName() == "Service Center"){ 
-				$this->col[] = ["label"=>"Status","name"=>"returns_status_1","join"=>"warranty_statuses,warranty_status"];
 				$this->col[] = ["label"=>"Created Date","name"=>"created_at"];
 				$this->col[] = ["label"=>"Pickup Schedule","name"=>"return_schedule"];
 				$this->col[] = ["label"=>"Return Reference#","name"=>"return_reference_no"];
@@ -76,7 +101,6 @@ use App\TransactionTypeList;
 				$this->col[] = ["label"=>"Diagnose","name"=>"diagnose","visible"=>false];
 				$this->col[] = ["label"=>"Level3 Personnel","name"=>"level3_personnel","visible"=>false];
 			}else{
-				$this->col[] = ["label"=>"Status","name"=>"returns_status_1","join"=>"warranty_statuses,warranty_status"];
 				$this->col[] = ["label"=>"Created Date","name"=>"created_at"];
 				$this->col[] = ["label"=>"Pickup Schedule","name"=>"return_schedule"];
 				$this->col[] = ["label"=>"Return Reference#","name"=>"return_reference_no"];
@@ -202,19 +226,25 @@ use App\TransactionTypeList;
 				$to_receive_sc = 			ReturnsStatus::where('id','35')->value('id');
 				
 
-				$this->addaction[] = ['title'=>'Edit','url'=>CRUDBooster::mainpath('ToReceiveSCRTL/[id]'),'icon'=>'fa fa-pencil', "showIf"=>"[returns_status_1] == $to_receive_sc"];
+				$this->addaction[] = ['title'=>'Edit','url'=>CRUDBooster::mainpath('ToReceiveSCRTL/[id]'),'color'=>'none','icon'=>'fa fa-pencil', "showIf"=>"[returns_status_1] == $to_receive_sc"];
 
-				$this->addaction[] = ['title'=>'Edit','url'=>CRUDBooster::mainpath('ReturnsToReceiveEditRTL/[id]'),'icon'=>'fa fa-pencil', "showIf"=>"[returns_status_1] == $to_diagnose"];
-				$this->addaction[] = ['title'=>'Edit','url'=>CRUDBooster::mainpath('ReturnsDiagnosingRTLEditSC/[id]'),'icon'=>'fa fa-pencil', "showIf"=>"[returns_status_1] == $to_receive"];
-				$this->addaction[] = ['title'=>'Print','url'=>CRUDBooster::mainpath('ReturnsReturnFormPrintRTLSC/[id]'),'icon'=>'fa fa-print', "showIf"=>"[returns_status_1] == $to_print_return_form"];
-				$this->addaction[] = ['title'=>'Print','url'=>CRUDBooster::mainpath('ReturnsSRRPrintSC/[id]'),'icon'=>'fa fa-print', "showIf"=>"[returns_status_1] == $to_print_srr"];
+				$this->addaction[] = ['title'=>'Edit','url'=>CRUDBooster::mainpath('ReturnsToReceiveEditRTL/[id]'),'color'=>'none','icon'=>'fa fa-pencil', "showIf"=>"[returns_status_1] == $to_diagnose"];
+				$this->addaction[] = ['title'=>'Edit','url'=>CRUDBooster::mainpath('ReturnsDiagnosingRTLEditSC/[id]'),'color'=>'none','icon'=>'fa fa-pencil', "showIf"=>"[returns_status_1] == $to_receive"];
+				$this->addaction[] = ['title'=>'Print','url'=>CRUDBooster::mainpath('ReturnsReturnFormPrintRTLSC/[id]'),'color'=>'none','icon'=>'fa fa-print', "showIf"=>"[returns_status_1] == $to_print_return_form"];
+				$this->addaction[] = ['title'=>'Print','url'=>CRUDBooster::mainpath('ReturnsSRRPrintSC/[id]'),'color'=>'none','icon'=>'fa fa-print', "showIf"=>"[returns_status_1] == $to_print_srr"];
 
 			}else{
 
 				$to_receive_rma = ReturnsStatus::where('id','34')->value('id');
+				$to_rma_received = ReturnsStatus::where('id','37')->value('id');
 
-				$this->addaction[] = ['title'=>'Edit','url'=>CRUDBooster::mainpath('ToReceiveRTL/[id]'),'icon'=>'fa fa-pencil', "showIf"=>"[returns_status_1] == $to_receive_rma"];
-
+				if(CRUDBooster::myPrivilegeId() == 4){
+					$this->addaction[] = ['title'=>'Edit','url'=>CRUDBooster::mainpath('ToReceiveRTL/[id]'),'color'=>'none','icon'=>'fa fa-pencil', "showIf"=>"[returns_status_1] == $to_receive_rma"];
+					$this->addaction[] = ['title'=>'Edit','url'=>CRUDBooster::mainpath('ToReceiveRTL/[id]'),'color'=>'none','icon'=>'fa fa-pencil', "showIf"=>"[returns_status_1] == $to_rma_received"];
+				}
+				else{
+					$this->addaction[] = ['title'=>'Edit','url'=>CRUDBooster::mainpath('ToReceiveRTL/[id]'),'color'=>'none','icon'=>'fa fa-pencil'];
+				}
 			}
 	        /* 
 	        | ---------------------------------------------------------------------- 
@@ -326,7 +356,8 @@ use App\TransactionTypeList;
 	        |
 	        */
 	        $this->load_js = array();
-	        
+			$this->load_js[] = "https://unpkg.com/timeago.js/dist/timeago.min.js";
+			$this->load_js[] = asset("js/time_ago.js");
 	        
 	        
 	        /*
@@ -350,6 +381,7 @@ use App\TransactionTypeList;
 	        |
 	        */
 	        $this->load_css = array();
+			$this->load_css[] = asset('css/last_message.css');
 	        
 	        
 	    }
@@ -379,6 +411,15 @@ use App\TransactionTypeList;
 	    public function hook_query_index(&$query) {
 	        //Your code here
 
+			$query->leftJoin('retail_last_comments', 'retail_last_comments.returns_header_retail_id', 'returns_header_retail.id')
+			->leftJoin('chats', 'chats.id', 'retail_last_comments.chats_id')
+			->leftJoin('cms_users as sender', 'sender.id', 'chats.created_by')
+			->addSelect('chats.message as last_message',
+				'chats.file_name as last_image',
+				'sender.name as sender_name',
+				'chats.created_at as date_send'
+			);
+
 			if(CRUDBooster::myPrivilegeName() == "Service Center"){ 
 
 				$query->where(function($sub_query){
@@ -402,27 +443,34 @@ use App\TransactionTypeList;
 					//$sub_query->orWhere('returns_status_1', $to_print_return_form)->where('transaction_type', 3)->where('stores_id', CRUDBooster::myStoreId())->orderBy('id', 'asc');
 					
 					$sub_query->where('returns_status_1', $to_receive)->where('transaction_type', 3)->whereIn('returns_header_retail.stores_id', $storeList)->orderBy('id', 'asc');  
+
 					$sub_query->orWhere('returns_status_1', $to_print_return_form)->where('transaction_type', 3)->whereIn('returns_header_retail.stores_id', $storeList)->orderBy('id', 'asc');
+
 					$sub_query->orWhere('returns_status_1', $to_print_srr)->where('transaction_type', 3)->whereIn('returns_header_retail.stores_id', $storeList)->orderBy('id', 'asc');
+
 					$sub_query->orWhere('returns_status_1', $to_diagnose)->where('transaction_type', 3)->whereIn('returns_header_retail.stores_id', $storeList)->orderBy('id', 'asc');
 
 					$sub_query->where('returns_status_1', $to_receive)->where('transaction_type', 1)->whereIn('returns_header_retail.stores_id', $storeList)->orderBy('id', 'asc');  
 
 					$sub_query->orWhere('returns_status_1', $to_receive_sc)->where('transaction_type', 1)->whereIn('returns_header_retail.stores_id', $storeList)->orderBy('id', 'asc');
 					$sub_query->orWhere('returns_status_1', $to_receive_sc)->where('transaction_type', 0)->whereIn('returns_header_retail.stores_id', $storeList)->orderBy('id', 'asc');
+
+					$sub_query->orWhere('returns_status_1', $to_receive_sc)->whereIn('transaction_type', [0,1])->whereIn('returns_header_retail.sc_location_id', $storeList)->orderBy('id', 'asc');
+					
 				});   
 
 
-			}else{
+			}
+			else{
 
 				$query->where(function($sub_query){
 			
 					$to_receive_rma = ReturnsStatus::where('id','34')->value('id');
+					$to_rma_received = ReturnsStatus::where('id','37')->value('id');
 					
-					$sub_query->where('returns_status_1', $to_receive_rma)->where('transaction_type', 0)->orderBy('id', 'asc');  
+					$sub_query->whereIn('returns_status_1', [$to_receive_rma, $to_rma_received])->where('transaction_type', 0)->orderBy('id', 'asc');  
 
 				});
-
 			}       
 	    }
 
@@ -443,10 +491,11 @@ use App\TransactionTypeList;
             
             $to_print_srr  =     ReturnsStatus::where('id','19')->value('warranty_status');
 
-			$to_receive_rma = 			ReturnsStatus::where('id','34')->value('warranty_status');
+			$to_pickup_by_log = 			ReturnsStatus::where('id','34')->value('warranty_status');
+			$to_rma_received = 			ReturnsStatus::where('id','37')->value('warranty_status');
 			$to_receive_sc = 			ReturnsStatus::where('id','35')->value('warranty_status');
 
-			if($column_index == 1){
+			if($column_index == 2){
 				if($column_value == $requested){
 					$column_value = '<span class="label label-warning">'.$requested.'</span>';
 			
@@ -468,11 +517,14 @@ use App\TransactionTypeList;
 				}elseif($column_value == $to_print_srr){
 					$column_value = '<span class="label label-warning">'.$to_print_srr.'</span>';
 			
-				}elseif($column_value == $to_receive_rma){
-					$column_value = '<span class="label label-warning">'.$to_receive_rma.'</span>';
+				}elseif($column_value == $to_pickup_by_log){
+					$column_value = '<span class="label label-warning">'.$to_pickup_by_log.'</span>';
 			
 				}elseif($column_value == $to_receive_sc){
 					$column_value = '<span class="label label-warning">'.$to_receive_sc.'</span>';
+			
+				}elseif($column_value == $to_rma_received){
+					$column_value = '<span class="label label-warning">'.$to_rma_received.'</span>';
 			
 				}
 			}
@@ -590,7 +642,7 @@ use App\TransactionTypeList;
 	        //Your code here
 	        
 	        $ReturnRequest = ReturnsHeaderRTL::where('id',$id)->first();
-	        
+			
 			if(CRUDBooster::myPrivilegeName() == "Service Center"){
 
 				$ReturnRequest = ReturnsHeaderRTL::where('id',$id)->first();
@@ -1106,36 +1158,72 @@ use App\TransactionTypeList;
 					}
 				}
 
-			}else{
-
+			}else if($ReturnRequest->returns_status_1 == 37){
 				$to_diagnose = ReturnsStatus::where('id','5')->value('id');
+				$to_tech_lead = ReturnsStatus::where('id','39')->value('id');
 
-				$postdata['returns_status_1'] = 					$to_diagnose;
-				$postdata['received_by_rma_sc'] = 					CRUDBooster::myId();
-				$postdata['received_at_rma_sc']=					date('Y-m-d H:i:s');
-				
-				
-				
-								DB::beginTransaction();
-				
-								try {
-					
-									DB::connection('mysql_front_end')
-									->statement('insert into returns_tracking_status (return_reference_no, returns_status, 	created_at) values (?, ?, ?)', 
-									[   $ReturnRequest->return_reference_no, 
-									    $to_diagnose,
-									    date('Y-m-d H:i:s')
-									]);
+				if(CRUDBooster::myPrivilegeName() == "RMA Inbound" || CRUDBooster::myPrivilegeName() == "Super Administrator"){
 
-									DB::commit();
+					$postdata['returns_status_1'] = 					$to_tech_lead;
+					$postdata['received_by_rma_sc'] = 					CRUDBooster::myId();
+					$postdata['received_at_rma_sc']=					date('Y-m-d H:i:s');
+	
+					DB::beginTransaction();
 					
-								}catch (\Exception $e) {
-									DB::rollback();
-									CRUDBooster::redirect(CRUDBooster::mainpath(), trans("crudbooster.alert_database_error",['database_error'=>$e]), 'danger');
-								}
+					try {
+		
+						DB::connection('mysql_front_end')
+						->statement('insert into returns_tracking_status (return_reference_no, returns_status, 	created_at) values (?, ?, ?)', 
+						[   $ReturnRequest->return_reference_no, 
+							$to_diagnose,
+							date('Y-m-d H:i:s')
+						]);
+	
+						DB::commit();
+		
+					}catch (\Exception $e) {
+						DB::rollback();
+						CRUDBooster::redirect(CRUDBooster::mainpath(), trans("crudbooster.alert_database_error",['database_error'=>$e]), 'danger');
+					}
+		
+					DB::disconnect('mysql_front_end');	
+				}
+			}
+			// To pickup by log
+			else if($ReturnRequest->returns_status_1 == 34){
+
+				if(CRUDBooster::myPrivilegeName() == "RMA Inbound" || CRUDBooster::myPrivilegeName() == "Super Administrator"){
+
+					$to_diagnose = ReturnsStatus::where('id','5')->value('id');
+					// TO RMA RECEIVED STATUS
+					$to_rma_received = ReturnsStatus::where('id','37')->value('id');
+	
+					$postdata['returns_status_1'] = 					$to_rma_received;
+					$postdata['rma_receiver_id'] = 					CRUDBooster::myId();
+					$postdata['rma_receiver_date_received']=					date('Y-m-d H:i:s');
 					
-								DB::disconnect('mysql_front_end');	
-								
+					
+					
+									// DB::beginTransaction();
+					
+									// try {
+						
+									// 	DB::connection('mysql_front_end')
+									// 	->statement('insert into returns_tracking_status (return_reference_no, returns_status, 	created_at) values (?, ?, ?)', 
+									// 	[   $ReturnRequest->return_reference_no, 
+									// 	    $to_diagnose,
+									// 	    date('Y-m-d H:i:s')
+									// 	]);
+	
+									// 	DB::commit();
+						
+									// }catch (\Exception $e) {
+									// 	DB::rollback();
+									// 	CRUDBooster::redirect(CRUDBooster::mainpath(), trans("crudbooster.alert_database_error",['database_error'=>$e]), 'danger');
+									// }
+						
+									// DB::disconnect('mysql_front_end');	
+				}	
 			}
 
 	    }
@@ -1329,6 +1417,58 @@ use App\TransactionTypeList;
 
 	    }
 
+		public function toTurnOverProcess(Request $request){
+			
+			$return_input = $request->all();
+
+			$transaction_information = DB::table($return_input['table_name'])->where('id', $return_input['id'])->first();
+
+			$to_diagnose = ReturnsStatus::where('id','5')->value('id');
+			$to_tech_lead = ReturnsStatus::where('id','39')->value('id');
+
+			if(CRUDBooster::myPrivilegeName() == "RMA Inbound" || CRUDBooster::myPrivilegeName() == "Super Administrator"){
+
+				$counter = new ReferenceCounter();
+				$inc_count_number = $counter->incrementCounter('INC');
+				$formatted_counter = 'INC-'.str_pad($inc_count_number, 6, '0', STR_PAD_LEFT);
+				
+				DB::table($return_input['table_name'])->where('id', $return_input['id'])
+				->update([
+					'returns_status_1' => $to_tech_lead,
+					'received_by_rma_sc' => CRUDBooster::myId(),
+					'received_at_rma_sc' => date('Y-m-d H:i:s'),
+					'inc_number' => $formatted_counter,
+				]);
+
+				DB::beginTransaction();
+				
+				try {
+	
+					DB::connection('mysql_front_end')
+					->statement('insert into returns_tracking_status (return_reference_no, returns_status, 	created_at) values (?, ?, ?)', 
+					[   $transaction_information->return_reference_no, 
+						$to_diagnose,
+						date('Y-m-d H:i:s')
+					]);
+
+					DB::commit();
+	
+				}catch (\Exception $e) {
+					DB::rollback();
+					CRUDBooster::redirect(CRUDBooster::mainpath(), trans("crudbooster.alert_database_error",['database_error'=>$e]), 'danger');
+				}
+	
+				DB::disconnect('mysql_front_end');	
+			}
+
+			return response()->json(['success' => $formatted_counter]);
+		}
+
+		public function returnReferenceNumber($ref_number, $module_mainpath){
+			
+			CRUDBooster::redirect(CRUDBooster::adminPath()."/{$module_mainpath}", "Request successfully turned over to Tech Lead with INC #: $ref_number", 'success');
+		}
+
 
 
 	    //By the way, you can still create your own method in here... :) 
@@ -1407,6 +1547,9 @@ use App\TransactionTypeList;
 					));
 
 					$requested = ReturnsStatus::where('id','1')->value('id');
+					$to_receive = ReturnsStatus::where('id','29')->value('id');
+					$to_receive_rma = ReturnsStatus::where('id','34')->value('id');
+					$to_receive_sc = ReturnsStatus::where('id','35')->value('id');
 					//$to_receive_sor = 		ReturnsStatus::where('id','10')->value('id');
 					$to_print_return_form = ReturnsStatus::where('id','13')->value('id');
 					
@@ -1416,7 +1559,7 @@ use App\TransactionTypeList;
         				    array_push($approval_array, $matrix->stores_id);
         				}
         				$approval_string = implode(",",$approval_array);
-        				$storeList = array_map('intval',explode(",",$approval_string)); 					
+        				$storeList = array_map('intval',explode(",",$approval_string)); 		
 
 					$orderData = DB::table('returns_header_retail')
 					->leftjoin('warranty_statuses', 'returns_header_retail.returns_status_1','=', 'warranty_statuses.id')
@@ -1439,12 +1582,24 @@ use App\TransactionTypeList;
 								'received.name as received_by',
 								'closed.name as closed_by',
 								'warranty_statuses.*'
-								)->whereNull('returns_body_item_retail.category')->where('transaction_type', 2)->where('returns_status_1', $requested)->whereIn('returns_header_retail.stores_id', $storeList)->groupby('returns_body_item_retail.digits_code')
+								)
+					->whereIn('returns_header_retail.stores_id', $storeList)
+					->whereNull('returns_body_item_retail.category')
+					->where(function ($query) {
+						$query->where('returns_header_retail.returns_status_1', 35)
+							->whereIn('transaction_type', [1,0]);
+						$query->orWhere('returns_header_retail.returns_status_1', 29)
+							->whereIn('transaction_type', [1,3]);
+					});
+					// ->whereIn('returns_header_retail.returns_status_1', [$to_receive_sc, $to_receive_rma])
+					// ->whereIn('transaction_type', [0,1])
+					// ->groupby('returns_body_item_retail.digits_code');
+					// ->orWhereIn('returns_header_retail.returns_status_1'
+					// ->get();
+								// ->whereNull('returns_body_item_retail.category')->where('transaction_type', 2)->where('returns_status_1', $to_receive_sc)->whereIn('returns_header_retail.stores_id', $storeList)->groupby('returns_body_item_retail.digits_code');
 						//->orwhereNotNull('returns_body_item.category')->where('transaction_type', 0)->where('returns_status_1', $to_receive_sor)
-						->orwhereNull('returns_body_item_retail.category')->where('transaction_type', 2)->where('returns_status_1', $to_print_return_form)->whereIn('returns_header_retail.stores_id', $storeList)->groupby('returns_body_item_retail.digits_code');
-					
-
-						if(\Request::get('filter_column')) {
+						// ->orwhereNull('returns_body_item_retail.category')->where('transaction_type', 2)->where('returns_status_1', $to_print_return_form)->whereIn('returns_header_retail.stores_id', $storeList)->groupby('returns_body_item_retail.digits_code');
+					if(\Request::get('filter_column')) {
 
 						$filter_column = \Request::get('filter_column');
 
@@ -1927,6 +2082,8 @@ use App\TransactionTypeList;
 
 						
 					DB::commit();
+
+					CRUDBooster::redirect(CRUDBooster::mainpath(), 'Success', 'success');
 	
 				}catch (\Exception $e) {
 					DB::rollback();
@@ -1990,8 +2147,11 @@ use App\TransactionTypeList;
 			$channels = Channel::where('channel_name', 'ONLINE')->first();
 
 			$data['store_list'] = Stores::where('channels_id',$channels->id)->get();
+
+			$data['comments_data'] = (new ChatController)->getComments($id);
 			
-			$this->cbView("returns.edit_receiving_sc_retail", $data);
+			$this->cbView("components.receiving_sc", $data);
+			// $this->cbView("returns.edit_receiving_sc_retail", $data);
 		}
 
 		public function ToReceiveRTL($id)
@@ -2046,12 +2206,12 @@ use App\TransactionTypeList;
 			$channels = Channel::where('channel_name', 'ONLINE')->first();
 
 			$data['store_list'] = Stores::where('channels_id',$channels->id)->get();
-			
-		
-			
-	
-			
-			$this->cbView("returns.to_receive_retail_rma", $data);
+						
+			// $this->cbView("returns.to_receive_retail_rma", $data);
+			$data['comments_data'] = (new ChatController)->getComments($id);
+
+			$this->cbView("components.to_receive_rma", $data);
+
 		}
 		
 		

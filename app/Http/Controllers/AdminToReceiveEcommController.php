@@ -54,9 +54,31 @@ use PHPExcel_Style_Fill;
 
 			# START COLUMNS DO NOT REMOVE THIS LINE
 			$this->col = [];
-
+			$this->col[] = ["label"=>"Status","name"=>"returns_status_1","join"=>"warranty_statuses,warranty_status"];
+			$this->col[] = ["label"=>"Last Chat", "name"=>"id", 'callback'=>function($row){
+				$img_url = asset("chat_img/$row->last_image");
+				;
+				$str = '';
+				
+				$str .= "<div class='sender_name'>$row->sender_name</div>";
+				$str .= "<div class='time_ago' datetime='$row->date_send'>$row->date_send</div>";
+				
+				if ($row->last_message) {
+					// Truncate the message if it's longer than 150 characters
+					$truncatedMessage = strlen($row->last_message) > 41 ? substr($row->last_message, 0, 41) . '...' : $row->last_message;
+					$str .= "<div class='text-msg'>$truncatedMessage</div>";
+				}
+				if($row->last_image){
+					$str .= "<div class='last_msg'><img src='$img_url'></div>";
+				}
+				if($row->sender_name){
+					return $str;
+				}else{
+					return '<div class="no-message">No messages available at the moment.</div>';
+				}
+			}];
+			
 			if(CRUDBooster::myPrivilegeName() == "Service Center"){ 
-        			$this->col[] = ["label"=>"Status","name"=>"returns_status_1","join"=>"warranty_statuses,warranty_status"];
         			$this->col[] = ["label"=>"Created Date","name"=>"created_at"];
         			$this->col[] = ["label"=>"Pickup Schedule","name"=>"return_schedule"];
         			$this->col[] = ["label"=>"Return Reference#","name"=>"return_reference_no"];
@@ -69,8 +91,6 @@ use PHPExcel_Style_Fill;
         			$this->col[] = ["label"=>"Mode Of Payment","name"=>"mode_of_payment"];
 
 			}else{
-
-				$this->col[] = ["label"=>"Status","name"=>"returns_status_1","join"=>"warranty_statuses,warranty_status"];
 				$this->col[] = ["label"=>"Created Date","name"=>"created_at"];
 				$this->col[] = ["label"=>"Pickup Schedule","name"=>"return_schedule"];
 				$this->col[] = ["label"=>"Return Reference#","name"=>"return_reference_no"];
@@ -195,17 +215,23 @@ use PHPExcel_Style_Fill;
 				$to_receive_sc = 			ReturnsStatus::where('id','35')->value('id');
     			
 
-                $this->addaction[] = ['title'=>'Edit','url'=>CRUDBooster::mainpath('ReturnsReceivingSC/[id]'),'icon'=>'fa fa-pencil', "showIf"=>"[returns_status_1] == $to_receive or [returns_status_1] == $to_receive_sc"];
-				$this->addaction[] = ['title'=>'Edit','url'=>CRUDBooster::mainpath('ReturnsDiagnosingEditSC/[id]'),'icon'=>'fa fa-pencil', "showIf"=>"[returns_status_1] == $to_diagnose"];
-				$this->addaction[] = ['title'=>'Edit','url'=>CRUDBooster::mainpath('ReturnsSORReceivingEditSC/[id]'),'icon'=>'fa fa-pencil', "showIf"=>"[returns_status_1] == $to_receive_sor"];
-				$this->addaction[] = ['title'=>'Print','url'=>CRUDBooster::mainpath('ReturnsReturnFormPrintSC/[id]'),'icon'=>'fa fa-print', "showIf"=>"[returns_status_1] == $to_print_return_form"];
-				$this->addaction[] = ['title'=>'Print','url'=>CRUDBooster::mainpath('ReturnsSRRPrintSC/[id]'),'icon'=>'fa fa-print', "showIf"=>"[returns_status_1] == $to_print_srr"];
+                $this->addaction[] = ['title'=>'Edit','url'=>CRUDBooster::mainpath('ReturnsReceivingSC/[id]'),'color'=>'none','icon'=>'fa fa-pencil', "showIf"=>"[returns_status_1] == $to_receive or [returns_status_1] == $to_receive_sc"];
+				$this->addaction[] = ['title'=>'Edit','url'=>CRUDBooster::mainpath('ReturnsDiagnosingEditSC/[id]'),'color'=>'none','icon'=>'fa fa-pencil', "showIf"=>"[returns_status_1] == $to_diagnose"];
+				$this->addaction[] = ['title'=>'Edit','url'=>CRUDBooster::mainpath('ReturnsSORReceivingEditSC/[id]'),'color'=>'none','icon'=>'fa fa-pencil', "showIf"=>"[returns_status_1] == $to_receive_sor"];
+				$this->addaction[] = ['title'=>'Print','url'=>CRUDBooster::mainpath('ReturnsReturnFormPrintSC/[id]'),'color'=>'none','icon'=>'fa fa-print', "showIf"=>"[returns_status_1] == $to_print_return_form"];
+				$this->addaction[] = ['title'=>'Print','url'=>CRUDBooster::mainpath('ReturnsSRRPrintSC/[id]'),'color'=>'none','icon'=>'fa fa-print', "showIf"=>"[returns_status_1] == $to_print_srr"];
 			}else{
 
 				$to_receive_rma = ReturnsStatus::where('id','34')->value('id');
+				$to_turnover_rma = ReturnsStatus::where('id','37')->value('id');
 
-				$this->addaction[] = ['title'=>'Edit','url'=>CRUDBooster::mainpath('ToReceiveEcomm/[id]'),'icon'=>'fa fa-pencil', "showIf"=>"[returns_status_1] == $to_receive_rma"];
-
+				if(CRUDBooster::myPrivilegeId() == 4){
+					$this->addaction[] = ['title'=>'Edit','url'=>CRUDBooster::mainpath('ToReceiveEcomm/[id]'),'color'=>'none','icon'=>'fa fa-pencil', "showIf"=>"[returns_status_1] == $to_receive_rma"];
+					$this->addaction[] = ['title'=>'Edit','url'=>CRUDBooster::mainpath('ToReceiveEcomm/[id]'),'color'=>'none','icon'=>'fa fa-pencil', "showIf"=>"[returns_status_1] == $to_turnover_rma"];
+				}
+				else{
+					$this->addaction[] = ['title'=>'Edit','url'=>CRUDBooster::mainpath('ToReceiveEcomm/[id]'),'color'=>'none','icon'=>'fa fa-pencil'];
+				}
 			}
 
 	        /* 
@@ -318,7 +344,8 @@ use PHPExcel_Style_Fill;
 	        |
 	        */
 	        $this->load_js = array();
-	        
+			$this->load_js[] = "https://unpkg.com/timeago.js/dist/timeago.min.js";
+			$this->load_js[] = asset("js/time_ago.js");
 	        
 	        
 	        /*
@@ -342,7 +369,8 @@ use PHPExcel_Style_Fill;
 	        |
 	        */
 	        $this->load_css = array();
-	        
+			$this->load_css[] = asset('css/last_message.css');
+
 	        
 	    }
 
@@ -370,6 +398,16 @@ use PHPExcel_Style_Fill;
 	    */
 	    public function hook_query_index(&$query) {
 	        //Your code here
+
+			// Chatbox
+			$query->leftJoin('ecomm_last_comments', 'ecomm_last_comments.returns_header_id', 'returns_header.id')
+			->leftJoin('chat_ecomms', 'chat_ecomms.id', 'ecomm_last_comments.chats_id')
+			->leftJoin('cms_users as sender', 'sender.id', 'chat_ecomms.created_by')
+			->addSelect('chat_ecomms.message as last_message',
+				'chat_ecomms.file_name as last_image',
+				'sender.name as sender_name',
+				'chat_ecomms.created_at as date_send'
+			);
 
 			if(CRUDBooster::myPrivilegeName() == "Service Center"){ 
 
@@ -411,7 +449,10 @@ use PHPExcel_Style_Fill;
 
 					$sub_query->orWhere('returns_status_1', $to_receive_sc)->where('transaction_type', 1)->whereIn('returns_header.stores_id', $storeList)->orderBy('id', 'asc');
 					$sub_query->orWhere('returns_status_1', $to_receive_sc)->where('transaction_type', 0)->whereIn('returns_header.stores_id', $storeList)->orderBy('id', 'asc');
-					
+
+					// sc_id
+					$sub_query->orWhere('returns_status_1', $to_receive_sc)->whereIn('transaction_type', [0,1])->whereIn('returns_header.sc_location_id', $storeList)->orderBy('id', 'asc');
+
 				});
 
 			}else{
@@ -419,8 +460,10 @@ use PHPExcel_Style_Fill;
 				$query->where(function($sub_query){
 			
 					$to_receive_rma = ReturnsStatus::where('id','34')->value('id');
+					$to_turnover = ReturnsStatus::where('id','37')->value('id');
 					
 					$sub_query->where('returns_status_1', $to_receive_rma)->where('transaction_type', 0)->orderBy('id', 'asc');  
+					$sub_query->orWhere('returns_status_1', $to_turnover)->where('transaction_type', 0)->orderBy('id', 'asc');  
 
 				});
 
@@ -446,8 +489,9 @@ use PHPExcel_Style_Fill;
 			$to_print_srr  =     ReturnsStatus::where('id','19')->value('warranty_status');
 			$to_receive_rma = 			ReturnsStatus::where('id','34')->value('warranty_status');
 			$to_receive_sc = 			ReturnsStatus::where('id','35')->value('warranty_status');
+			$to_turnover = 			ReturnsStatus::where('id','37')->value('warranty_status');
 
-			if($column_index == 1){
+			if($column_index == 2){
 				if($column_value == $requested){
 					$column_value = '<span class="label label-warning">'.$requested.'</span>';
 			
@@ -474,6 +518,9 @@ use PHPExcel_Style_Fill;
 			
 				}elseif($column_value == $to_receive_sc){
 					$column_value = '<span class="label label-warning">'.$to_receive_sc.'</span>';
+			
+				}elseif($column_value == $to_turnover){
+					$column_value = '<span class="label label-warning">'.$to_turnover.'</span>';
 			
 				}
 			}
@@ -937,35 +984,51 @@ use PHPExcel_Style_Fill;
 
 			}else{
 
-				$to_diagnose = ReturnsStatus::where('id','5')->value('id');
+				// To pickup by log
+				if($ReturnRequest->returns_status_1 == 34){
 
-				$postdata['returns_status_1'] = 					$to_diagnose;
-				$postdata['received_by_rma_sc'] = 					CRUDBooster::myId();
-				$postdata['received_at_rma_sc']=					date('Y-m-d H:i:s');
-				
-				
-								
+					if(CRUDBooster::myPrivilegeName() == "RMA Inbound" || CRUDBooster::myPrivilegeName() == "Super Administrator"){
 
-								DB::beginTransaction();
-				
-								try {
+						$to_diagnose = ReturnsStatus::where('id','5')->value('id');
+						// TO TURNOVER STATUS
+						$to_turnover = ReturnsStatus::where('id','37')->value('id');
+		
+						$postdata['returns_status_1'] = 					$to_turnover;
+						$postdata['rma_receiver_id'] = 					CRUDBooster::myId();
+						$postdata['rma_receiver_date_received']=					date('Y-m-d H:i:s');
+					}
+				}
+				else if($ReturnRequest->returns_status_1 == 37){
+
+					$to_diagnose = ReturnsStatus::where('id','5')->value('id');
 					
-									DB::connection('mysql_front_end')
-									->statement('insert into returns_tracking_status (return_reference_no, returns_status, 	created_at) values (?, ?, ?)', 
-									[   $ReturnRequest->return_reference_no, 
-									    $to_diagnose,
-									    date('Y-m-d H:i:s')
-									]);
+					if(CRUDBooster::myPrivilegeName() == "RMA Inbound" || CRUDBooster::myPrivilegeName() == "Super Administrator"){
 
-									DB::commit();
-					
-								}catch (\Exception $e) {
-									DB::rollback();
-									CRUDBooster::redirect(CRUDBooster::mainpath(), trans("crudbooster.alert_database_error",['database_error'=>$e]), 'danger');
-								}
-					
-								DB::disconnect('mysql_front_end');				
+						$postdata['returns_status_1'] = 					$to_diagnose;
+						$postdata['received_by_rma_sc'] = 					CRUDBooster::myId();
+						$postdata['received_at_rma_sc']=					date('Y-m-d H:i:s');
+				
+						DB::beginTransaction();
+		
+						try {
+			
+							DB::connection('mysql_front_end')
+							->statement('insert into returns_tracking_status (return_reference_no, returns_status, 	created_at) values (?, ?, ?)', 
+							[   $ReturnRequest->return_reference_no, 
+								$to_diagnose,
+								date('Y-m-d H:i:s')
+							]);
 
+							DB::commit();
+			
+						}catch (\Exception $e) {
+							DB::rollback();
+							CRUDBooster::redirect(CRUDBooster::mainpath(), trans("crudbooster.alert_database_error",['database_error'=>$e]), 'danger');
+						}
+			
+						DB::disconnect('mysql_front_end');	
+					}
+				}
 			}
 			
 	    }	    
@@ -1638,6 +1701,8 @@ use PHPExcel_Style_Fill;
 
 			$data['store_list'] = Stores::where('channels_id',$channels->id)->get();
 			
+			$data['comments_data'] = (new ChatController)->getCommentsEcomm($id);
+
 			$this->cbView("returns.edit_receiving_sc", $data);
 		}
 		
@@ -1721,6 +1786,8 @@ use PHPExcel_Style_Fill;
 
 						
 					DB::commit();
+
+					CRUDBooster::redirect(CRUDBooster::mainpath(), 'Success', 'success');
 	
 				}catch (\Exception $e) {
 					DB::rollback();
@@ -1785,12 +1852,12 @@ use PHPExcel_Style_Fill;
 			$channels = Channel::where('channel_name', 'ONLINE')->first();
 
 			$data['store_list'] = Stores::where('channels_id',$channels->id)->get();
+
+			$data['comments_data'] = (new ChatController)->getCommentsEcomm($id);
 			
-		
-			
-	
-			
-			$this->cbView("returns.to_receive_ecomm_rma", $data);
+			// $this->cbView("returns.to_receive_ecomm_rma", $data);
+			$this->cbView("components.ecomm.to_receive_rma", $data);
+
 		}
 		
 	}

@@ -53,9 +53,33 @@ use App\StoresFrontEnd;
 			# START COLUMNS DO NOT REMOVE THIS LINE
 			$this->col = [];
 			$this->col[] = ["label"=>"Status","name"=>"returns_status_1","join"=>"warranty_statuses,warranty_status"];
+			$this->col[] = ["label"=>"Last Chat", "name"=>"id", 'callback'=>function($row){
+
+				$img_url = asset("chat_img/$row->last_image");
+
+				$str = '';
+
+				$str .= "<div class='sender_name'>$row->sender_name</div>";
+				$str .= "<div class='time_ago' datetime='$row->date_send'>$row->date_send</div>";
+
+				if ($row->last_message) {
+					// Truncate the message if it's longer than 150 characters
+					$truncatedMessage = strlen($row->last_message) > 41 ? substr($row->last_message, 0, 41) . '...' : $row->last_message;
+					$str .= "<div class='text-msg'>$truncatedMessage</div>";
+				}
+				if($row->last_image){
+					$str .= "<div class='last_msg'><img src='$img_url'></div>";
+				}
+				if($row->sender_name){
+					return $str;
+				}else{
+					return '<div class="no-message">No messages available at the moment.</div>';
+				}
+			}];
 			$this->col[] = ["label"=>"Created Date","name"=>"created_at"];
 			$this->col[] = ["label"=>"Pickup Schedule","name"=>"return_schedule"];
 			$this->col[] = ["label"=>"Return Reference#","name"=>"return_reference_no"];
+			$this->col[] = ["label"=>"PO Date","name"=>"po_store_date"];
 			$this->col[] = ["label"=>"Order#","name"=>"order_no"];
 			//$this->col[] = ["label"=>"Customer Location","name"=>"customer_location"];
 			//$this->col[] = ["label"=>"Purchase Location","name"=>"purchase_location"];
@@ -64,7 +88,7 @@ use App\StoresFrontEnd;
 			$this->col[] = ["label"=>"Branch Drop-Off","name"=>"branch_dropoff"];
 			$this->col[] = ["label"=>"Customer Last Name","name"=>"customer_last_name"];
 			$this->col[] = ["label"=>"Customer First Name","name"=>"customer_first_name"];
-			$this->col[] = ["label"=>"Mode Of Payment","name"=>"mode_of_payment"];
+			// $this->col[] = ["label"=>"Mode Of Payment","name"=>"mode_of_payment"];
 			# END COLUMNS DO NOT REMOVE THIS LINE
 
 			# START FORM DO NOT REMOVE THIS LINE
@@ -190,9 +214,9 @@ use App\StoresFrontEnd;
 			$pending = ReturnsStatus::where('id','19')->value('id');
             $return_delivery_date = ReturnsStatus::where('id','33')->value('id');
             
-            $this->addaction[] = ['title'=>'Edit','url'=>CRUDBooster::mainpath('ReturnsDeliveryEditRTL/[id]'),'icon'=>'fa fa-pencil', "showIf"=>"[returns_status_1] == $return_delivery_date"];
-			$this->addaction[] = ['title'=>'Edit','url'=>CRUDBooster::mainpath('ReturnsSchedulingRetailEdit/[id]'),'icon'=>'fa fa-pencil', "showIf"=>"[returns_status_1] == $to_schedule"];
-			$this->addaction[] = ['title'=>'Print','url'=>CRUDBooster::mainpath('ReturnsPulloutPrint/[id]'),'icon'=>'fa fa-print', "showIf"=>"[returns_status_1] == $pending"];
+            $this->addaction[] = ['title'=>'Edit','url'=>CRUDBooster::mainpath('ReturnsDeliveryEditRTL/[id]'),'color'=>'none','icon'=>'fa fa-pencil', "showIf"=>"[returns_status_1] == $return_delivery_date"];
+			$this->addaction[] = ['title'=>'Edit','url'=>CRUDBooster::mainpath('ReturnsSchedulingRetailEdit/[id]'),'color'=>'none','icon'=>'fa fa-pencil', "showIf"=>"[returns_status_1] == $to_schedule"];
+			$this->addaction[] = ['title'=>'Print','url'=>CRUDBooster::mainpath('ReturnsPulloutPrint/[id]'),'color'=>'none','icon'=>'fa fa-print', "showIf"=>"[returns_status_1] == $pending"];
 	        /* 
 	        | ---------------------------------------------------------------------- 
 	        | Add More Button Selected
@@ -268,7 +292,6 @@ use App\StoresFrontEnd;
 	        */
 	        $this->script_js = NULL;
 
-
             /*
 	        | ---------------------------------------------------------------------- 
 	        | Include HTML Code before index table 
@@ -302,7 +325,8 @@ use App\StoresFrontEnd;
 	        |
 	        */
 	        $this->load_js = array();
-	        
+			$this->load_js[] = "https://unpkg.com/timeago.js/dist/timeago.min.js";
+			$this->load_js[] = asset("js/time_ago.js");
 	        
 	        
 	        /*
@@ -316,7 +340,6 @@ use App\StoresFrontEnd;
 	        $this->style_css = NULL;
 	        
 	        
-	        
 	        /*
 	        | ---------------------------------------------------------------------- 
 	        | Include css File 
@@ -326,7 +349,7 @@ use App\StoresFrontEnd;
 	        |
 	        */
 	        $this->load_css = array();
-	        
+			$this->load_css[] = asset('css/last_message.css');
 	        
 	    }
 
@@ -354,6 +377,15 @@ use App\StoresFrontEnd;
 	    */
 	    public function hook_query_index(&$query) {
 	        //Your code here
+
+			$query->leftJoin('retail_last_comments', 'retail_last_comments.returns_header_retail_id', 'returns_header_retail.id')
+			->leftJoin('chats', 'chats.id', 'retail_last_comments.chats_id')
+			->leftJoin('cms_users as sender', 'sender.id', 'chats.created_by')
+			->addSelect('chats.message as last_message',
+				'chats.file_name as last_image',
+				'sender.name as sender_name',
+				'chats.created_at as date_send'
+			);
 				
 			$query->where(function($sub_query){
 				$to_schedule = 	ReturnsStatus::where('id','18')->value('id');
@@ -381,7 +413,7 @@ use App\StoresFrontEnd;
 			$pending = ReturnsStatus::where('id','19')->value('warranty_status');
             $return_delivery_date =     ReturnsStatus::where('id','33')->value('warranty_status');
             
-			if($column_index == 1){
+			if($column_index == 2){
 				if($column_value == $to_schedule){
 					$column_value = '<span class="label label-warning">'.$to_schedule.'</span>';
 			
@@ -440,9 +472,9 @@ use App\StoresFrontEnd;
 			$return_delivery_date = ReturnsStatus::where('id','33')->value('id');
 
 			$returns_fields     =   Input::all();
-			$field_1 		    =   $returns_fields['return_schedule'];
-			$delivery_date 		=   $returns_fields['return_delivery_date'];
-		
+			$field_1 		    =   date_create($returns_fields['return_schedule']);
+			$delivery_date 		=   date_create($returns_fields['return_delivery_date']);
+			// dd(date_format($field_1, 'Y-m-d'));
 		
 		    if($ReturnRequest->returns_status_1 == $return_delivery_date){
 		        
@@ -459,7 +491,7 @@ use App\StoresFrontEnd;
 						$postdata['level6_personnel_edited']=		date('Y-m-d H:i:s');
 						$postdata['returns_status']=				$to_ship_back;
 						$postdata['returns_status_1']=				$to_ship_back;
-    					$postdata['return_delivery_date']=			$delivery_date;
+    					$postdata['return_delivery_date']=			date_format($delivery_date, 'Y-m-d');
     					
     					$user_info =   DB::table("cms_users")->where('cms_users.id', $ReturnRequest->level7_personnel)->first();
     					
@@ -468,7 +500,7 @@ use App\StoresFrontEnd;
 		    }else{
     			$postdata['level1_personnel'] = 					CRUDBooster::myId();
     			$postdata['level1_personnel_edited']=				date('Y-m-d H:i:s');
-    			$postdata['return_schedule'] = 						$field_1;
+    			$postdata['return_schedule'] = 						date_format($field_1, 'Y-m-d');
     			//$postdata['returns_status'] = 						$to_pickup;
     			$postdata['returns_status_1'] = 					$pending;
 		    }
@@ -548,7 +580,7 @@ use App\StoresFrontEnd;
 			}
 
 			$data = array();
-		
+			
 			$data['row'] = ReturnsHeaderRTL::
 			//->leftjoin('stores', 'pullout_headers.pull_out_from', '=', 'stores.id')					
 			leftjoin('cms_users as created', 'returns_header_retail.created_by','=', 'created.id')	
@@ -568,7 +600,14 @@ use App\StoresFrontEnd;
 
             $data['store_deliver_to'] = Stores::where('branch_id',  $data['row']->branch_dropoff )->first();
             
-			$this->cbView("returns.edit_scheduling_retail", $data);
+			// if (CrudBooster::myPrivilegeName() == 'Super Administrator'){
+			// 	$this->cbView("components.to_schedule", $data);
+			// }else{
+			// 	$this->cbView("returns.edit_scheduling_retail", $data);
+			// }
+			$data['comments_data'] = (new ChatController)->getComments($id);
+
+			$this->cbView("components.to_schedule", $data);
 		}
 
 
@@ -600,7 +639,15 @@ use App\StoresFrontEnd;
 
             $data['store_deliver_to'] = Stores::where('branch_id',  $data['row']->branch_dropoff )->first();
             
-			$this->cbView("returns.edit_delivery_retail", $data);
+			// if(CrudBooster::myPrivilegeName() == 'Super Administrator'){
+			// 	$this->cbView("components.return_delivery", $data);
+			// }else{
+			// 	$this->cbView("returns.edit_delivery_retail", $data);
+			// }
+
+			$data['comments_data'] = (new ChatController)->getComments($id);
+
+			$this->cbView("components.return_delivery", $data);
 		}
 
 		public function ReturnsPulloutPrint($id)
@@ -720,6 +767,8 @@ use App\StoresFrontEnd;
 
 	
 					DB::commit();
+
+					CRUDBooster::redirect(CRUDBooster::mainpath(), 'Success' , 'success');
 	
 				}catch (\Exception $e) {
 					DB::rollback();
@@ -898,7 +947,7 @@ use App\StoresFrontEnd;
 						    $verified_date = $orderRow->level7_personnel_edited;
 						    
                             $scheduled_by = $orderRow->scheduled_logistics_by;
-                            $scheduled_date = $orderRow->level7_personnel_edited;
+                            $scheduled_date = $orderRow->level1_personnel_edited;
     						if($orderRow->diagnose == "REFUND"){
     								$printed_by = $orderRow->printed_by;
     								$printed_date = $orderRow->level3_personnel_edited;

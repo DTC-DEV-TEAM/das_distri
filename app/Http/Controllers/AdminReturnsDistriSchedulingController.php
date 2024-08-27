@@ -53,6 +53,28 @@ use App\StoresFrontEnd;
 			# START COLUMNS DO NOT REMOVE THIS LINE
 			$this->col = [];
 			$this->col[] = ["label"=>"Status","name"=>"returns_status_1","join"=>"warranty_statuses,warranty_status"];
+			$this->col[] = ["label"=>"Last Chat", "name"=>"id", 'callback'=>function($row){
+				$img_url = asset("chat_img/$row->last_image");
+				;
+				$str = '';
+				
+				$str .= "<div class='sender_name'>$row->sender_name</div>";
+				$str .= "<div class='time_ago' datetime='$row->date_send'>$row->date_send</div>";
+				
+				if ($row->last_message) {
+					// Truncate the message if it's longer than 150 characters
+					$truncatedMessage = strlen($row->last_message) > 41 ? substr($row->last_message, 0, 41) . '...' : $row->last_message;
+					$str .= "<div class='text-msg'>$truncatedMessage</div>";
+				}
+				if($row->last_image){
+					$str .= "<div class='last_msg'><img src='$img_url'></div>";
+				}
+				if($row->sender_name){
+					return $str;
+				}else{
+					return '<div class="no-message">No messages available at the moment.</div>';
+				}
+			}];
 			$this->col[] = ["label"=>"Created Date","name"=>"created_at"];
 			$this->col[] = ["label"=>"Drop-Off Schedule","name"=>"return_schedule"];
 			$this->col[] = ["label"=>"Return Reference#","name"=>"return_reference_no"];
@@ -170,10 +192,10 @@ use App\StoresFrontEnd;
             $return_delivery_date = ReturnsStatus::where('id','33')->value('id');
             $to_schedule_logistics = ReturnsStatus::where('id','23')->value('id');
 
-            $this->addaction[] = ['title'=>'Edit','url'=>CRUDBooster::mainpath('ReturnsDeliveryEditDISTRI/[id]'),'icon'=>'fa fa-pencil', "showIf"=>"[returns_status_1] == $return_delivery_date"];
-			$this->addaction[] = ['title'=>'Edit','url'=>CRUDBooster::mainpath('ReturnsSchedulingDISTRIEdit/[id]'),'icon'=>'fa fa-pencil', "showIf"=>"[returns_status_1] == $to_schedule"];
-			$this->addaction[] = ['title'=>'Print','url'=>CRUDBooster::mainpath('ReturnsPulloutPrint/[id]'),'icon'=>'fa fa-print', "showIf"=>"[returns_status_1] == $pending"];
-			$this->addaction[] = ['title'=>'Edit','url'=>CRUDBooster::mainpath('ReturnsSchedulingDISTRIEdit/[id]'),'icon'=>'fa fa-pencil', "showIf"=>"[returns_status_1] == $to_schedule_logistics"];
+            $this->addaction[] = ['title'=>'Edit','url'=>CRUDBooster::mainpath('ReturnsDeliveryEditDISTRI/[id]'),'color'=>'none','icon'=>'fa fa-pencil', "showIf"=>"[returns_status_1] == $return_delivery_date"];
+			$this->addaction[] = ['title'=>'Edit','url'=>CRUDBooster::mainpath('ReturnsSchedulingDISTRIEdit/[id]'),'color'=>'none','icon'=>'fa fa-pencil', "showIf"=>"[returns_status_1] == $to_schedule"];
+			$this->addaction[] = ['title'=>'Print','url'=>CRUDBooster::mainpath('ReturnsPulloutPrint/[id]'),'color'=>'none','icon'=>'fa fa-print', "showIf"=>"[returns_status_1] == $pending"];
+			$this->addaction[] = ['title'=>'Edit','url'=>CRUDBooster::mainpath('ReturnsSchedulingDISTRIEdit/[id]'),'color'=>'none','icon'=>'fa fa-pencil', "showIf"=>"[returns_status_1] == $to_schedule_logistics"];
 			
 
 			/* 
@@ -286,6 +308,8 @@ use App\StoresFrontEnd;
 			|
 			*/
 			$this->load_js = array();
+			$this->load_js[] = "https://unpkg.com/timeago.js/dist/timeago.min.js";
+			$this->load_js[] = asset("js/time_ago.js");
 			
 			
 			
@@ -310,6 +334,7 @@ use App\StoresFrontEnd;
 			|
 			*/
 			$this->load_css = array();
+			$this->load_css[] = asset('css/last_message.css');
 			
 		}
 
@@ -336,6 +361,15 @@ use App\StoresFrontEnd;
 		|
 		*/
 		public function hook_query_index(&$query) {
+
+			$query->leftJoin('distri_last_comments', 'distri_last_comments.returns_header_distri_id', 'returns_header_distribution.id')
+			->leftJoin('chat_distri', 'chat_distri.id', 'distri_last_comments.chats_id')
+			->leftJoin('cms_users as sender', 'sender.id', 'chat_distri.created_by')
+			->addSelect('chat_distri.message as last_message',
+				'chat_distri.file_name as last_image',
+				'sender.name as sender_name',
+				'chat_distri.created_at as date_send'
+			);
 
 			if(CRUDBooster::myPrivilegeName() == "Distri Logistics" || CRUDBooster::myPrivilegeName() == "Logistics"){
 				$query->where(function($sub_query){
@@ -401,7 +435,7 @@ use App\StoresFrontEnd;
 			$pending = ReturnsStatus::where('id','19')->value('warranty_status');
 			$return_delivery_date =     ReturnsStatus::where('id','33')->value('warranty_status');
 			$to_schedule_logistics = ReturnsStatus::where('id','23')->value('warranty_status');
-			if($column_index == 1){
+			if($column_index == 2){
 				if($column_value == $to_schedule){
 					$column_value = '<span class="label label-warning">'.$to_schedule.'</span>';
 			
@@ -463,7 +497,7 @@ use App\StoresFrontEnd;
 			$field_1 		    =   $returns_fields['return_schedule'];
 			$delivery_date 		=   $returns_fields['return_delivery_date'];
 			$remarks 			= 	$returns_fields['remarks'];
-			$pick_up 			= 	$returns_fields['pickup_schedule'];
+			$pick_up 			= 	(new \DateTime($returns_fields['pickup_schedule']))->format('Y-m-d');
 			
 			if($ReturnRequest->returns_status_1 == $return_delivery_date && $ReturnRequest->diagnose != 'REPLACE'){
 
@@ -482,27 +516,27 @@ use App\StoresFrontEnd;
 				$postdata['returns_status_1']=				$to_ship_back;
 				$postdata['return_delivery_date']=			$delivery_date;
 				
-			}elseif($ReturnRequest->returns_status_1 == 33 && $ReturnRequest->diagnose == 'REPLACE'){
+			}
+			elseif($ReturnRequest->returns_status_1 == 33 && $ReturnRequest->diagnose == 'REPLACE'){
 				$postdata['level8_personnel'] = 					CRUDBooster::myId();
 				$postdata['level8_personnel_edited']=				date('Y-m-d H:i:s');
 				$postdata['pickup_schedule'] = 						$pick_up;
 				$postdata['returns_status_1'] = 					$for_replacement;				
 			
-			}elseif($ReturnRequest->returns_status_1 == 23){
+			}
+			// SC Location ID
+			elseif($ReturnRequest->returns_status_1 == 23){
 				$postdata['level8_personnel'] = 					CRUDBooster::myId();
 				$postdata['level8_personnel_edited']=				date('Y-m-d H:i:s');
 				$postdata['pickup_schedule'] = 						$pick_up;
-				$postdata['returns_status_1'] = 					$pf;				
+				$postdata['returns_status_1'] = 					$pf;		
+				$postdata['sc_location_id'] = 						$ReturnRequest->deliver_to == 'WAREHOUSE.RMA.DEP' ? null : DB::table('stores')->where('store_name',$ReturnRequest->deliver_to)->first()->id;		
 			}
 			else{
 				$postdata['level1_personnel'] = 					CRUDBooster::myId();
-				$postdata['return_schedule'] = 						$field_1;
+				$postdata['return_schedule'] = 						$field_1 = \DateTime::createFromFormat('m/d/Y', $field_1)->format('Y-m-d');
 				$postdata['returns_status_1'] = 					$pending;
 			}
-
-		
-				
-
 		}
 
 		/* 
@@ -597,6 +631,8 @@ use App\StoresFrontEnd;
 				
 			$data['current_status'] = ReturnsHeaderDISTRI::select('returns_status_1')->where('id', $id)->value('returns_status_1');
 
+			$data['comments_data'] = (new ChatController)->getCommentsDistri($id);
+			
 			$this->cbView("returns.edit_scheduling_distri", $data);
 		}
 
@@ -633,6 +669,8 @@ use App\StoresFrontEnd;
 				->where('stores_frontend_id',  $store_id->id )
 				->first();
             
+			$data['comments_data'] = (new ChatController)->getCommentsDistri($id);
+			
 			$this->cbView("returns.edit_delivery_distri", $data);
 		}
 
@@ -678,6 +716,7 @@ use App\StoresFrontEnd;
 			$data['store_deliver_to'] = Stores::where('branch_id',  $data['row']->branch_dropoff )
 				->where('stores_frontend_id',  $store_id->id )->first();
 			
+			// dd('hello world');
 			$this->cbView("returns.print_pullout_distri", $data);
 
 		}
@@ -688,28 +727,43 @@ use App\StoresFrontEnd;
 			$request_id = $data['return_id']; 
 			$to_pickup   = ReturnsStatus::where('id','2')->value('id');
 			$to_rma = ReturnsStatus::where('id','34')->value('id');
+			$to_sc = ReturnsStatus::where('id','35')->value('id');
 			$return_request =  ReturnsHeaderDISTRI::where('id',$request_id)->first();
 
 			if($return_request->returns_status_1 != $to_rma){
-
+				
 				DB::beginTransaction();
 
 				try {
 
 					DB::connection('mysql_distri')
-					->statement('insert into returns_tracking_status (return_reference_no, returns_status, 	created_at) values (?, ?, ?)', 
-					[$return_request->return_reference_no, 
-					$to_pickup,
-					date('Y-m-d H:i:s')
-					]);
-		
-					ReturnsHeaderDISTRI::where('id',$request_id)
+						->statement('insert into returns_tracking_status (return_reference_no, returns_status, 	created_at) values (?, ?, ?)', 
+						[
+							$return_request->return_reference_no, 
+							$to_pickup,
+							date('Y-m-d H:i:s')
+						]);
+
+					if($return_request->deliver_to == 'WAREHOUSE.RMA.DEP'){
+
+						ReturnsHeaderDISTRI::where('id',(int)$request_id)
+							->update([
+								'returns_status'=> 			$to_pickup,
+								'returns_status_1'=> 		$to_rma
+							]);	
+					}else{
+						// SERVICE CENTER.AYALA.BONIFACIO HIGH STREET.RTL
+						ReturnsHeaderDISTRI::where('id',(int)$request_id)
 						->update([
 							'returns_status'=> 			$to_pickup,
-							'returns_status_1'=> 		$to_rma
+							'returns_status_1'=> 		$to_sc
 						]);	
+					}
+		
 						
 					DB::commit();
+
+					CRUDBooster::redirect(CRUDBooster::mainpath(), 'Success', 'success');
 	
 				}catch (\Exception $e) {
 					DB::rollback();
@@ -718,6 +772,7 @@ use App\StoresFrontEnd;
 	
 				DB::disconnect('mysql_distri');
 			}
+
 		}
 
 		public function GetExtractSchedulingReturnsDISTRI() {

@@ -52,9 +52,33 @@ use PHPExcel_Style_Fill;
 			# START COLUMNS DO NOT REMOVE THIS LINE
 			$this->col = [];
 			$this->col[] = ["label"=>"Status","name"=>"returns_status_1","join"=>"warranty_statuses,warranty_status"];
+			$this->col[] = ["label"=>"Last Chat", "name"=>"id", 'callback'=>function($row){
+				$img_url = asset("chat_img/$row->last_image");
+				;
+				$str = '';
+				
+				$str .= "<div class='sender_name'>$row->sender_name</div>";
+				$str .= "<div class='time_ago' datetime='$row->date_send'>$row->date_send</div>";
+
+				if ($row->last_message) {
+					// Truncate the message if it's longer than 150 characters
+					$truncatedMessage = strlen($row->last_message) > 41 ? substr($row->last_message, 0, 41) . '...' : $row->last_message;
+					$str .= "<div class='text-msg'>$truncatedMessage</div>";
+				}
+				if($row->last_image){
+					$str .= "<div class='last_msg'><img src='$img_url'></div>";
+				}
+				if($row->sender_name){
+					return $str;
+				}else{
+					return '<div class="no-message">No messages available at the moment.</div>';
+				}
+			}];
 			$this->col[] = ["label"=>"Created Date","name"=>"created_at"];
 			$this->col[] = ["label"=>"Pickup Schedule","name"=>"return_schedule"];
 			$this->col[] = ["label"=>"Return Reference#","name"=>"return_reference_no"];
+			$this->col[] = ["label"=>"INC#","name"=>"inc_number"];
+			$this->col[] = ["label"=>"RMA#","name"=>"rma_number"];
 			$this->col[] = ["label"=>"Order#","name"=>"order_no"];
 			//$this->col[] = ["label"=>"Customer Location","name"=>"customer_location"];
 			$this->col[] = ["label"=>"Customer Location","name"=>"customer_location"];
@@ -190,10 +214,10 @@ use PHPExcel_Style_Fill;
 			$refund_in_process = ReturnsStatus::where('id','8')->value('id');
 			$to_close = 			ReturnsStatus::where('id','30')->value('id');
 			
-			$this->addaction[] = ['title'=>'Print','url'=>CRUDBooster::mainpath('ReturnsCRFPrintRTL/[id]'),'icon'=>'fa fa-print', "showIf"=>"[returns_status_1] == $to_print_crf"];
-			$this->addaction[] = ['title'=>'Edit','url'=>CRUDBooster::mainpath('ReturnsClosingEditRTL/[id]'),'icon'=>'fa fa-pencil', "showIf"=>"[returns_status_1] == $refund_in_process"];
+			$this->addaction[] = ['title'=>'Print','url'=>CRUDBooster::mainpath('ReturnsCRFPrintRTL/[id]'),'color'=>'none','icon'=>'fa fa-print', "showIf"=>"[returns_status_1] == $to_print_crf"];
+			$this->addaction[] = ['title'=>'Edit','url'=>CRUDBooster::mainpath('ReturnsClosingEditRTL/[id]'),'color'=>'none','icon'=>'fa fa-pencil', "showIf"=>"[returns_status_1] == $refund_in_process"];
 			if(CRUDBooster::myPrivilegeName() == "Inventory Control"){ 
-		    	$this->addaction[] = ['title'=>'Edit','url'=>CRUDBooster::mainpath('ReturnsClosingEditReplaceRTL/[id]'),'icon'=>'fa fa-pencil', "showIf"=>"[returns_status_1] == $to_close"];
+		    	$this->addaction[] = ['title'=>'Edit','url'=>CRUDBooster::mainpath('ReturnsClosingEditReplaceRTL/[id]'),'color'=>'none','icon'=>'fa fa-pencil', "showIf"=>"[returns_status_1] == $to_close"];
 			}
 	        /* 
 	        | ---------------------------------------------------------------------- 
@@ -304,7 +328,8 @@ use PHPExcel_Style_Fill;
 	        |
 	        */
 	        $this->load_js = array();
-	        
+			$this->load_js[] = "https://unpkg.com/timeago.js/dist/timeago.min.js";
+			$this->load_js[] = asset("js/time_ago.js");
 	        
 	        
 	        /*
@@ -328,7 +353,7 @@ use PHPExcel_Style_Fill;
 	        |
 	        */
 	        $this->load_css = array();
-	        
+			$this->load_css[] = asset('css/last_message.css');
 	        
 	    }
 
@@ -355,6 +380,16 @@ use PHPExcel_Style_Fill;
 	    |
 	    */
 	    public function hook_query_index(&$query) {
+
+			$query->leftJoin('retail_last_comments', 'retail_last_comments.returns_header_retail_id', 'returns_header_retail.id')
+			->leftJoin('chats', 'chats.id', 'retail_last_comments.chats_id')
+			->leftJoin('cms_users as sender', 'sender.id', 'chats.created_by')
+			->addSelect('chats.message as last_message',
+				'chats.file_name as last_image',
+				'sender.name as sender_name',
+				'chats.created_at as date_send'
+			);
+
 	        //Your code here
 	        if(CRUDBooster::myPrivilegeName() == "Inventory Control"){ 
 	            $query->where(function($sub_query){
@@ -391,7 +426,7 @@ use PHPExcel_Style_Fill;
 			$refund_in_process = 		ReturnsStatus::where('id','8')->value('warranty_status');
 			$to_close = 			ReturnsStatus::where('id','30')->value('warranty_status');
 
-			if($column_index == 1){
+			if($column_index == 2){
 				if($column_value == $to_print_crf){
 					$column_value = '<span class="label label-warning">'.$to_print_crf.'</span>';
 			
@@ -733,7 +768,14 @@ use PHPExcel_Style_Fill;
 
 			$data['store_list'] = Stores::where('channels_id',$channels->id)->get();
 			
-			$this->cbView("returns.edit_closing_retail", $data);
+			// if(CrudBooster::myPrivilegeName() == 'Super Administrator'){
+			// 	$this->cbView("components.to_crf", $data);
+			// }else{
+			// 	$this->cbView("returns.edit_closing_retail", $data);
+			// }
+			$data['comments_data'] = (new ChatController)->getComments($id);
+
+			$this->cbView("components.to_crf", $data);
 		}
 
 
@@ -930,7 +972,7 @@ use PHPExcel_Style_Fill;
 						    $verified_date = $orderRow->level7_personnel_edited;
 						    
                             $scheduled_by = $orderRow->scheduled_logistics_by;
-                            $scheduled_date = $orderRow->level7_personnel_edited;
+                            $scheduled_date = $orderRow->level1_personnel_edited;
     						if($orderRow->diagnose == "REFUND"){
     								$printed_by = $orderRow->printed_by;
     								$printed_date = $orderRow->level3_personnel_edited;
