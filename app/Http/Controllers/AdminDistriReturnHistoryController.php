@@ -85,6 +85,7 @@ use App\StoresFrontEnd;
 				}
 			}];
 			$this->col[] = ["label"=>"Return Reference#","name"=>"return_reference_no"];
+			$this->col[] = ["label"=>"Created Date","name"=>"created_at"];
 			$this->col[] = ["label"=>"Created At","name"=>"created_at","visible"=>false];
 			if(CRUDBooster::myPrivilegeName() == "Distri Logistics" || CRUDBooster::myPrivilegeName() == "Logistics"){
 				$this->col[] = ["label"=>"Return Schedule","name"=>"return_schedule"];
