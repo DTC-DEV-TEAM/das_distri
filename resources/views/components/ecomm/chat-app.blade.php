@@ -141,10 +141,28 @@
         const message = $('.type-message').val().trim();
         const image = $('.image-input').val();
         const newItemsId = "{{ $new_items_id }}";
+
         if (!message && !image) {
             $('.send-btn').attr('disabled', true);
             return;
         }
+
+        // Validate image extension
+        if (image) {
+            const allowedExtensions = ['jpg', 'png', 'gif', 'webp'];
+            const fileExtension = image.split('.').pop().toLowerCase();
+            console.log(fileExtension);
+            
+            if (!allowedExtensions.includes(fileExtension)) {
+                Swal.fire({
+                    title: 'Invalid File Type',
+                    html: "Please upload a file in one of the following formats: JPG, PNG, GIF or WEBP.",
+                    icon: 'error'
+                });
+                return;
+            }
+        }
+        
         const form = $('.message-form').get();
         const formData = new FormData(form[0]);
         Swal.fire({
