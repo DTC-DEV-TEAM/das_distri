@@ -494,8 +494,8 @@ use App\StoresFrontEnd;
 			$for_replacement = 	  ReturnsStatus::where('id','20')->value('id');
 
 			$returns_fields     =   Input::all();
-			$field_1 		    =   $returns_fields['return_schedule'];
-			$delivery_date 		=   $returns_fields['return_delivery_date'];
+			$field_1 		    =   date_create($returns_fields['return_schedule']);
+			$delivery_date 		=   date_create($returns_fields['return_delivery_date']);
 			$remarks 			= 	$returns_fields['remarks'];
 			$pick_up 			= 	(new \DateTime($returns_fields['pickup_schedule']))->format('Y-m-d');
 			
@@ -534,7 +534,7 @@ use App\StoresFrontEnd;
 			}
 			else{
 				$postdata['level1_personnel'] = 					CRUDBooster::myId();
-				$postdata['return_schedule'] = 						$field_1 = \DateTime::createFromFormat('m/d/Y', $field_1)->format('Y-m-d');
+				$postdata['return_schedule'] = 						date_format($field_1,'Y-m-d');
 				$postdata['returns_status_1'] = 					$pending;
 			}
 		}
