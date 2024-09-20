@@ -500,6 +500,10 @@ use PHPExcel_Style_Fill;
 	
 				DB::disconnect('mysql_front_end');
 
+				
+				$email = $ReturnRequest->email_address;
+				CRUDBooster::sendEmail(['to'=> $email  ,'data' => [], 'template'=>'customer_feedback','attachments'=>[]]);
+
 			}
 
 	    }
