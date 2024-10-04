@@ -35,6 +35,7 @@ Route::group(['middleware' => ['web']], function() {
     Route::get('/admin/items/upload-skulegend-template','AdminItemsController@uploadSKULegendTemplate');
     Route::post('/admin/items/upload-skulegend','AdminItemsController@SKULegendUpload')->name('upload.skulegend');
     //import templates
+
     Route::get('/admin/paths/import-template','AdminPathsController@importTemplate');
     Route::get('/admin/stores/import-template','AdminStoresController@importTemplate');
     Route::get('/admin/store_types/import-template','AdminStoreTypesController@importTemplate');
@@ -47,10 +48,17 @@ Route::group(['middleware' => ['web']], function() {
     Route::post('/admin/scheduling/item-search','AdminReturnsHeaderController@itemSearch')->name('scheduling.item.search');
     Route::get('/admin/scheduling/ReturnsCloseRejectEdit/{id}','AdminReturnsHeaderController@ReturnsCloseRejectEdit'); 
     Route::get('/admin/scheduling/GetExtractReturnsScheduling','AdminReturnsHeaderController@GetExtractReturnsScheduling')->name('GetExtractReturnsScheduling');
+
+    // EXPORT SCHEDULE RETURN ECOMM
+    Route::get('/admin/scheduling/ExportReturns','AdminReturnsHeaderController@ExportReturns')->name('ExportReturns');
+    
     Route::get('/sendmail', 'AdminReturnsHeaderController@sendmail');
     Route::get('/admin/scheduling/ReturnsPulloutPrint/{id}','AdminReturnsHeaderController@ReturnsPulloutPrint'); 
     Route::get('admin/scheduling/ReturnPulloutUpdateONL','AdminReturnsHeaderController@ReturnPulloutUpdateONL')->name('ReturnPulloutUpdateONL');
     Route::get('/admin/scheduling/ReturnsTaggingEdit/{id}','AdminReturnsHeaderController@ReturnsTaggingEdit');
+
+    
+
     
     Route::get('admin/scheduling/ReturnPulloutUpdateONLDTD','AdminReturnsHeaderController@ReturnPulloutUpdateONLDTD')->name('ReturnPulloutUpdateONLDTD');
     
