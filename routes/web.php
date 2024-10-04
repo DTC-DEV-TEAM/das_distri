@@ -20,7 +20,15 @@ Route::get('/admin/items/item-created','AdminItemsController@getItemsCreatedAPI'
 Route::get('/admin/items/item-updated','AdminItemsController@getItemsUpdatedAPI')->name('itemsupdate.API');
 Route::get('/admin/pullout_requests/send-request-notification','AdminPulloutRequestsController@sendRequestNotification')->name('pullout.sendRequestNotification');
 
-Route::group(['middleware' => ['web']], function() {
+Route::group(['middleware' => ['web'], 'prefix' => config('crudbooster.ADMIN_PATH')], function () {
+    Route::group(['prefix' => 'users'], function () {
+        Route::get('view-change-password', 'AdminCmsUsersController@changePasswordView')->name('show-change-password');
+        Route::post('change-password','AdminCmsUsersController@changePass');
+        Route::post('waive-change-password', 'AdminCmsUsersController@waiveChangePass');
+    });
+});
+
+Route::group(['middleware' => ['web','\crocodicstudio\crudbooster\middlewares\CBBackend','check.user']], function() {
     //import sample template
     Route::get('/admin/service_details/import-template','AdminServiceDetailsController@importTemplate');
     Route::get('/admin/problem_details/import-template','AdminProblemDetailsController@importTemplate');
