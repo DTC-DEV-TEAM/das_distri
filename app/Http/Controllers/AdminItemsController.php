@@ -393,7 +393,7 @@ class AdminItemsController extends \crocodicstudio\crudbooster\controllers\CBCon
 		];
 
 		// set date range and pagination parameters
-		$dateFrom = Carbon::now()->subDay(50)->format('Y-m-d H:i:s');
+		$dateFrom = Carbon::now()->format('Y-m-d H:i:s');
 		$dateTo = Carbon::now()->format('Y-m-d H:i:s');
 
 		$queryString = http_build_query([
@@ -476,7 +476,7 @@ class AdminItemsController extends \crocodicstudio\crudbooster\controllers\CBCon
 		];
 
 		// set date range and pagination parameters
-		$dateFrom = Carbon::now()->subDay(50)->format('Y-m-d H:i:s');
+		$dateFrom = Carbon::now()->format('Y-m-d H:i:s');
 		$dateTo = Carbon::now()->format('Y-m-d H:i:s');
 
 		$queryString = http_build_query([
@@ -520,20 +520,26 @@ class AdminItemsController extends \crocodicstudio\crudbooster\controllers\CBCon
 				$count++;
 				DB::beginTransaction();
 				try {
-					DB::table('digits_imfs')->insert([
-						'digits_code' => $value['digits_code'],
-						'upc_code' => $value['upc_code'],
-						'supplier_itemcode' => $value['supplier_item_code'],
-						'item_description' => $value['item_description'],
-						'brand_id' => $value['brands_id'],
-						'warehouse_category_id' => $value['warehouse_categories_id'], 
-					]);
+					// Check if digits_code already exists
+					$exists = DB::table('digits_imfs')->where('digits_code', $value['digits_code'])->exists();
+		
+					if (!$exists) {
+						DB::table('digits_imfs')->insert([
+							'digits_code' => $value['digits_code'],
+							'upc_code' => $value['upc_code'],
+							'supplier_itemcode' => $value['supplier_item_code'],
+							'item_description' => $value['item_description'],
+							'brand_id' => $value['brands_id'],
+							'warehouse_category_id' => $value['warehouse_categories_id'], 
+						]);
+					}
+		
 					DB::commit();
 				} catch (\Exception $e) {
 					DB::rollback();
 				}
 			}
-		}
+		}		
 		Log::info('itemcreate: executed! ' . $count . ' items');
 	}
 
