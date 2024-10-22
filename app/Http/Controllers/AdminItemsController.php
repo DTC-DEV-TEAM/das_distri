@@ -162,6 +162,15 @@ class AdminItemsController extends \crocodicstudio\crudbooster\controllers\CBCon
 			//$this->index_button[] = ['label' => 'Update Items', "url" => CRUDBooster::mainpath("item-updated"), "icon" => "fa fa-download" ,"color" => "success"];
 		}
 
+		if (CRUDBooster::getCurrentMethod() == 'getIndex' && CRUDBooster::isSuperadmin()) {
+			$this->index_button[] = [
+				"label" => "Custom Sync",
+				"icon" => "fa fa-spinner",
+				"url" => "/admin/imfs/sync",
+				"color" => "info"
+			];
+		}
+
 
 		/* 
 	        | ---------------------------------------------------------------------- 
@@ -622,5 +631,98 @@ class AdminItemsController extends \crocodicstudio\crudbooster\controllers\CBCon
 
 		mysqli_close($conn);
 		exit;
+	}
+
+	public function customSync()
+	{
+
+		$data = array();
+		$data['page_title'] = 'Custom Sync';
+
+		return view('item_custom_sync', $data);
+	}
+
+	public function CustItemsCreatedAPI(Request $request)
+	{
+
+		$secretKey = config('api.API_Secret_key');
+		$uniqueString = time();
+		$userAgent = $_SERVER['HTTP_USER_AGENT'] ?: config('api.user_agent');
+		$xAuthorizationToken = md5($secretKey . $uniqueString . $userAgent);
+		$xAuthorizationTime = $uniqueString;
+		$vars = [
+			"your_param" => 1
+		];
+
+		// set date range and pagination parameters
+		$dateFrom = Carbon::parse($request->input('dateFrom'))->format('Y-m-d H:i:s');
+		$dateTo = Carbon::parse($request->input('dateTo'))->format('Y-m-d H:i:s');
+
+		$queryString = http_build_query([
+			'datefrom' => $dateFrom,
+			'dateto' => $dateTo,
+			'page' => 1,
+			'limit' => 1000,
+		]);
+
+		// include the query parameters to the API url
+		$ItemCreatedUrl = "http://dimfs.digitstrading.ph/api/das_items_created?" . $queryString;
+
+		//https://stackoverflow.com/questions/8115683/php-curl-custom-headers
+		$ch = curl_init();
+		curl_setopt($ch, CURLOPT_URL, $ItemCreatedUrl);
+		curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, 0);
+		curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, 0);
+		curl_setopt($ch, CURLOPT_CUSTOMREQUEST, 'GET');
+		curl_setopt($ch, CURLOPT_POST, FALSE);
+		curl_setopt($ch, CURLOPT_POSTFIELDS, null);
+		curl_setopt($ch, CURLOPT_HTTPGET, TRUE);
+		curl_setopt($ch, CURLOPT_RETURNTRANSFER, TRUE);
+		curl_setopt($ch, CURLOPT_TIMEOUT, 300);
+		curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 30);
+
+		$headers = [
+			'X-Authorization-Token: ' . $xAuthorizationToken,
+			'X-Authorization-Time: ' . $xAuthorizationTime,
+			'User-Agent: ' . $userAgent
+		];
+
+		curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
+		$server_output = curl_exec($ch);
+		curl_close($ch);
+
+		$response = json_decode($server_output, true);
+		$count = 0;
+
+		if (!empty($response["data"])) {
+			foreach ($response["data"] as $value) {
+				$count++;
+				DB::beginTransaction();
+				try {
+					// Check if digits_code already exists
+					$exists = DB::table('digits_imfs')->where('digits_code', $value['digits_code'])->exists();
+
+					if (!$exists) {
+						DB::table('digits_imfs')->insert([
+							'digits_code' => $value['digits_code'],
+							'upc_code' => $value['upc_code'],
+							'supplier_itemcode' => $value['supplier_item_code'],
+							'item_description' => $value['item_description'],
+							'brand_id' => $value['brands_id'],
+							'warehouse_category_id' => $value['warehouse_categories_id'],
+						]);
+					}
+
+					DB::commit();
+				} catch (\Exception $e) {
+					DB::rollback();
+				}
+			}
+		}
+
+		return response()->json([
+			'success' => true,
+			'synced_items_count' => $count
+		]);
 	}
 }

@@ -375,4 +375,8 @@ Route::group(['middleware' => ['web','\crocodicstudio\crudbooster\middlewares\CB
     Route::post('/admin/chatbox/send-msg','ChatController@addComments')->name('send_msg');
     Route::post('/admin/chatbox/send-msg-ecomm','ChatController@addCommentsEcomm')->name('send_msg_ecomm');
     Route::post('/admin/chatbox/send-msg-distri','ChatController@addCommentsDistri')->name('send_msg_distri');
+
+    //for custome syncing
+    Route::get('/admin/imfs/sync', 'AdminItemsController@customSync');
+	Route::post('/admin/imfs/sync-item-created', 'AdminItemsController@CustItemsCreatedAPI');
 });
