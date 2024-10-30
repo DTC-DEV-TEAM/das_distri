@@ -472,6 +472,7 @@ use App\ModeOfPayment;
 			$postdata['bank_account_no'] = 						$field_2;
 			$postdata['bank_account_name'] = 					$field_3;
 			$postdata['mode_of_refund'] = 					    $field_4;
+			$postdata['history_status'] = 					    1;
 
 	    }
 
