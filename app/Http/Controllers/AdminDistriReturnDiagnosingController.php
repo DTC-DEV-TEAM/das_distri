@@ -411,18 +411,7 @@ use PHPExcel_Style_Fill;
 			);
 
 	
-			if(CRUDBooster::myPrivilegeName() == "Service Center"){ 
-
-				$storeList = self::getStoreList();
-
-				$query->whereIn('returns_status_1',[ 
-					ReturnsStatus::REQUESTED, 
-					ReturnsStatus::TO_PRINT_SSR 
-				])
-				->where('transaction_type', 1)
-				->whereIn('returns_header_distribution.stores_id', $storeList);
-
-			} else if (CRUDBooster::myPrivilegeName() == "Tech Lead") {
+			if (CRUDBooster::myPrivilegeName() == "Tech Lead") {
 
 				$query->whereIn('returns_status_1', [
 					ReturnsStatus::TO_ASSIGN_INC, 
@@ -1547,7 +1536,7 @@ use PHPExcel_Style_Fill;
 		private function filterFinalData($result)
 		{
 			if (\Request::get('filter_column')) {
-				return self::filterData($result);
+				return self::filterData($result)->get();
 			} else {
 				return $result->orderBy('returns_header_distribution.id', 'asc')->get();
 			}

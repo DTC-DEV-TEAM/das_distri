@@ -85,6 +85,7 @@ use App\StoresFrontEnd;
 				}
 			}];
 			$this->col[] = ["label"=>"Return Reference#","name"=>"return_reference_no"];
+			$this->col[] = ["label"=>"Created Date","name"=>"created_at"];
 			$this->col[] = ["label"=>"Created At","name"=>"created_at","visible"=>false];
 			if(CRUDBooster::myPrivilegeName() == "Distri Logistics" || CRUDBooster::myPrivilegeName() == "Logistics"){
 				$this->col[] = ["label"=>"Return Schedule","name"=>"return_schedule"];
@@ -572,8 +573,7 @@ use App\StoresFrontEnd;
 
 			}else if(in_array(CRUDBooster::myPrivilegeName(), ['RMA Inbound', 'Tech Lead', 'RMA Technician', 'RMA Specialist'])){
 
-                $query->where('transaction_type', 0)
-				->whereNotNull('returns_status_1');
+                $query->whereNotNull('returns_status_1');
                 
 			}elseif(CRUDBooster::myPrivilegeName() == "Service Center"){ 
 
@@ -1228,7 +1228,7 @@ use App\StoresFrontEnd;
 		private function filterFinalData($result)
 		{
 			if (\Request::get('filter_column')) {
-				return self::filterData($result);
+				return self::filterData($result)->get();
 			} else {
 				return $result->orderBy('returns_header_distribution.id', 'asc')->get();
 			}
@@ -1347,8 +1347,7 @@ use App\StoresFrontEnd;
 		private function getRMAResult($orderData)
 		{
 		
-			return $orderData->where('transaction_type', 0)
-			->whereNotNull('returns_status_1')
+			return $orderData->whereNotNull('returns_status_1')
 			->groupBy('return_reference_no')
 			->orderBy('rhd_created_at', 'desc');  
 		

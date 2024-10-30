@@ -466,6 +466,7 @@ use PHPExcel_Style_Fill;
 				$postdata['sor_number'] = 							$field_1;
 				$postdata['pos_crf_number'] = 						$field_2;
 				$postdata['dr_number'] = 							$field_3;
+				$postdata['history_status'] = 					    1;
 
 			}else{
 
@@ -732,7 +733,7 @@ use PHPExcel_Style_Fill;
 		private function filterFinalData($result)
 		{
 			if (\Request::get('filter_column')) {
-				return self::filterData($result);
+				return self::filterData($result)->get();
 			} else {
 				return $result->orderBy('returns_header_distribution.id', 'asc')->get();
 			}

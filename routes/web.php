@@ -20,7 +20,15 @@ Route::get('/admin/items/item-created','AdminItemsController@getItemsCreatedAPI'
 Route::get('/admin/items/item-updated','AdminItemsController@getItemsUpdatedAPI')->name('itemsupdate.API');
 Route::get('/admin/pullout_requests/send-request-notification','AdminPulloutRequestsController@sendRequestNotification')->name('pullout.sendRequestNotification');
 
-Route::group(['middleware' => ['web']], function() {
+Route::group(['middleware' => ['web'], 'prefix' => config('crudbooster.ADMIN_PATH')], function () {
+    Route::group(['prefix' => 'users'], function () {
+        Route::get('view-change-password', 'AdminCmsUsersController@changePasswordView')->name('show-change-password');
+        Route::post('change-password','AdminCmsUsersController@changePass');
+        Route::post('waive-change-password', 'AdminCmsUsersController@waiveChangePass');
+    });
+});
+
+Route::group(['middleware' => ['web','\crocodicstudio\crudbooster\middlewares\CBBackend','check.user']], function() {
     //import sample template
     Route::get('/admin/service_details/import-template','AdminServiceDetailsController@importTemplate');
     Route::get('/admin/problem_details/import-template','AdminProblemDetailsController@importTemplate');
@@ -35,6 +43,7 @@ Route::group(['middleware' => ['web']], function() {
     Route::get('/admin/items/upload-skulegend-template','AdminItemsController@uploadSKULegendTemplate');
     Route::post('/admin/items/upload-skulegend','AdminItemsController@SKULegendUpload')->name('upload.skulegend');
     //import templates
+
     Route::get('/admin/paths/import-template','AdminPathsController@importTemplate');
     Route::get('/admin/stores/import-template','AdminStoresController@importTemplate');
     Route::get('/admin/store_types/import-template','AdminStoreTypesController@importTemplate');
@@ -47,10 +56,17 @@ Route::group(['middleware' => ['web']], function() {
     Route::post('/admin/scheduling/item-search','AdminReturnsHeaderController@itemSearch')->name('scheduling.item.search');
     Route::get('/admin/scheduling/ReturnsCloseRejectEdit/{id}','AdminReturnsHeaderController@ReturnsCloseRejectEdit'); 
     Route::get('/admin/scheduling/GetExtractReturnsScheduling','AdminReturnsHeaderController@GetExtractReturnsScheduling')->name('GetExtractReturnsScheduling');
+
+    // EXPORT SCHEDULE RETURN ECOMM
+    Route::get('/admin/scheduling/ExportReturns','AdminReturnsHeaderController@ExportReturns')->name('ExportReturns');
+    
     Route::get('/sendmail', 'AdminReturnsHeaderController@sendmail');
     Route::get('/admin/scheduling/ReturnsPulloutPrint/{id}','AdminReturnsHeaderController@ReturnsPulloutPrint'); 
     Route::get('admin/scheduling/ReturnPulloutUpdateONL','AdminReturnsHeaderController@ReturnPulloutUpdateONL')->name('ReturnPulloutUpdateONL');
     Route::get('/admin/scheduling/ReturnsTaggingEdit/{id}','AdminReturnsHeaderController@ReturnsTaggingEdit');
+
+    
+
     
     Route::get('admin/scheduling/ReturnPulloutUpdateONLDTD','AdminReturnsHeaderController@ReturnPulloutUpdateONLDTD')->name('ReturnPulloutUpdateONLDTD');
     
@@ -359,4 +375,8 @@ Route::group(['middleware' => ['web']], function() {
     Route::post('/admin/chatbox/send-msg','ChatController@addComments')->name('send_msg');
     Route::post('/admin/chatbox/send-msg-ecomm','ChatController@addCommentsEcomm')->name('send_msg_ecomm');
     Route::post('/admin/chatbox/send-msg-distri','ChatController@addCommentsDistri')->name('send_msg_distri');
+
+    //for custome syncing
+    Route::get('/admin/imfs/sync', 'AdminItemsController@customSync');
+	Route::post('/admin/imfs/sync-item-created', 'AdminItemsController@CustItemsCreatedAPI');
 });

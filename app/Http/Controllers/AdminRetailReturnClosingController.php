@@ -687,6 +687,9 @@ use Illuminate\Support\Facades\Validator;
 
 					}
 
+					$email = $ReturnRequest->email_address;
+					CRUDBooster::sendEmail(['to'=> $email  ,'data' => [], 'template'=>'customer_feedback','attachments'=>[]]);
+
 				}
 			}
 	    }
