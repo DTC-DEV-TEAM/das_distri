@@ -466,6 +466,7 @@ use PHPExcel_Style_Fill;
 				$postdata['sor_number'] = 							$field_1;
 				$postdata['pos_crf_number'] = 						$field_2;
 				$postdata['dr_number'] = 							$field_3;
+				$postdata['history_status'] = 					    1;
 
 			}else{
 
