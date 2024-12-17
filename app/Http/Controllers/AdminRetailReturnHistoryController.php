@@ -2315,7 +2315,6 @@ use App\StoresFrontEnd;
 						'J' => '@', // for upc code
 						'AI' => '0.00',
 						'AJ' => '0.00',
-						'AK' => '0.00',
 					]);
 
 					$sheet->fromArray($orderItems, null, 'A1', false, false);
