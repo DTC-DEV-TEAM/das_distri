@@ -583,6 +583,7 @@ use App\TransactionTypeList;
 				$postdata['deliver_to'] =							$deliver_to;
 				$postdata['via_id'] =								$via_id;
 				$postdata['carried_by'] =							$carried_by;
+				$postdata['history_status'] = 					    1;
 
 				$ReturnRequest = ReturnsHeaderDISTRI::where('id',$id)->first();
 				$ReturnItems = Input::all();
