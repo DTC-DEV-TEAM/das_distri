@@ -787,7 +787,7 @@ use PHPExcel_Style_Fill;
 					}
 			}
 
-
+			$postdata['history_status'] = 					    1;
 	    }
 
 	    /* 
