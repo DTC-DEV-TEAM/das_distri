@@ -526,6 +526,8 @@ use App\StoresFrontEnd;
 				$postdata['return_schedule'] = 						date_format($field_1,'Y-m-d');
 				$postdata['returns_status_1'] = 					$pending;
 			}
+			
+			$postdata['history_status'] = 	1;
 		}
 
 		/* 
