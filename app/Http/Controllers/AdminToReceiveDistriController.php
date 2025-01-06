@@ -1041,7 +1041,7 @@ class AdminToReceiveDistriController extends \crocodicstudio\crudbooster\control
 								$postdata['returns_status_1'] = 					$to_turnover;
 								$postdata['rma_receiver_id'] = 					CRUDBooster::myId();
 								$postdata['rma_receiver_date_received']=					date('Y-m-d H:i:s');
-								$postdata['history_status'] = 	1;
+							
 
 							}
 						}
@@ -1078,7 +1078,7 @@ class AdminToReceiveDistriController extends \crocodicstudio\crudbooster\control
 						}
 					}
 				}
-			
+				$postdata['history_status'] = 	1;
 	    }
 
 	    /* 
