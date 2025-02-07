@@ -543,16 +543,14 @@ use App\StoresFrontEnd;
 					'returns_status'=> 28
 				]);
 					
-
-			
+				$id_list = implode(',', array_map('intval', $id_selected));
 
 				DB::connection('mysql_front_end')
-				->statement("update returns_header_retail set returns_status_1 = 28,
-								returns_status = 28
-								where id  in  ('$id_selected')");
-	
-				DB::disconnect('mysql_front_end');
+					->statement("UPDATE returns_header 
+								 SET returns_status_1 = 28, returns_status = 28
+								 WHERE id IN ($id_list)");
 
+				DB::disconnect('mysql_front_end');
 			
 				
 			}
