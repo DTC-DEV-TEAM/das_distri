@@ -496,7 +496,7 @@ class AdminToReceiveDistriController extends \crocodicstudio\crudbooster\control
 				$sub_query->orWhere('returns_status_1', $pending)->where('pickup_schedule',null);
 			});
 		}
-		if(CRUDBooster::myPrivilegeName() == "RMA" ){
+		if(CRUDBooster::myPrivilegeName() == "RMA Inbound" ){
 			$query->where(function($sub_query){
 
 				$to_receive_rma = ReturnsStatus::where('id','34')->value('id');
