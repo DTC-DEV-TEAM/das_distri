@@ -69,7 +69,7 @@
                                 @endforeach
                                 
                                 @endif
-                                @if ((CRUDBooster::myPrivilegeName() != 'RMA Specialist') && CRUDBooster::myPrivilegeName() != 'Service Center'  )
+                                @if (($row->transaction_type != 1 || CRUDBooster::myPrivilegeName() != 'RMA Specialist') && CRUDBooster::myPrivilegeName() != 'Service Center'  )
                                 <label class="col-md-2" for="case_status">Case Status:</label>
                                 <select class="col-md-2 js-example-basic-single" id="case_status" name="case_status">
                                 @foreach ($case_status as $case_status_name)
